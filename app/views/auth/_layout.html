@@ -1,0 +1,36 @@
+{# Diseño común de las pantallas de acceso (entrar y registrarse): escena a pantalla completa,
+   dados flotando y una tarjeta de pergamino con el logo. #}
+{% extends "base.html" %}
+{% block body_class %}auth-page{% endblock %}
+{% block topbar %}{% endblock %}
+{% block flashes %}{% endblock %}
+{% block content %}
+{% from "_dice.html" import d20, d6, d8, d4, d10 %}
+<div class="auth-scene">
+  {# Dados de decoración (no se leen con lector de pantalla) #}
+  <div class="auth-dice" aria-hidden="true">
+    {{ d6('die-green auth-die auth-die-1') }}
+    {{ d8('die-violet auth-die auth-die-2') }}
+    {{ d4('die-teal auth-die auth-die-3') }}
+    {{ d10('die-amber auth-die auth-die-4') }}
+    {{ d20('die-violet auth-die auth-die-5') }}
+    {{ d6('die-red auth-die auth-die-6') }}
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-hero">{{ d20('die-red auth-d20') }}</div>
+    <h1 class="auth-logo">Back<span class="amp">&amp;</span>Pack</h1>
+    <p class="auth-tagline">{% block tagline %}Inventario y personajes para tus partidas de D&amp;D&nbsp;5e{% endblock %}</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% block auth_body %}{% endblock %}
+  </div>
+
+  <p class="auth-foot">Que los dados te sean propicios 🎲</p>
+</div>
+{% endblock %}

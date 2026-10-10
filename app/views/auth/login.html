@@ -1,15 +1,17 @@
-{% extends "base.html" %}
+{% extends "auth/_layout.html" %}
 {% block title %}Entrar{% endblock %}
-{% block content %}
-<div class="card auth">
-  <h1>Entrar</h1>
-  <form method="post">
-    <label>Usuario <input name="username" required autofocus></label>
-    <label>Contraseña <input name="password" type="password" required></label>
-    <button>Entrar</button>
-  </form>
-  {% if registration != 'closed' %}
-  <p class="small">¿Jugador nuevo? <a href="{{ url_for('auth.register') }}">Crea una cuenta</a>.</p>
-  {% endif %}
+{% block auth_body %}
+{% from "auth/_fields.html" import username_field, password_field %}
+<form method="post" class="auth-form">
+  {{ username_field(username, autofocus=not username) }}
+  {{ password_field(autofocus=username != '') }}
+  <button class="auth-submit">Entrar</button>
+</form>
+
+{% if registration != 'closed' %}
+<div class="auth-alt">
+  <span>¿Primera vez por aquí?</span>
+  <a class="btn btn-ghost auth-alt-btn" href="{{ url_for('auth.register') }}">Crear cuenta de jugador</a>
 </div>
+{% endif %}
 {% endblock %}

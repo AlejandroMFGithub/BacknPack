@@ -24,7 +24,7 @@
   </script>
   <script src="{{ asset('app.js') }}" defer></script>
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 {# Enlace del menú; se marca activo si la página actual pertenece a esa sección. #}
 {% macro nav_link(endpoint, label, prefixes) -%}
   {%- set current = request.endpoint or '' -%}
@@ -33,6 +33,7 @@
   <a href="{{ url_for(endpoint) }}" class="{{ 'active' if ns.active }}" {{ 'aria-current=page' if ns.active }}>{{ label }}</a>
 {%- endmacro %}
 
+{% block topbar %}
 <header class="topbar">
   <a class="brand" href="{{ url_for('main.index') }}">🎒 <span class="brand-text">Back&amp;Pack</span></a>
   {% if g.user %}
@@ -110,6 +111,7 @@
   </div>
   {% endif %}
 </header>
+{% endblock %}
 
 <main>
   {# Cada vista indica su página «padre» en el bloque back_url; si lo deja vacío no hay botón. #}
@@ -120,11 +122,13 @@
       Atrás
     </a>
   {% endif %}
+  {% block flashes %}
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for category, message in messages %}
       <div class="flash flash-{{ category }}">{{ message }}</div>
     {% endfor %}
   {% endwith %}
+  {% endblock %}
   {% block content %}{% endblock %}
 </main>
 </body>

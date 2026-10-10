@@ -40,7 +40,8 @@ def login():
             next_url = request.args.get("next", "")
             safe = next_url.startswith("/") and not next_url.startswith("//")
             return redirect(next_url if safe else url_for("main.index"))
-    return render_template("auth/login.html", registration=registration_mode())
+    return render_template("auth/login.html", registration=registration_mode(),
+                           username=request.form.get("username", "").strip())
 
 
 @bp.route("/register", methods=["GET", "POST"])
@@ -59,7 +60,8 @@ def register():
             _start_session(user_id)
             flash("¡Bienvenido, aventurero! Crea tu primer personaje.", "ok")
             return redirect(url_for("characters.new"))
-    return render_template("auth/register.html", registration=mode)
+    return render_template("auth/register.html", registration=mode,
+                           username=request.form.get("username", "").strip())
 
 
 @bp.route("/account", methods=["GET", "POST"])

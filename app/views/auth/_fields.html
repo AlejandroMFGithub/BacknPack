@@ -1,0 +1,20 @@
+{# Campos de las pantallas de acceso. #}
+
+{% macro username_field(value='', autofocus=true) -%}
+<label class="auth-label" for="username">Usuario</label>
+<div class="auth-input icon-user">
+  <input id="username" name="username" required autocomplete="username" autocapitalize="none"
+         spellcheck="false" {{ 'autofocus' if autofocus }} placeholder="Tu nombre de usuario" value="{{ value }}">
+</div>
+{%- endmacro %}
+
+{# new=true en el registro: el navegador puede sugerir una contraseña segura #}
+{% macro password_field(new=false, autofocus=false) -%}
+<label class="auth-label" for="password">Contraseña</label>
+<div class="auth-input icon-lock password-field">
+  <input id="password" name="password" type="password" required
+         autocomplete="{{ 'new-password' if new else 'current-password' }}" placeholder="••••••••" {{ 'autofocus' if autofocus }}>
+  <button type="button" class="toggle-password" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+</div>
+<p class="caps-warning" hidden>⇪ Bloq Mayús está activado</p>
+{%- endmacro %}

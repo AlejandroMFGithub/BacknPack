@@ -1,0 +1,77 @@
+{# Dados de rol en SVG (dibujos propios). Los colores salen de variables CSS:
+   --die-light, --die-mid, --die-dark, --die-darker (caras), --die-edge (aristas), --die-ink (número).
+   Clases de color disponibles en style.css: die-red, die-green, die-violet, die-teal, die-amber. #}
+
+{% macro d20(cls='') -%}
+<svg class="die {{ cls }}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+  <g stroke="var(--die-edge)" stroke-width="1.6" stroke-linejoin="round">
+    <polygon points="50,4 90,27 90,73 50,96 10,73 10,27" fill="var(--die-dark)"/>
+    <polygon points="50,4 10,27 50,24" fill="var(--die-light)"/>
+    <polygon points="50,4 90,27 50,24" fill="var(--die-mid)"/>
+    <polygon points="10,27 23,70 50,24" fill="var(--die-mid)"/>
+    <polygon points="90,27 77,70 50,24" fill="var(--die-dark)"/>
+    <polygon points="10,27 10,73 23,70" fill="var(--die-dark)"/>
+    <polygon points="90,27 90,73 77,70" fill="var(--die-darker)"/>
+    <polygon points="10,73 50,96 23,70" fill="var(--die-darker)"/>
+    <polygon points="90,73 50,96 77,70" fill="var(--die-darker)"/>
+    <polygon points="23,70 77,70 50,96" fill="var(--die-dark)"/>
+    <polygon points="50,24 77,70 23,70" fill="var(--die-light)"/>
+  </g>
+  <text x="50" y="61" text-anchor="middle" font-size="18" font-weight="bold"
+        font-family="Georgia, 'Times New Roman', serif" fill="var(--die-ink)">20</text>
+</svg>
+{%- endmacro %}
+
+{% macro d6(cls='') -%}
+<svg class="die {{ cls }}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+  <g stroke="var(--die-edge)" stroke-width="1.6" stroke-linejoin="round">
+    <polygon points="50,8 88,28 50,48 12,28" fill="var(--die-light)"/>
+    <polygon points="12,28 50,48 50,94 12,74" fill="var(--die-mid)"/>
+    <polygon points="88,28 50,48 50,94 88,74" fill="var(--die-dark)"/>
+  </g>
+  <g fill="var(--die-ink)">
+    <ellipse cx="50" cy="28" rx="5.5" ry="3.4"/>
+    <ellipse cx="22" cy="44" rx="3.6" ry="4.4"/><ellipse cx="40" cy="78" rx="3.6" ry="4.4"/>
+    <ellipse cx="78" cy="46" rx="3.6" ry="4.4"/><ellipse cx="69" cy="61" rx="3.6" ry="4.4"/><ellipse cx="60" cy="76" rx="3.6" ry="4.4"/>
+  </g>
+</svg>
+{%- endmacro %}
+
+{% macro d8(cls='') -%}
+<svg class="die {{ cls }}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+  <g stroke="var(--die-edge)" stroke-width="1.6" stroke-linejoin="round">
+    <polygon points="50,4 8,50 54,46" fill="var(--die-light)"/>
+    <polygon points="50,4 92,50 54,46" fill="var(--die-mid)"/>
+    <polygon points="8,50 50,96 54,46" fill="var(--die-dark)"/>
+    <polygon points="92,50 50,96 54,46" fill="var(--die-darker)"/>
+  </g>
+  <text x="38" y="41" text-anchor="middle" font-size="15" font-weight="bold"
+        font-family="Georgia, 'Times New Roman', serif" fill="var(--die-ink)">8</text>
+</svg>
+{%- endmacro %}
+
+{% macro d4(cls='') -%}
+<svg class="die {{ cls }}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+  <g stroke="var(--die-edge)" stroke-width="1.6" stroke-linejoin="round">
+    <polygon points="50,6 6,88 52,60" fill="var(--die-light)"/>
+    <polygon points="50,6 94,88 52,60" fill="var(--die-mid)"/>
+    <polygon points="6,88 94,88 52,60" fill="var(--die-dark)"/>
+  </g>
+  <text x="37" y="60" text-anchor="middle" font-size="14" font-weight="bold"
+        font-family="Georgia, 'Times New Roman', serif" fill="var(--die-ink)">4</text>
+</svg>
+{%- endmacro %}
+
+{% macro d10(cls='') -%}
+<svg class="die {{ cls }}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+  <g stroke="var(--die-edge)" stroke-width="1.6" stroke-linejoin="round">
+    <polygon points="50,4 28,60 10,44" fill="var(--die-mid)"/>
+    <polygon points="50,4 90,44 72,60" fill="var(--die-dark)"/>
+    <polygon points="10,44 28,60 50,72 50,96" fill="var(--die-darker)"/>
+    <polygon points="90,44 72,60 50,72 50,96" fill="var(--die-dark)"/>
+    <polygon points="50,4 72,60 50,72 28,60" fill="var(--die-light)"/>
+  </g>
+  <text x="50" y="57" text-anchor="middle" font-size="14" font-weight="bold"
+        font-family="Georgia, 'Times New Roman', serif" fill="var(--die-ink)">10</text>
+</svg>
+{%- endmacro %}

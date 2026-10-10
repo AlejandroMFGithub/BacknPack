@@ -1,21 +1,27 @@
-{% extends "base.html" %}
-{% block title %}Registro{% endblock %}
-{% block back_url %}{{ url_for('auth.login') }}{% endblock %}
-{% block content %}
-<div class="card auth">
-  <h1>Nueva cuenta de jugador</h1>
-  {% if registration == 'closed' %}
-    <p>El registro está cerrado. Pide a tu DM que lo abra o que te dé acceso.</p>
-  {% else %}
-  <form method="post">
-    <label>Usuario <input name="username" required autofocus></label>
-    <label>Contraseña <input name="password" type="password" required></label>
-    {% if registration == 'invite' %}
-      <label>Código de invitación <input name="invite" required autocomplete="off"></label>
-    {% endif %}
-    <button>Crear cuenta</button>
-  </form>
+{% extends "auth/_layout.html" %}
+{% block title %}Crear cuenta{% endblock %}
+{% block tagline %}Crea tu cuenta de jugador y únete a la partida{% endblock %}
+{% block auth_body %}
+{% from "auth/_fields.html" import username_field, password_field %}
+{% if registration == 'closed' %}
+  <p class="auth-closed">El registro está cerrado. Pide a tu DM que te dé acceso.</p>
+{% else %}
+<form method="post" class="auth-form">
+  {{ username_field(username, autofocus=not username) }}
+  {{ password_field(new=true, autofocus=username != '') }}
+  {% if registration == 'invite' %}
+    <label class="auth-label" for="invite">Código de invitación</label>
+    <div class="auth-input icon-key">
+      <input id="invite" name="invite" required autocomplete="off" autocapitalize="none" spellcheck="false"
+             placeholder="Te lo da tu DM">
+    </div>
   {% endif %}
-  <p class="small">¿Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Entra</a>.</p>
+  <button class="auth-submit">Crear cuenta</button>
+</form>
+{% endif %}
+
+<div class="auth-alt">
+  <span>¿Ya tienes cuenta?</span>
+  <a class="btn btn-ghost auth-alt-btn" href="{{ url_for('auth.login') }}">Entrar</a>
 </div>
 {% endblock %}

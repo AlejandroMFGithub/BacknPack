@@ -100,6 +100,37 @@
     document.querySelectorAll("details.menu[open], details.popover[open]").forEach(function (m) { m.removeAttribute("open"); });
   });
 
+  // --- Pantallas de acceso ----------------------------------------------------------------
+
+  // Mostrar / ocultar la contraseña
+  document.addEventListener("click", function (e) {
+    var button = e.target.closest(".toggle-password");
+    if (!button) return;
+    var input = button.parentElement.querySelector("input");
+    var show = input.type === "password";
+    input.type = show ? "text" : "password";
+    button.textContent = show ? "Ocultar" : "Mostrar";
+    button.setAttribute("aria-pressed", String(show));
+    button.setAttribute("aria-label", show ? "Ocultar contraseña" : "Mostrar contraseña");
+    input.focus();
+  });
+
+  // Aviso de Bloq Mayús al escribir la contraseña
+  ["keydown", "keyup"].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (!e.target.matches || !e.target.matches(".password-field input") || !e.getModifierState) return;
+      var warning = e.target.closest("form").querySelector(".caps-warning");
+      if (warning) warning.hidden = !e.getModifierState("CapsLock");
+    });
+  });
+
+  // Al entrar, el d20 rueda
+  document.addEventListener("submit", function (e) {
+    if (!e.target.matches(".auth-form") || e.defaultPrevented) return;
+    var die = document.querySelector(".auth-d20");
+    if (die) die.classList.add("rolling");
+  });
+
   // --- Copiar al portapapeles: <button data-copy="texto"> -------------------------------
 
   document.addEventListener("click", function (e) {
