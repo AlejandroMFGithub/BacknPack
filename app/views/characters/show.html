@@ -53,13 +53,12 @@
         <summary aria-label="Más opciones">⋯</summary>
         <div class="menu-panel">
           <a class="menu-item" href="{{ url_for('characters.edit', character_id=character.id) }}">✏️ Editar ficha</a>
-          {% if dm %}
+          {# Solo el dueño y el DM llegan a esta ficha: ambos pueden eliminar el personaje #}
           <hr>
           <form method="post" action="{{ url_for('characters.delete', character_id=character.id) }}"
-                onsubmit='return confirm({{ ("¿Eliminar a " ~ character.name ~ " con todo su inventario?") | tojson }})'>
+                onsubmit='return confirm({{ ("¿Eliminar a " ~ character.name ~ " con todo su inventario? No se puede deshacer.") | tojson }})'>
             <button class="danger">🗑️ Eliminar personaje</button>
           </form>
-          {% endif %}
         </div>
       </details>
     </div>

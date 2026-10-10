@@ -124,10 +124,13 @@ def edit(character_id):
 
 
 @bp.route("/<int:character_id>/delete", methods=["POST"])
-@dm_required
+@login_required
 def delete(character_id):
+    """El dueño o el DM eliminan un personaje (con su inventario, imagen e intercambios)."""
     character = get_character_or_404(character_id)
     Character.delete(character_id)
+    if session.get("character_id") == character_id:
+        session.pop("character_id", None)  # era el personaje con el que jugaba: tendrá que elegir otro
     flash(f"{character['name']} ha sido eliminado.", "ok")
     return redirect(url_for("characters.index"))
 

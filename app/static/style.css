@@ -473,7 +473,18 @@ a.context-chip:hover, .context-chip > summary:hover, .context-chip[open] > summa
 .char-entry { display: flex; flex-direction: column; gap: .6rem; }
 .char-entry.is-current { border-color: var(--ok-line); box-shadow: inset 4px 0 0 var(--buff); }
 .char-card { color: inherit; text-decoration: none; }
-.char-entry-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem; }
+.char-entry-foot { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.char-entry-foot > form:last-child { margin-left: auto; }  /* la papelera, a la derecha */
+
+/* Botón solo con icono (p. ej. la papelera) */
+.btn-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; padding: 0; border-radius: 8px;
+  background: transparent; color: var(--muted); border: 1px solid var(--line-strong);
+}
+.btn-icon svg { width: 18px; height: 18px; }
+.btn-icon:hover { filter: none; background: var(--paper-hover); color: var(--ink); }
+.btn-icon-danger:hover { background: #f8e6df; color: #8b1010; border-color: #d9a2a2; }
 
 /* Menú de campañas */
 .campaign-card.is-active { border-color: var(--ok-line); box-shadow: inset 4px 0 0 var(--buff); }
