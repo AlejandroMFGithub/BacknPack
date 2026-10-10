@@ -34,8 +34,43 @@
 {%- endmacro %}
 
 <header class="topbar">
-  <a class="brand" href="{{ url_for('main.index') }}">🎒 BacknPack</a>
+  <a class="brand" href="{{ url_for('main.index') }}">🎒 <span class="brand-text">BacknPack</span></a>
   {% if g.user %}
+  {% from "_macros.html" import avatar %}
+  {# Contexto: con qué personaje juega el jugador / en qué campaña trabaja el DM #}
+  {% if is_dm() %}
+    <details class="context-chip popover">
+      <summary title="Cambiar de campaña">
+        <span class="context-icon" aria-hidden="true">🗺</span>
+        <span class="context-text">{{ g.campaign.name if g.campaign else 'Sin campaña' }}</span>
+        <span class="context-caret" aria-hidden="true">▾</span>
+      </summary>
+      <div class="context-panel">
+        <div class="menu-label">Campaña activa</div>
+        {# Al cambiar: si estás en una lista, vuelves a esa misma lista; si no, al panel #}
+        {% set list_pages = ['dm.index', 'characters.index', 'shops.index', 'loot.index', 'trades.index'] %}
+        {% for cp in dm_campaigns() %}
+          <form method="post" action="{{ url_for('campaigns.activate', campaign_id=cp.id) }}">
+            <input type="hidden" name="next" value="{{ request.path if request.endpoint in list_pages else '' }}">
+            <button class="{{ 'current' if g.campaign and cp.id == g.campaign.id }}">
+              {{ '✓ ' if g.campaign and cp.id == g.campaign.id }}{{ cp.name }}
+              <span class="muted small">· {{ cp.character_count }} pj</span>
+            </button>
+          </form>
+        {% else %}
+          <p class="muted small">Aún no hay campañas.</p>
+        {% endfor %}
+        <hr>
+        <a class="menu-item" href="{{ url_for('campaigns.index') }}">⚙ Gestionar campañas</a>
+      </div>
+    </details>
+  {% elif g.character %}
+    <a class="context-chip" href="{{ url_for('campaigns.play') }}" title="Cambiar de personaje">
+      {{ avatar(g.character.id, g.character.name, g.character.avatar_version, 'sm') }}
+      <span class="context-text"><b>{{ g.character.name }}</b><small>{{ g.campaign.name if g.campaign }}</small></span>
+      <span class="context-caret" aria-hidden="true">⇄</span>
+    </a>
+  {% endif %}
   <button class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-panel">
     <svg class="icon-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -48,9 +83,23 @@
       {{ nav_link('loot.index', 'Botín', ['loot.']) }}
       {{ nav_link('trades.index', 'Intercambios', ['trades.']) }}
       {% if is_dm() %}
+        {% set tools_active = request.endpoint in ['campaigns.index', 'dm.items', 'dm.edit_item', 'dm.currencies'] %}
+        {# Escritorio: desplegable «Herramientas» (no cabe todo en una línea) #}
+        <details class="nav-tools popover">
+          <summary class="{{ 'active' if tools_active }}">Herramientas <span aria-hidden="true">▾</span></summary>
+          <div class="nav-tools-panel">
+            {{ nav_link('campaigns.index', '🗺 Campañas', ['campaigns.index']) }}
+            {{ nav_link('dm.items', '📦 Catálogo', ['dm.items', 'dm.edit_item']) }}
+            {{ nav_link('dm.currencies', '🪙 Divisas', ['dm.currencies']) }}
+          </div>
+        </details>
+        {# Móvil: las mismas, como lista dentro del menú ☰ #}
         <span class="nav-sep">Herramientas del DM</span>
-        {{ nav_link('dm.items', 'Catálogo', ['dm.items', 'dm.edit_item']) }}
-        {{ nav_link('dm.currencies', 'Divisas', ['dm.currencies']) }}
+        <span class="nav-tools-list">
+          {{ nav_link('campaigns.index', 'Campañas', ['campaigns.index']) }}
+          {{ nav_link('dm.items', 'Catálogo', ['dm.items', 'dm.edit_item']) }}
+          {{ nav_link('dm.currencies', 'Divisas', ['dm.currencies']) }}
+        </span>
       {% endif %}
     </nav>
     <div class="who">

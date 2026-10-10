@@ -1,5 +1,6 @@
-from ..db import get_db
+from ..db import get_db, now_text
 from ..text import LIKE_ESCAPE, like_prefix, like_terms, normalize
+from .campaign import Campaign
 from .errors import RuleError
 from .listing import PER_PAGE, paginate, sort_sql
 
@@ -23,10 +24,12 @@ INT_FIELDS = {
 FLOAT_FIELDS = {"speed": 9.0}
 
 _SELECT = """
-    SELECT c.*, u.username AS owner, av.version AS avatar_version
+    SELECT c.*, u.username AS owner, av.version AS avatar_version,
+           cp.name AS campaign_name, cp.archived AS campaign_archived
     FROM characters c
     JOIN users u ON u.id = c.user_id
     LEFT JOIN character_avatars av ON av.character_id = c.id
+    LEFT JOIN campaigns cp ON cp.id = c.campaign_id
 """
 
 SORTS = {
@@ -42,7 +45,7 @@ class Character:
     SORTS = SORTS
 
     @staticmethod
-    def search(q="", user_id=None, exclude_id=None, sort="name", page=1, per_page=PER_PAGE):
+    def search(q="", user_id=None, exclude_id=None, campaign_id=None, sort="name", page=1, per_page=PER_PAGE):
         """Personajes filtrados (por nombre o jugador) y paginados.
         sort='relevance' pone primero los nombres que empiezan por q."""
         where, params = [], []
@@ -55,6 +58,9 @@ class Character:
         if exclude_id is not None:
             where.append("c.id <> ?")
             params.append(exclude_id)
+        if campaign_id is not None:
+            where.append("c.campaign_id = ?")
+            params.append(campaign_id)
         if sort == "relevance" and q:
             order, order_params = "CASE WHEN c.search_name LIKE ?" + LIKE_ESCAPE + " THEN 0 ELSE 1 END, c.search_name, c.id", (like_prefix(q),)
         else:
@@ -62,13 +68,10 @@ class Character:
         return paginate(_SELECT, where, params, order, page, per_page, order_params)
 
     @staticmethod
-    def all():
-        return get_db().execute(_SELECT + " ORDER BY c.name").fetchall()
-
-    @staticmethod
     def for_user(user_id):
+        """Todos los personajes del jugador, agrupados por campaña."""
         return get_db().execute(
-            _SELECT + " WHERE c.user_id = ? ORDER BY c.name", (user_id,)
+            _SELECT + " WHERE c.user_id = ? ORDER BY cp.archived, cp.name, c.search_name", (user_id,)
         ).fetchall()
 
     @staticmethod
@@ -96,8 +99,10 @@ class Character:
         return clean
 
     @staticmethod
-    def create(user_id, data):
+    def create(user_id, data, campaign_id, for_player=False):
+        """Crea el personaje en una campaña (los jugadores, solo en campañas abiertas)."""
         clean = Character._clean(data)
+        clean["campaign_id"] = Campaign.require(campaign_id, for_player=for_player)["id"]
         cols = ", ".join(clean)
         marks = ", ".join("?" for _ in clean)
         db = get_db()
@@ -109,12 +114,25 @@ class Character:
         return character_id
 
     @staticmethod
-    def update(character_id, data):
+    def update(character_id, data, campaign_id=None):
+        """Actualiza la ficha. Con campaign_id (solo el DM) mueve el personaje de campaña:
+        sus intercambios pendientes se cancelan, porque el otro personaje ya no está en su mundo."""
         clean = Character._clean(data)
+        current = Character.get(character_id)
+        moving = campaign_id is not None and current is not None and campaign_id != current["campaign_id"]
+        if moving:
+            clean["campaign_id"] = Campaign.require(campaign_id)["id"]
         sets = ", ".join(f"{key} = ?" for key in clean)
         db = get_db()
         db.execute(f"UPDATE characters SET {sets} WHERE id = ?", (*clean.values(), character_id))
+        if moving:
+            db.execute(
+                """UPDATE trades SET status = 'cancelled', resolved_at = ?
+                   WHERE status = 'pending' AND (from_character_id = ? OR to_character_id = ?)""",
+                (now_text(), character_id, character_id),
+            )
         db.commit()
+        return moving
 
     @staticmethod
     def delete(character_id):

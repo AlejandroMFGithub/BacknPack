@@ -1,6 +1,7 @@
 """Capa Modelo: acceso a datos y reglas de negocio."""
 from .errors import RuleError
 from .user import User
+from .campaign import Campaign
 from .character import Character
 from .avatar import Avatar
 from .currency import Currency
@@ -14,6 +15,6 @@ from .loot import Loot
 from .trade import Trade
 
 __all__ = [
-    "RuleError", "User", "Character", "Avatar", "Currency", "Item", "ItemTrait", "Inventory",
+    "RuleError", "User", "Campaign", "Character", "Avatar", "Currency", "Item", "ItemTrait", "Inventory",
     "Condition", "ActivityLog", "Shop", "Loot", "Trade",
 ]

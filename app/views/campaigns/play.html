@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Elige personaje{% endblock %}
+{% block content %}
+{% from "_macros.html" import avatar %}
+<h1>¿Con quién juegas?</h1>
+<p class="muted">Solo verás las tiendas, botines e intercambios de la campaña de tu personaje.</p>
+
+{% for campaign_name, group in characters | groupby('campaign_name') %}
+<section class="card">
+  <h2>🗺 {{ campaign_name }}
+    {% if group[0].campaign_archived %}<span class="badge badge-off">Archivada</span>{% endif %}</h2>
+  <div class="grid play-grid">
+    {% for c in group %}
+    <form method="post" action="{{ url_for('campaigns.choose', character_id=c.id) }}">
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="play-card {{ 'is-current' if g.character and g.character.id == c.id }}" {{ 'disabled' if c.campaign_archived }}>
+        {{ avatar(c.id, c.name, c.avatar_version, 'md') }}
+        <span class="play-text">
+          <b>{{ c.name }}</b>
+          <span class="small">{{ c.race or '¿?' }} · {{ c.class_name or '¿?' }} {{ c.level }}</span>
+          {% if g.character and g.character.id == c.id %}<span class="badge badge-buff">Jugando</span>{% endif %}
+        </span>
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+<div class="card">
+  <p>Todavía no tienes personajes.</p>
+</div>
+{% endfor %}
+
+<p><a class="btn btn-ghost btn-small" href="{{ url_for('characters.new') }}">+ Crear personaje nuevo</a></p>
+{% endblock %}

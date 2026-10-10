@@ -44,7 +44,41 @@ MIGRATIONS = [
         version      TEXT NOT NULL  -- cambia en cada subida: invalida la caché del navegador
     );
     """,
+    # 5: campañas («mundos»): agrupan personajes, tiendas y botines
+    """
+    CREATE TABLE campaigns (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        name        TEXT    NOT NULL,
+        description TEXT,
+        is_open     INTEGER NOT NULL DEFAULT 1,  -- los jugadores pueden crear personajes en ella
+        archived    INTEGER NOT NULL DEFAULT 0,  -- oculta y bloqueada para los jugadores
+        created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    ALTER TABLE characters ADD COLUMN campaign_id INTEGER REFERENCES campaigns(id) ON DELETE CASCADE;
+    ALTER TABLE shops ADD COLUMN campaign_id INTEGER REFERENCES campaigns(id) ON DELETE CASCADE;
+    ALTER TABLE loot_pools ADD COLUMN campaign_id INTEGER REFERENCES campaigns(id) ON DELETE CASCADE;
+    CREATE INDEX idx_characters_campaign ON characters(campaign_id);
+    CREATE INDEX idx_shops_campaign ON shops(campaign_id);
+    CREATE INDEX idx_loot_campaign ON loot_pools(campaign_id);
+    ALTER TABLE users ADD COLUMN last_campaign_id INTEGER;  -- el DM vuelve a la última campaña usada
+    """,
+    # 6: lo que ya existía pasa a una «Campaña principal»
+    lambda db: _adopt_orphans(db),
 ]
+
+CAMPAIGN_TABLES = ("characters", "shops", "loot_pools")
+
+
+def _adopt_orphans(db):
+    if not any(db.execute(f"SELECT 1 FROM {t} WHERE campaign_id IS NULL LIMIT 1").fetchone()
+               for t in CAMPAIGN_TABLES):
+        return
+    campaign_id = db.insert(
+        "INSERT INTO campaigns (name, description) VALUES (?, ?)",
+        ("Campaña principal", "Creada automáticamente con los personajes, tiendas y botines que ya existían."),
+    )
+    for table in CAMPAIGN_TABLES:
+        db.execute(f"UPDATE {table} SET campaign_id = ? WHERE campaign_id IS NULL", (campaign_id,))
 
 
 def _backfill_search_names(db):

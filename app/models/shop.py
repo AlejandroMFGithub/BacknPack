@@ -1,6 +1,7 @@
 from ..db import get_db, transaction
 from ..text import LIKE_ESCAPE, like_terms, matches_all_words
 from .activity_log import ActivityLog
+from .campaign import Campaign
 from .currency import Currency
 from .errors import RuleError
 from .inventory import Inventory
@@ -36,11 +37,11 @@ class Shop:
     LISTING_SORTS = LISTING_SORTS
 
     @staticmethod
-    def all(active_only=False, q="", sort="name"):
-        sql = "SELECT * FROM shops"
+    def all(campaign_id, active_only=False, q="", sort="name"):
+        sql = "SELECT * FROM shops WHERE campaign_id = ?"
         if active_only:
-            sql += " WHERE active = 1"
-        rows = get_db().execute(sql + " ORDER BY " + sort_sql(SORTS, sort, "name")).fetchall()
+            sql += " AND active = 1"
+        rows = get_db().execute(sql + " ORDER BY " + sort_sql(SORTS, sort, "name"), (campaign_id,)).fetchall()
         return filter_by_name(rows, q)
 
     @staticmethod
@@ -48,13 +49,13 @@ class Shop:
         return get_db().execute("SELECT * FROM shops WHERE id = ?", (shop_id,)).fetchone()
 
     @staticmethod
-    def create(name, description, allow_exchange=True):
+    def create(name, description, campaign_id, allow_exchange=True):
         if not (name or "").strip():
             raise RuleError("La tienda necesita un nombre.")
         db = get_db()
         shop_id = db.insert(
-            "INSERT INTO shops (name, description, allow_exchange) VALUES (?, ?, ?)",
-            (name.strip(), (description or "").strip(), 1 if allow_exchange else 0),
+            "INSERT INTO shops (name, description, allow_exchange, campaign_id) VALUES (?, ?, ?, ?)",
+            (name.strip(), (description or "").strip(), 1 if allow_exchange else 0, campaign_id),
         )
         db.commit()
         return shop_id
@@ -143,6 +144,8 @@ class Shop:
             shop = Shop.get(listing["shop_id"])
             if not shop["active"]:
                 raise RuleError("La tienda está cerrada.")
+            if Campaign.of_character(character_id) != shop["campaign_id"]:
+                raise RuleError("Esa tienda está en otra campaña.")
             if quantity < 1:
                 raise RuleError("La cantidad debe ser al menos 1.")
             if listing["stock"] is not None and listing["stock"] < quantity:

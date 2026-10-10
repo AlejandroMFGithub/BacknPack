@@ -1,26 +1,27 @@
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
 from ..models import ActivityLog, Character, Condition, Currency, Item, ItemTrait, RuleError, Trade
 from ..models.item import CATEGORIES, RARITIES
 from ..models.item_trait import KINDS as TRAIT_KINDS
-from .helpers import ListArgs, dm_required, form_int, redirect_back
+from .helpers import ListArgs, campaign_required, dm_required, form_int, redirect_back
 
 bp = Blueprint("dm", __name__, url_prefix="/dm")
 
 
 @bp.route("/")
 @dm_required
+@campaign_required
 def index():
     args = ListArgs(Character.SORTS, "name")
-    characters = Character.search(args.q, sort=args.sort, page=args.page)
+    characters = Character.search(args.q, campaign_id=g.campaign["id"], sort=args.sort, page=args.page)
     effects = {c["id"]: Condition.for_character(c["id"], include_hidden=True) for c in characters}
     return render_template(
         "dm/index.html",
         characters=characters,
         args=args,
         effects=effects,
-        pending_trades=Trade.pending_count(),
-        log=ActivityLog.recent(),
+        pending_trades=Trade.pending_count(g.campaign["id"]),
+        log=ActivityLog.recent(g.campaign["id"]),
     )
 
 

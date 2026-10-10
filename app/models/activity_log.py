@@ -18,10 +18,12 @@ class ActivityLog:
         ).fetchall()
 
     @staticmethod
-    def recent(limit=30):
+    def recent(campaign_id, limit=30):
+        """Últimos movimientos de los personajes de una campaña."""
         return get_db().execute(
             """SELECT l.*, c.name AS character_name
-               FROM activity_log l LEFT JOIN characters c ON c.id = l.character_id
+               FROM activity_log l JOIN characters c ON c.id = l.character_id
+               WHERE c.campaign_id = ?
                ORDER BY l.id DESC LIMIT ?""",
-            (limit,),
+            (campaign_id, limit),
         ).fetchall()

@@ -3,18 +3,22 @@
 {% block back_url %}{{ url_for('trades.index') }}{% endblock %}
 {% block content %}
 {% from "_macros.html" import avatar, trait_chip, picker %}
-<h1>Proponer intercambio</h1>
+<h1>Proponer intercambio <span class="muted small">· {{ g.campaign.name }}</span></h1>
 
 <form method="get" class="card">
   <div class="form-grid">
     <div class="field">
-      <span class="field-label">Tu personaje</span>
-      {{ picker('from_id', url_for('api.characters'), 'Buscar tu personaje…', params={'mine': '1'},
-                value=from_char.id if from_char else none, label=from_char.name if from_char else '') }}
+      <span class="field-label">{{ 'De' if is_dm() else 'Tu personaje' }}</span>
+      {% if is_dm() %}
+        {{ picker('from_id', url_for('api.characters'), 'Buscar personaje…',
+                  value=from_char.id if from_char else none, label=from_char.name if from_char else '') }}
+      {% else %}
+        <span class="name-with-avatar fixed-field">{{ avatar(from_char.id, from_char.name, from_char.avatar_version, 'sm') }}<b>{{ from_char.name }}</b></span>
+      {% endif %}
     </div>
     <div class="field">
       <span class="field-label">Con</span>
-      {{ picker('to_id', url_for('api.characters'), 'Buscar personaje o jugador…',
+      {{ picker('to_id', url_for('api.characters'), 'Buscar personaje o jugador de la campaña…',
                 params={'exclude': from_char.id} if from_char else {},
                 value=to_char.id if to_char else none, label=to_char.name if to_char else '') }}
     </div>

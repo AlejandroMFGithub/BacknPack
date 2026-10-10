@@ -41,12 +41,15 @@ def items():
 @bp.route("/characters")
 @login_required
 def characters():
-    """?mine=1 limita a los personajes del jugador (el DM los ve todos)."""
+    """Personajes de la campaña activa. ?mine=1 limita a los del jugador (el DM los ve todos)."""
     q, page, sort = _args()
+    if g.campaign is None:  # sin campaña activa no hay a quién buscar
+        return jsonify(results=[], has_more=False, total=0)
     mine = request.args.get("mine") == "1" and not is_dm()
     found = Character.search(
         q, user_id=g.user["id"] if mine else None,
         exclude_id=request.args.get("exclude", type=int),
+        campaign_id=g.campaign["id"],  # solo personajes de la campaña activa
         sort=sort, page=page, per_page=PAGE_SIZE,
     )
     return _respond(found, lambda r: {

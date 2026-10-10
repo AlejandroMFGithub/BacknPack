@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Campañas{% endblock %}
+{% block back_url %}{{ url_for('dm.index') if g.campaign else '' }}{% endblock %}
+{% block content %}
+<h1>Campañas</h1>
+<p class="muted">Cada campaña es un mundo aparte con sus personajes, tiendas y botines.
+  El catálogo de objetos y las divisas son comunes a todas.</p>
+
+<details class="card" {{ 'open' if not campaigns }}>
+  <summary><b>+ Nueva campaña</b></summary>
+  <form method="post" style="margin-top:.8rem">
+    <label>Nombre <input name="name" required placeholder="La Maldición de Strahd"></label>
+    <label>Descripción <textarea name="description" placeholder="Para quién es, dónde transcurre…"></textarea></label>
+    <label class="inline"><input type="checkbox" name="is_open" value="1" checked> Los jugadores pueden crear personajes en ella</label>
+    <p><button>Crear campaña</button></p>
+  </form>
+</details>
+
+{% for cp in campaigns %}
+<div class="card campaign-card {{ 'is-active' if g.campaign and cp.id == g.campaign.id }} {{ 'is-archived' if cp.archived }}">
+  <div class="sheet-head">
+    <div>
+      <h2>{{ cp.name }}
+        {% if g.campaign and cp.id == g.campaign.id %}<span class="badge badge-buff">Activa</span>{% endif %}
+        {% if cp.archived %}<span class="badge badge-off">Archivada</span>
+        {% elif not cp.is_open %}<span class="badge">Cerrada a personajes nuevos</span>{% endif %}
+      </h2>
+      {% if cp.description %}<p class="small">{{ cp.description }}</p>{% endif %}
+      <div class="campaign-stats small muted">
+        <span>👤 {{ cp.character_count }} personaje{{ 's' if cp.character_count != 1 }}</span>
+        <span>🏪 {{ cp.shop_count }} tienda{{ 's' if cp.shop_count != 1 }}</span>
+        <span>💰 {{ cp.loot_count }} botín{{ 'es' if cp.loot_count != 1 }}</span>
+      </div>
+    </div>
+    <div class="row">
+      {% if not (g.campaign and cp.id == g.campaign.id) %}
+      <form class="inline" method="post" action="{{ url_for('campaigns.activate', campaign_id=cp.id) }}">
+        <button class="btn-small">Trabajar en esta</button></form>
+      {% endif %}
+      <details class="menu">
+        <summary aria-label="Opciones de la campaña">⋯</summary>
+        <div class="menu-panel">
+          <form method="post" action="{{ url_for('campaigns.toggle', campaign_id=cp.id, column='is_open') }}">
+            <button>{{ '🔒 No admitir personajes nuevos' if cp.is_open else '🔓 Admitir personajes nuevos' }}</button></form>
+          <form method="post" action="{{ url_for('campaigns.toggle', campaign_id=cp.id, column='archived') }}">
+            <button>{{ '📦 Archivar (los jugadores no podrán jugarla)' if not cp.archived else '📤 Desarchivar' }}</button></form>
+          <hr>
+          <form method="post" action="{{ url_for('campaigns.delete', campaign_id=cp.id) }}"
+                onsubmit='return confirm({{ ("¿Eliminar «" ~ cp.name ~ "» con sus tiendas y botines? No se puede deshacer.") | tojson }})'>
+            <button class="danger" {{ 'disabled' if cp.character_count }}
+                    title="{{ 'Tiene personajes: muévelos o archívala' if cp.character_count }}">🗑️ Eliminar campaña</button></form>
+        </div>
+      </details>
+    </div>
+  </div>
+  <details class="trait-form">
+    <summary>Editar nombre y descripción</summary>
+    <form method="post" action="{{ url_for('campaigns.edit', campaign_id=cp.id) }}">
+      <label>Nombre <input name="name" value="{{ cp.name }}" required></label>
+      <label>Descripción <textarea name="description">{{ cp.description or '' }}</textarea></label>
+      <button class="btn-small">Guardar</button>
+    </form>
+  </details>
+</div>
+{% endfor %}
+{% endblock %}

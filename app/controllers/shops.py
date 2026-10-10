@@ -1,38 +1,39 @@
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
 from ..models import Currency, Item, ItemTrait, RuleError, Shop
 from ..models.item import CATEGORIES, RARITIES
 from ..models.item_trait import KINDS as TRAIT_KINDS
 from .helpers import (
-    ListArgs, acting_character, dm_required, form_int, get_character_or_404, is_dm, login_required,
-    my_characters, redirect_back,
+    ListArgs, acting_character, campaign_required, dm_required, form_int, get_character_or_404,
+    in_campaign_or_404, is_dm, redirect_back,
 )
 
 bp = Blueprint("shops", __name__, url_prefix="/shops")
 
 
 def _get_shop(shop_id):
-    shop = Shop.get(shop_id)
-    if shop is None or (not shop["active"] and not is_dm()):
+    shop = in_campaign_or_404(Shop.get(shop_id))
+    if not shop["active"] and not is_dm():
         abort(404)
     return shop
 
 
 @bp.route("/")
-@login_required
+@campaign_required
 def index():
     args = ListArgs(Shop.SORTS, "name")
-    shops = Shop.all(active_only=not is_dm(), q=args.q, sort=args.sort)
+    shops = Shop.all(g.campaign["id"], active_only=not is_dm(), q=args.q, sort=args.sort)
     return render_template("shops/index.html", shops=shops, args=args)
 
 
 @bp.route("/new", methods=["POST"])
 @dm_required
+@campaign_required
 def new():
     try:
         shop_id = Shop.create(
-            request.form.get("name"), request.form.get("description"),
-            bool(request.form.get("allow_exchange")),
+            request.form.get("name"), request.form.get("description"), g.campaign["id"],
+            allow_exchange=bool(request.form.get("allow_exchange")),
         )
     except RuleError as e:
         flash(str(e), "error")
@@ -41,7 +42,7 @@ def new():
 
 
 @bp.route("/<int:shop_id>")
-@login_required
+@campaign_required
 def show(shop_id):
     shop = _get_shop(shop_id)
     args = ListArgs(Shop.LISTING_SORTS, "category", filters=["category"])
@@ -58,16 +59,16 @@ def show(shop_id):
         trait_kinds=TRAIT_KINDS,
         currencies=Currency.all(),
         acting=acting,
-        own_characters=[] if is_dm() else my_characters(),
         balance=Currency.balances(acting["id"]) if acting else [],
     )
 
 
 @bp.route("/<int:shop_id>/buy/<int:listing_id>", methods=["POST"])
-@login_required
+@campaign_required
 def buy(shop_id, listing_id):
     _get_shop(shop_id)
-    character = get_character_or_404(form_int("character_id"))
+    # El jugador compra siempre con el personaje con el que juega; el DM, con el que elija
+    character = get_character_or_404(form_int("character_id")) if is_dm() else g.character
     listing = Shop.get_listing(listing_id)
     if listing is None or listing["shop_id"] != shop_id:
         abort(404)
@@ -84,6 +85,7 @@ def buy(shop_id, listing_id):
 
 @bp.route("/<int:shop_id>/toggle/<column>", methods=["POST"])
 @dm_required
+@campaign_required
 def toggle(shop_id, column):
     if column not in ("active", "allow_exchange"):
         abort(400)
@@ -93,6 +95,7 @@ def toggle(shop_id, column):
 
 @bp.route("/<int:shop_id>/delete", methods=["POST"])
 @dm_required
+@campaign_required
 def delete(shop_id):
     Shop.delete(shop_id)
     flash("Tienda eliminada.", "ok")
@@ -101,6 +104,7 @@ def delete(shop_id):
 
 @bp.route("/<int:shop_id>/listings", methods=["POST"])
 @dm_required
+@campaign_required
 def add_listing(shop_id):
     _get_shop(shop_id)
     stock = request.form.get("stock", "").strip()
@@ -118,6 +122,7 @@ def add_listing(shop_id):
 
 @bp.route("/<int:shop_id>/listings/<int:listing_id>/delete", methods=["POST"])
 @dm_required
+@campaign_required
 def remove_listing(shop_id, listing_id):
     Shop.remove_listing(listing_id)
     return redirect_back(url_for("shops.show", shop_id=shop_id))

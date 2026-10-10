@@ -1,8 +1,10 @@
-from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request, url_for
+from flask import (
+    Blueprint, abort, flash, g, make_response, redirect, render_template, request, session, url_for,
+)
 
 from ..db import transaction
 from ..models import (
-    ActivityLog, Avatar, Character, Condition, Currency, Inventory, Item, ItemTrait, RuleError, User,
+    ActivityLog, Avatar, Campaign, Character, Condition, Currency, Inventory, Item, ItemTrait, RuleError, User,
 )
 from ..models.character import ABILITIES
 from ..models.condition import KINDS as CONDITION_KINDS, PRESETS
@@ -31,10 +33,14 @@ def _own_inventory_row(character_id, inventory_id):
 @bp.route("/")
 @login_required
 def index():
+    """DM: personajes de la campaña activa. Jugador: todos los suyos, de cualquier campaña."""
     args = ListArgs(Character.SORTS, "name")
-    characters = Character.search(
-        args.q, user_id=None if is_dm() else g.user["id"], sort=args.sort, page=args.page,
-    )
+    if is_dm():
+        if g.campaign is None:
+            return redirect(url_for("campaigns.index"))
+        characters = Character.search(args.q, campaign_id=g.campaign["id"], sort=args.sort, page=args.page)
+    else:
+        characters = Character.search(args.q, user_id=g.user["id"], sort=args.sort, page=args.page)
     return render_template("characters/index.html", characters=characters, args=args)
 
 
@@ -48,14 +54,21 @@ def new():
         try:
             if User.get(owner_id) is None:
                 raise RuleError("Ese jugador no existe.")
-            character_id = Character.create(owner_id, request.form)
+            character_id = Character.create(
+                owner_id, request.form, form_int("campaign_id"), for_player=not is_dm(),
+            )
         except RuleError as e:
             flash(str(e), "error")
         else:
+            if not is_dm():
+                session["character_id"] = character_id  # el personaje nuevo pasa a ser el activo
             flash("Personaje creado.", "ok")
-            return _back(character_id)
+            return redirect(url_for("characters.show", character_id=character_id))
+    campaigns = Campaign.all(include_archived=False) if is_dm() else Campaign.open_for_players()
     return render_template(
         "characters/form.html", character=request.form or None, editing=False, abilities=ABILITIES,
+        campaigns=campaigns,
+        selected_campaign=form_int("campaign_id") or (g.campaign["id"] if g.campaign else None),
     )
 
 
@@ -94,14 +107,19 @@ def edit(character_id):
     character = get_character_or_404(character_id)
     if request.method == "POST":
         try:
-            Character.update(character_id, request.form)
+            moved = Character.update(
+                character_id, request.form, campaign_id=form_int("campaign_id") if is_dm() else None,
+            )
         except RuleError as e:
             flash(str(e), "error")
         else:
-            flash("Ficha actualizada.", "ok")
-            return _back(character_id)
+            flash("Ficha actualizada." + (" Ha cambiado de campaña; sus intercambios pendientes se han cancelado."
+                                          if moved else ""), "ok")
+            return redirect(url_for("characters.show", character_id=character_id))
     return render_template(
-        "characters/form.html", character=character, editing=True, abilities=ABILITIES, users=[],
+        "characters/form.html", character=character, editing=True, abilities=ABILITIES,
+        campaigns=Campaign.all(include_archived=False) if is_dm() else [],
+        selected_campaign=character["campaign_id"],
     )
 
 

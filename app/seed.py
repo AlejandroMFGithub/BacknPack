@@ -1,6 +1,6 @@
 """Datos iniciales: cuenta de DM, divisas de 5e, catálogo básico y (opcional) una partida de ejemplo."""
 from .db import get_db
-from .models import Character, Condition, Currency, Inventory, Item, ItemTrait, Loot, Shop, User
+from .models import Campaign, Character, Condition, Currency, Inventory, Item, ItemTrait, Loot, Shop, User
 
 CURRENCIES = [
     ("pc", "Pieza de cobre", 1),
@@ -68,18 +68,28 @@ def _seed_demo(db):
     ana = User.create("ana", "ana")
     bruno = User.create("bruno", "bruno")
 
+    costa = Campaign.create({"name": "La Costa de la Espada", "is_open": 1,
+                             "description": "Puerto Niebla y sus alrededores: goblins, gremios y contrabando."})
+    helada = Campaign.create({"name": "Las Tierras Heladas", "is_open": 1,
+                              "description": "Una campaña aparte, en el norte: aquí no llegan las tiendas de la Costa."})
+
     lyra = Character.create(ana, {
         "name": "Lyra Vientoalto", "race": "Elfa del bosque", "class_name": "Exploradora",
         "level": 3, "background": "Forastera", "alignment": "Caótica buena",
         "strength": 11, "dexterity": 17, "constitution": 13, "intelligence": 10,
         "wisdom": 15, "charisma": 8, "hp_max": 28, "hp_current": 24, "armor_class": 14, "speed": 10.5,
-    })
+    }, costa)
     thorgar = Character.create(bruno, {
         "name": "Thorgar Puñohierro", "race": "Enano de las montañas", "class_name": "Guerrero",
         "level": 3, "background": "Soldado", "alignment": "Legal neutral",
         "strength": 17, "dexterity": 10, "constitution": 16, "intelligence": 9,
         "wisdom": 12, "charisma": 10, "hp_max": 34, "hp_current": 34, "armor_class": 18, "speed": 7.5,
-    })
+    }, costa)
+    # Ana juega también en otra campaña: al entrar tendrá que elegir personaje
+    sigrid = Character.create(ana, {
+        "name": "Sigrid Escarcha", "race": "Humana", "class_name": "Druida", "level": 2,
+        "wisdom": 16, "constitution": 14, "hp_max": 17, "hp_current": 17, "armor_class": 12,
+    }, helada)
 
     for char_id, item_name, qty, visible in [
         (lyra, "Arco corto", 1, True), (lyra, "Flechas (20)", 1, True), (lyra, "Daga", 2, True),
@@ -88,6 +98,7 @@ def _seed_demo(db):
         (thorgar, "Hacha de batalla", 1, True), (thorgar, "Cota de malla", 1, True),
         (thorgar, "Escudo", 1, True), (thorgar, "Raciones (1 día)", 5, True),
         (thorgar, "Antorcha", 3, True),
+        (sigrid, "Raciones (1 día)", 3, True), (sigrid, "Cuerda de cáñamo (15 m)", 1, True),
     ]:
         Inventory.add(char_id, item[item_name], qty, visible)
     for row in Inventory.for_character(lyra) + Inventory.for_character(thorgar):
@@ -105,6 +116,7 @@ def _seed_demo(db):
     for char_id, code, amount in [
         (lyra, "po", 25), (lyra, "pp", 30), (lyra, "ficha", 2),
         (thorgar, "po", 40), (thorgar, "ppt", 1), (thorgar, "pc", 57),
+        (sigrid, "pp", 12),
     ]:
         Currency.set_amount(char_id, cur[code], amount)
     db.commit()
@@ -114,7 +126,7 @@ def _seed_demo(db):
     Condition.create(lyra, {"name": "Marca del licántropo", "kind": "curse", "visible": 0,
                             "description": "Mordida por un hombre lobo. Aún no lo sabe.", "duration": "Hasta luna llena"})
 
-    forja = Shop.create("Forja de Brunhilda", "Armas y armaduras de calidad en Puerto Niebla.")
+    forja = Shop.create("Forja de Brunhilda", "Armas y armaduras de calidad en Puerto Niebla.", costa)
     for name, price, code, stock in [
         ("Espada larga", 15, "po", 3), ("Cimitarra", 25, "po", 2), ("Escudo", 10, "po", None),
         ("Cota de malla", 75, "po", 1), ("Flechas (20)", 1, "po", None),
@@ -122,11 +134,17 @@ def _seed_demo(db):
         Shop.add_listing(forja, item[name], price, cur[code], stock)
 
     mercado = Shop.create("Mercado de las Sombras", "Solo acepta fichas del gremio. No hagas preguntas.",
-                          allow_exchange=False)
+                          costa, allow_exchange=False)
     Shop.add_listing(mercado, item["Anillo de protección"], 3, cur["ficha"], 1)
     Shop.add_listing(mercado, item["Herramientas de ladrón"], 1, cur["ficha"], None)
 
-    guarida = Loot.create("Guarida goblin", "Restos tras derrotar a la banda de Dientepodrido.", "combat")
+    guarida = Loot.create("Guarida goblin", "Restos tras derrotar a la banda de Dientepodrido.", "combat", costa)
     Loot.add_entry(guarida, item_id=item["Cimitarra"], quantity=2)
     Loot.add_entry(guarida, item_id=item["Poción de curación"], quantity=1)
     Loot.add_entry(guarida, currency_id=cur["pp"], quantity=15)
+
+    trampero = Shop.create("Puesto del trampero", "Pieles y provisiones a cambio de plata.", helada)
+    for name, price, code in [("Raciones (1 día)", 6, "pp"), ("Antorcha", 1, "pc"), ("Cuerda de cáñamo (15 m)", 1, "po")]:
+        Shop.add_listing(trampero, item[name], price, cur[code], None)
+    cueva = Loot.create("Cueva del oso blanco", "Lo que quedó tras ahuyentar al oso.", "environment", helada)
+    Loot.add_entry(cueva, item_id=item["Poción de curación"], quantity=1)

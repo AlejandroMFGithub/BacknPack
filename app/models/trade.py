@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from ..db import get_db, now_text, transaction
 from .activity_log import ActivityLog
+from .campaign import Campaign
 from .currency import Currency
 from .errors import RuleError
 from .inventory import Inventory
@@ -37,9 +38,9 @@ class Trade:
     SORTS = SORTS
 
     @staticmethod
-    def search(user_id=None, status="", sort="pending", page=1, per_page=PER_PAGE):
-        """Intercambios (todos para el DM, o los de los personajes de user_id)."""
-        where, params = [], []
+    def search(campaign_id, user_id=None, status="", sort="pending", page=1, per_page=PER_PAGE):
+        """Intercambios de una campaña (todos para el DM, o los de los personajes de user_id)."""
+        where, params = ["fc.campaign_id = ?"], [campaign_id]
         if user_id is not None:
             where.append("(fc.user_id = ? OR tc.user_id = ?)")
             params += [user_id, user_id]
@@ -49,8 +50,11 @@ class Trade:
         return paginate(_SELECT, where, params, sort_sql(SORTS, sort, "pending"), page, per_page)
 
     @staticmethod
-    def pending_count():
-        return get_db().execute("SELECT COUNT(*) FROM trades WHERE status = 'pending'").fetchone()[0]
+    def pending_count(campaign_id):
+        return get_db().execute(
+            """SELECT COUNT(*) FROM trades t JOIN characters fc ON fc.id = t.from_character_id
+               WHERE t.status = 'pending' AND fc.campaign_id = ?""", (campaign_id,),
+        ).fetchone()[0]
 
     @staticmethod
     def get(trade_id):
@@ -78,6 +82,8 @@ class Trade:
             raise RuleError("No puedes comerciar contigo mismo.")
         if not (give_items or give_currency or take_items or take_currency):
             raise RuleError("La propuesta está vacía.")
+        if Campaign.of_character(from_id) != Campaign.of_character(to_id):
+            raise RuleError("Solo se puede comerciar con personajes de la misma campaña.")
 
         with transaction() as db:
             trade_id = db.insert(
@@ -122,6 +128,8 @@ class Trade:
             trade = Trade.get(trade_id)
             if trade is None or trade["status"] != "pending":
                 raise RuleError("Este intercambio ya no está pendiente.")
+            if Campaign.of_character(trade["from_character_id"]) != Campaign.of_character(trade["to_character_id"]):
+                raise RuleError("Los personajes ya no están en la misma campaña.")
             lines = db.execute("SELECT * FROM trade_lines WHERE trade_id = ?", (trade_id,)).fetchall()
             for line in lines:
                 if line["direction"] == "give":

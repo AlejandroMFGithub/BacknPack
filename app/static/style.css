@@ -407,6 +407,81 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 .picker-option.with-avatar { flex-direction: row; align-items: center; gap: .6rem; }
 .picker-text { display: flex; flex-direction: column; gap: .05rem; min-width: 0; }
 
+/* Herramientas del DM: desplegable en escritorio, lista en el menú del móvil */
+.nav-tools { position: relative; }
+.nav-tools > summary {
+  list-style: none; cursor: pointer; padding: .3rem .55rem; border-radius: 5px; color: #f4ecdc;
+}
+.nav-tools > summary::-webkit-details-marker { display: none; }
+.nav-tools > summary:hover, .nav-tools[open] > summary { background: #ffffff14; }
+.nav-tools > summary.active { background: #ffffff22; box-shadow: inset 0 -2px 0 #e9b949; }
+.nav-tools-panel {
+  position: absolute; left: 0; top: calc(100% + 6px); z-index: 40; min-width: 190px; padding: .3rem;
+  display: flex; flex-direction: column; gap: .1rem;
+  background: var(--paper); border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: var(--shadow-pop);
+}
+.topbar .nav-tools-panel a { color: var(--ink); padding: .45rem .6rem; border-radius: 6px; }
+.topbar .nav-tools-panel a:hover { background: var(--paper-hover); }
+.topbar .nav-tools-panel a.active { background: var(--paper-active); box-shadow: none; font-weight: 600; }
+.nav-tools-list { display: none; }
+.nav-links { flex-wrap: nowrap; }
+.nav-links a, .nav-tools > summary { white-space: nowrap; }
+
+/* --- Campañas y personaje activo --------------------------------------------------------- */
+
+/* Barra superior: con quién juega el jugador / campaña del DM */
+.context-chip { position: relative; flex: 0 1 auto; min-width: 0; }
+a.context-chip, .context-chip > summary {
+  display: flex; align-items: center; gap: .45rem; min-width: 0; max-width: 260px;
+  padding: .2rem .65rem .2rem .25rem; border-radius: 999px; cursor: pointer; list-style: none;
+  background: #ffffff14; border: 1px solid #f4ecdc33; color: #f4ecdc; text-decoration: none;
+}
+.context-chip > summary { padding-left: .6rem; }
+.context-chip > summary::-webkit-details-marker { display: none; }
+a.context-chip:hover, .context-chip > summary:hover, .context-chip[open] > summary { background: #ffffff24; text-decoration: none; }
+.context-chip .avatar { box-shadow: 0 0 0 1.5px var(--ink), 0 0 0 2.5px #e9b94999; }
+.context-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.context-text, .context-text b, .context-text small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.context-text small { font-size: .72rem; opacity: .75; }
+.context-caret { opacity: .7; font-size: .85rem; }
+.context-panel {
+  position: absolute; left: 0; top: calc(100% + 8px); z-index: 40; min-width: 240px; max-width: min(320px, 90vw);
+  padding: .35rem; display: flex; flex-direction: column; gap: .15rem; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: var(--shadow-pop);
+}
+.context-panel form { margin: 0; }
+.context-panel button, .context-panel .menu-item {
+  width: 100%; text-align: left; background: transparent; color: var(--ink); border: 0; border-radius: 6px;
+  padding: .45rem .6rem; font-size: .92rem; text-decoration: none; display: block;
+}
+.context-panel button:hover, .context-panel .menu-item:hover { background: var(--paper-hover); filter: none; }
+.context-panel button.current { background: var(--paper-active); font-weight: 600; }
+.context-panel hr { border: 0; border-top: 1px solid var(--line); margin: .2rem 0; }
+
+/* Elegir personaje */
+.play-grid { grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); }
+.play-grid form { margin: 0; }
+.play-card {
+  width: 100%; display: flex; align-items: center; gap: .8rem; padding: .7rem .8rem; text-align: left;
+  background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: 10px;
+}
+.play-card:hover:not([disabled]) { background: var(--paper-hover); border-color: var(--gold); filter: none; }
+.play-card.is-current { border: 2px solid var(--buff); background: var(--ok-soft); }
+.play-text { display: flex; flex-direction: column; gap: .1rem; align-items: flex-start; }
+
+/* Lista de personajes del jugador */
+.char-entry { display: flex; flex-direction: column; gap: .6rem; }
+.char-entry.is-current { border-color: var(--ok-line); box-shadow: inset 4px 0 0 var(--buff); }
+.char-card { color: inherit; text-decoration: none; }
+.char-entry-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem; }
+
+/* Menú de campañas */
+.campaign-card.is-active { border-color: var(--ok-line); box-shadow: inset 4px 0 0 var(--buff); }
+.campaign-card.is-archived { opacity: .75; }
+.campaign-stats { display: flex; flex-wrap: wrap; gap: .3rem 1rem; }
+.field-hint { display: block; font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+.fixed-field { min-height: 40px; padding: .2rem .1rem; }
+
 /* --- Pantallas táctiles: objetivos más grandes ------------------------------------- */
 
 @media (pointer: coarse) {
@@ -415,9 +490,9 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
   .menu-panel button, .menu-panel .menu-item { min-height: 42px; }
 }
 
-/* --- Tablet / móvil: menú hamburguesa ---------------------------------------------- */
+/* --- Tablet / móvil (menos de 1080 px): menú hamburguesa ---------------------------- */
 
-@media (max-width: 860px) {
+@media (max-width: 1080px) {
   .menu-toggle { display: inline-block; }
   .js .nav-panel {
     display: none; position: fixed; inset: var(--topbar-h) 0 0 0; z-index: 29;
@@ -429,6 +504,8 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
   .nav-links a { padding: .85rem 1.25rem; border-radius: 0; font-size: 1.1rem; border-bottom: 1px solid #ffffff12; }
   .nav-links a.active { box-shadow: inset 4px 0 0 #e9b949; }
   .nav-sep { display: block; padding: .9rem 1.25rem .3rem; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #f4ecdc88; }
+  .nav-tools { display: none; }
+  .nav-tools-list { display: flex; flex-direction: column; }
   .who { padding: 1rem 1.25rem; gap: 1rem; border-top: 1px solid #ffffff22; margin-top: .5rem; font-size: 1.05rem; }
   .nav-open { overflow: hidden; }  /* sin scroll detrás del menú */
 }
@@ -481,6 +558,11 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
   .list-form { order: 3; flex-basis: 100%; }
   .list-form label { flex: 1 1 100%; }
   .list-form input[type=number] { width: 100%; }
+
+  /* Barra superior: solo el icono de la mochila y un selector de contexto compacto */
+  .brand-text { display: none; }
+  .topbar { gap: .6rem; padding: .4rem .75rem; }
+  a.context-chip, .context-chip > summary { max-width: 190px; }
 
   /* Ficha: icono algo menor */
   .avatar-lg { --avatar-size: 72px; }

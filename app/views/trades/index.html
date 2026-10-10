@@ -7,7 +7,7 @@
   {% for l in items %}<div>{{ l.quantity }}× {{ l.label }}</div>{% else %}<div class="muted">nada</div>{% endfor %}
 {%- endmacro %}
 <div class="row spread">
-  <h1>Intercambios</h1>
+  <h1>Intercambios <span class="muted small">· {{ g.campaign.name }}</span></h1>
   <a class="btn btn-small" href="{{ url_for('trades.new') }}">+ Proponer intercambio</a>
 </div>
 {{ list_toolbar(args, search=false, filters=[('status', 'Estado', status.items() | list)]) }}

@@ -3,7 +3,7 @@
 {% block content %}
 {% from "_macros.html" import avatar, list_toolbar, pager with context %}
 <div class="row spread">
-  <h1>Panel del DM</h1>
+  <h1>Panel del DM <span class="muted small">· {{ g.campaign.name }}</span></h1>
   <div class="row">
     <a class="btn btn-small" href="{{ url_for('characters.new') }}">+ Personaje / PNJ</a>
     <a class="btn btn-small btn-ghost" href="{{ url_for('trades.index', status='pending') }}">Intercambios pendientes: {{ pending_trades }}</a>

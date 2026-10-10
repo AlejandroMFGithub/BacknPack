@@ -13,6 +13,21 @@
     <label>Nivel <input name="level" type="number" min="1" max="20" value="{{ field(character, 'level', 1) }}"></label>
     <label>Trasfondo <input name="background" value="{{ field(character, 'background') }}"></label>
     <label>Alineamiento <input name="alignment" value="{{ field(character, 'alignment') }}"></label>
+    {% if not editing or is_dm() %}
+    <label>Campaña
+      {% if campaigns %}
+      <select name="campaign_id" required>
+        {% if not editing %}<option value="">— Elige campaña —</option>{% endif %}
+        {% for cp in campaigns %}
+          <option value="{{ cp.id }}" {{ 'selected' if cp.id == selected_campaign }}>{{ cp.name }}</option>
+        {% endfor %}
+      </select>
+      {% else %}
+      <span class="field-hint">{{ 'Crea antes una campaña.' if is_dm() else 'El DM aún no ha abierto ninguna campaña. Pídeselo.' }}</span>
+      {% endif %}
+    </label>
+    {% if editing %}<p class="field-hint" style="grid-column:1/-1">Si lo mueves de campaña, sus intercambios pendientes se cancelarán.</p>{% endif %}
+    {% endif %}
     {% if is_dm() and not editing %}
     <div class="field">
       <span class="field-label">Jugador</span>

@@ -86,6 +86,18 @@ controlador los muestra como mensaje.
 
 ## Qué hace la v1
 
+**Campañas** (mundos separados)
+- Cada personaje, tienda y botín pertenece a una campaña. El catálogo de objetos y las
+  divisas son comunes a todas.
+- El jugador elige al entrar con qué personaje juega (si solo tiene uno, se elige solo) y solo
+  ve las tiendas, botines e intercambios de esa campaña. Se comprueba en el servidor: lo de otra
+  campaña devuelve 404, y comprar, recoger o comerciar entre campañas es imposible en el modelo.
+- El DM trabaja en una campaña activa (selector en la barra superior; recuerda la última) y
+  gestiona las campañas en *Herramientas → Campañas*: crear, editar, cerrar a personajes
+  nuevos, archivar (bloquea a los jugadores) y eliminar (solo si no tiene personajes).
+- Mover un personaje de campaña (editando su ficha, solo el DM) cancela sus intercambios pendientes.
+- Al actualizar, todo lo que ya existía pasa a una «Campaña principal».
+
 **DM**
 - Panel con todo el grupo, efectos activos y actividad reciente.
 - Ve y edita cualquier ficha; da y retira objetos; ajusta la bolsa.

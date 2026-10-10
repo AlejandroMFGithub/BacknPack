@@ -4,7 +4,8 @@
 {% block content %}
 {% from "_macros.html" import avatar, list_toolbar, pager with context %}
 <div class="row spread">
-  <h1>{{ 'Todos los personajes' if is_dm() else 'Mis personajes' }}</h1>
+  <h1>{{ 'Personajes' if is_dm() else 'Mis personajes' }}
+    {% if is_dm() %}<span class="muted small">· {{ g.campaign.name }}</span>{% endif %}</h1>
   <a class="btn btn-small" href="{{ url_for('characters.new') }}">+ Nuevo personaje</a>
 </div>
 
@@ -16,8 +17,9 @@
 
 <div class="grid">
   {% for c in characters %}
-  <a class="card" href="{{ url_for('characters.show', character_id=c.id) }}" style="text-decoration:none;color:inherit">
-    <div class="char-card">
+  {% set playing = g.character and g.character.id == c.id %}
+  <div class="card char-entry {{ 'is-current' if playing }}">
+    <a class="char-card" href="{{ url_for('characters.show', character_id=c.id) }}">
       {{ avatar(c.id, c.name, c.avatar_version, 'md') }}
       <div>
         <h2>{{ c.name }}</h2>
@@ -25,8 +27,21 @@
         <div class="muted small">PG {{ c.hp_current }}/{{ c.hp_max }} · CA {{ c.armor_class }}
           {% if is_dm() %} · jugador: {{ c.owner }}{% endif %}</div>
       </div>
+    </a>
+    {% if not is_dm() %}
+    <div class="char-entry-foot">
+      <span class="badge">🗺 {{ c.campaign_name }}</span>
+      {% if playing %}
+        <span class="badge badge-buff">Jugando</span>
+      {% elif not c.campaign_archived %}
+        <form class="inline" method="post" action="{{ url_for('campaigns.choose', character_id=c.id) }}">
+          <button class="btn-small btn-ghost">Jugar con este</button></form>
+      {% else %}
+        <span class="badge badge-off">Campaña archivada</span>
+      {% endif %}
     </div>
-  </a>
+    {% endif %}
+  </div>
   {% endfor %}
 </div>
 {{ pager(characters) }}

@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS character_currencies;
 DROP TABLE IF EXISTS currencies;
 DROP TABLE IF EXISTS characters;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS campaigns;
 
 CREATE TABLE users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,

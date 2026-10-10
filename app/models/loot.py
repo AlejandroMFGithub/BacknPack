@@ -1,5 +1,6 @@
 from ..db import get_db, transaction
 from .activity_log import ActivityLog
+from .campaign import Campaign
 from .currency import Currency
 from .errors import RuleError
 from .inventory import Inventory
@@ -25,8 +26,8 @@ class Loot:
     ENTRY_SORTS = ENTRY_SORTS
 
     @staticmethod
-    def all(active_only=False, q="", kind="", sort="recent"):
-        sql, params = "SELECT * FROM loot_pools WHERE 1 = 1", []
+    def all(campaign_id, active_only=False, q="", kind="", sort="recent"):
+        sql, params = "SELECT * FROM loot_pools WHERE campaign_id = ?", [campaign_id]
         if active_only:
             sql += " AND active = 1"
         if kind in KINDS:
@@ -40,15 +41,15 @@ class Loot:
         return get_db().execute("SELECT * FROM loot_pools WHERE id = ?", (pool_id,)).fetchone()
 
     @staticmethod
-    def create(name, description, kind):
+    def create(name, description, kind, campaign_id):
         if not (name or "").strip():
             raise RuleError("El botín necesita un nombre.")
         if kind not in KINDS:
             raise RuleError("Tipo de botín no válido.")
         db = get_db()
         pool_id = db.insert(
-            "INSERT INTO loot_pools (name, description, kind) VALUES (?, ?, ?)",
-            (name.strip(), (description or "").strip(), kind),
+            "INSERT INTO loot_pools (name, description, kind, campaign_id) VALUES (?, ?, ?, ?)",
+            (name.strip(), (description or "").strip(), kind, campaign_id),
         )
         db.commit()
         return pool_id
@@ -110,6 +111,8 @@ class Loot:
             pool = Loot.get(entry["pool_id"])
             if not pool["active"]:
                 raise RuleError("Este botín ya no está disponible.")
+            if Campaign.of_character(character_id) != pool["campaign_id"]:
+                raise RuleError("Ese botín está en otra campaña.")
             if quantity < 1 or quantity > entry["quantity"]:
                 raise RuleError(f"Cantidad no válida (quedan {entry['quantity']}).")
 

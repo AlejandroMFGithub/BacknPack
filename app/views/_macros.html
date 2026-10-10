@@ -74,20 +74,18 @@
 {%- endmacro %}
 
 {# «Comprar como» / «Recoger como»: personaje que actúa en tiendas y botines (?as=). #}
-{% macro acting_box(acting, own_characters, balance, verb) -%}
+{# El jugador actúa siempre con el personaje con el que juega; el DM elige uno de la campaña. #}
+{% macro acting_box(acting, balance, verb) -%}
 <div class="card acting">
   <form method="get" class="acting-form">
     {% for k, v in request.args.items() if k not in ('as', 'page') %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
     <label>{% if acting %}{{ avatar(acting.id, acting.name, acting.avatar_version, 'sm') }}{% endif %}{{ verb }} como
       {% if is_dm() %}
-        {{ picker('as', url_for('api.characters'), 'Buscar personaje…', value=acting.id if acting else none,
+        {{ picker('as', url_for('api.characters'), 'Buscar personaje de la campaña…', value=acting.id if acting else none,
                   label=acting.name if acting else '', submit=true) }}
-      {% elif own_characters | length > 1 %}
-        <select name="as" data-autosubmit>
-          {% for c in own_characters %}<option value="{{ c.id }}" {{ 'selected' if acting and c.id == acting.id }}>{{ c.name }}</option>{% endfor %}
-        </select>
       {% elif acting %}
         <b class="acting-name">{{ acting.name }}</b>
+        <a class="small" href="{{ url_for('campaigns.play', next=request.path) }}">cambiar</a>
       {% endif %}
     </label>
   </form>

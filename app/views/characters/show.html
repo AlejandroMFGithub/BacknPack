@@ -39,11 +39,16 @@
         <div>{{ character.race or '¿?' }} · {{ character.class_name or '¿?' }} nivel {{ character.level }}
           {% if character.background %} · {{ character.background }}{% endif %}
           {% if character.alignment %} · {{ character.alignment }}{% endif %}</div>
-        {% if dm %}<div class="muted small">Jugador: {{ character.owner }}</div>{% endif %}
+        <div class="muted small">🗺 {{ character.campaign_name }}{% if dm %} · jugador: {{ character.owner }}{% endif %}</div>
       </div>
     </div>
     <div class="row">
-      <a class="btn btn-ghost btn-small" href="{{ url_for('trades.new', from_id=character.id) }}">Intercambiar</a>
+      {% if dm or (g.character and g.character.id == character.id) %}
+        <a class="btn btn-ghost btn-small" href="{{ url_for('trades.new', from_id=character.id) }}">Intercambiar</a>
+      {% else %}
+        <form class="inline" method="post" action="{{ url_for('campaigns.choose', character_id=character.id) }}">
+          <button class="btn-small btn-ghost">Jugar con este</button></form>
+      {% endif %}
       <details class="menu">
         <summary aria-label="Más opciones">⋯</summary>
         <div class="menu-panel">

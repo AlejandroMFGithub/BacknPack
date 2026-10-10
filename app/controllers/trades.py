@@ -3,17 +3,18 @@ from flask import Blueprint, abort, flash, g, redirect, render_template, request
 from ..models import Character, Currency, Inventory, ItemTrait, RuleError, Trade
 from ..models.item_trait import KINDS as TRAIT_KINDS
 from ..models.trade import STATUS
-from .helpers import ListArgs, collect_quantities, redirect_back, get_character_or_404, is_dm, login_required
+from .helpers import ListArgs, campaign_required, collect_quantities, is_dm, login_required, redirect_back
 
 bp = Blueprint("trades", __name__, url_prefix="/trades")
 
 
 @bp.route("/")
-@login_required
+@campaign_required
 def index():
     args = ListArgs(Trade.SORTS, "pending", filters=["status"])
     trades = Trade.search(
-        None if is_dm() else g.user["id"], status=args.status, sort=args.sort, page=args.page,
+        g.campaign["id"], None if is_dm() else g.user["id"],
+        status=args.status, sort=args.sort, page=args.page,
     )
     return render_template(
         "trades/index.html",
@@ -24,13 +25,24 @@ def index():
     )
 
 
+def _campaign_character(character_id):
+    """Personaje de la campaña activa (los de otras campañas no existen aquí)."""
+    character = Character.get(character_id) if character_id else None
+    if character is None or character["campaign_id"] != g.campaign["id"]:
+        abort(404)
+    return character
+
+
 @bp.route("/new", methods=["GET", "POST"])
-@login_required
+@campaign_required
 def new():
-    from_id = request.values.get("from_id", type=int)
     to_id = request.values.get("to_id", type=int)
-    from_char = get_character_or_404(from_id) if from_id else None
-    to_char = (Character.get(to_id) or abort(404)) if to_id else None
+    if is_dm():
+        from_id = request.values.get("from_id", type=int)
+        from_char = _campaign_character(from_id) if from_id else None
+    else:
+        from_char = g.character  # el jugador comercia con el personaje con el que juega
+    to_char = _campaign_character(to_id) if to_id else None
 
     if request.method == "POST" and from_char and to_char:
         try:

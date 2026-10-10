@@ -1,9 +1,9 @@
 import functools
 from urllib.parse import urlparse
 
-from flask import abort, g, redirect, request, url_for
+from flask import abort, flash, g, redirect, request, session, url_for
 
-from ..models import Character
+from ..models import Campaign, Character
 
 
 def is_dm():
@@ -29,6 +29,38 @@ def dm_required(view):
     return wrapped
 
 
+def campaign_required(view):
+    """Vistas de una campaña (tiendas, botines, intercambios, panel del DM).
+    El jugador necesita un personaje elegido; el DM, una campaña activa."""
+    @functools.wraps(view)
+    @login_required
+    def wrapped(*args, **kwargs):
+        if g.campaign is None:
+            if is_dm():
+                flash("Crea o elige una campaña para empezar.", "error")
+                return redirect(url_for("campaigns.index"))
+            return redirect(url_for("campaigns.play", next=request.full_path.rstrip("?")))
+        if g.campaign["archived"] and not is_dm():
+            flash("La campaña de tu personaje está archivada. Elige otro personaje.", "error")
+            return redirect(url_for("campaigns.play"))
+        return view(*args, **kwargs)
+    return wrapped
+
+
+def in_campaign_or_404(row):
+    """Algo de otra campaña no existe para el jugador. Si es el DM, cambia a esa campaña."""
+    if row is None:
+        abort(404)
+    if row["campaign_id"] != g.campaign["id"]:
+        if not is_dm():
+            abort(404)
+        session["campaign_id"] = row["campaign_id"]
+        Campaign.remember_for(g.user["id"], row["campaign_id"])
+        g.campaign = Campaign.get(row["campaign_id"])
+        flash(f"Cambiado a la campaña «{g.campaign['name']}».", "ok")
+    return row
+
+
 def get_character_or_404(character_id):
     """Devuelve el personaje si el usuario actual puede manejarlo (dueño o DM)."""
     character = Character.get(character_id) if character_id else None
@@ -39,21 +71,14 @@ def get_character_or_404(character_id):
     return character
 
 
-def my_characters():
-    """Personajes propios del jugador (pocos). El DM usa el buscador en su lugar."""
-    return Character.for_user(g.user["id"])
-
-
 def acting_character():
-    """Personaje con el que se compra o se recoge botín: ?as=<id>, o el primero del jugador.
-    El DM lo elige con el buscador (devuelve None hasta que elija)."""
+    """Personaje con el que se compra o se recoge botín.
+    Jugador: siempre el que ha elegido al entrar. DM: el de ?as=<id>, de la campaña activa."""
+    if not is_dm():
+        return g.character
     character_id = request.args.get("as", type=int)
-    if character_id:
-        return get_character_or_404(character_id)
-    if is_dm():
-        return None
-    own = my_characters()
-    return own[0] if own else None
+    character = Character.get(character_id) if character_id else None
+    return character if character and character["campaign_id"] == g.campaign["id"] else None
 
 
 class ListArgs:
