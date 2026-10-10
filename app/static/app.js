@@ -18,6 +18,36 @@
     if (form.requestSubmit) form.requestSubmit(); else form.submit();
   }
 
+  /** Texto con las palabras buscadas marcadas (<mark>), ignorando tildes y mayúsculas. */
+  function highlight(text, query) {
+    var span = el("span", "picker-label");
+    var words = norm(query).split(/\s+/).filter(Boolean);
+    // Normaliza letra a letra para que las posiciones coincidan con el texto original
+    var folded = Array.prototype.map.call(text, function (ch) { return norm(ch) || ch; });
+    if (!words.length || folded.some(function (c) { return c.length !== 1; })) {
+      span.textContent = text;
+      return span;
+    }
+    var haystack = folded.join("");
+    var marked = text.split("").map(function () { return false; });
+    words.forEach(function (word) {
+      for (var i = haystack.indexOf(word); i !== -1; i = haystack.indexOf(word, i + word.length)) {
+        for (var k = i; k < i + word.length; k++) marked[k] = true;
+      }
+    });
+    for (var start = 0; start < text.length;) {
+      var end = start;
+      while (end < text.length && marked[end] === marked[start]) end++;
+      var chunk = text.slice(start, end);
+      span.appendChild(marked[start] ? el("mark", "", chunk) : document.createTextNode(chunk));
+      start = end;
+    }
+    return span;
+  }
+
+  var FUNNEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/></svg>';
+
   // --- Menú hamburguesa y desplegables «⋯» --------------------------------------------
 
   function setNav(open) {
@@ -115,9 +145,13 @@
 
     var filters = JSON.parse(root.getAttribute("data-filters") || "[]");
     if (filters.length) {
-      var toggle = el("button", "picker-filter-btn btn-small btn-ghost", "Filtros");
+      var toggle = el("button", "picker-filter-btn");
       toggle.type = "button";
+      toggle.innerHTML = FUNNEL_ICON + "<span>Filtros</span>";
       toggle.setAttribute("aria-expanded", "false");
+      var badge = el("span", "picker-filter-count");
+      badge.hidden = true;
+      toggle.appendChild(badge);
       control.appendChild(toggle);
       var box = el("div", "picker-filters");
       box.hidden = true;
@@ -132,7 +166,10 @@
         });
         select.addEventListener("change", function () {
           var count = self.filterSelects.filter(function (s) { return s.value; }).length;
-          toggle.textContent = count ? "Filtros (" + count + ")" : "Filtros";
+          badge.textContent = count;
+          badge.hidden = !count;
+          toggle.classList.toggle("is-active", count > 0);
+          toggle.setAttribute("aria-label", count ? "Filtros (" + count + " activos)" : "Filtros");
           self.search(true);
           self.input.focus();
         });
@@ -239,7 +276,7 @@
       li.id = self.list.id + "-" + i;
       li.setAttribute("role", "option");
       li.setAttribute("data-index", i);
-      li.appendChild(el("span", "picker-label", item.label));
+      li.appendChild(highlight(item.label, self.input.value));
       if (item.sub) li.appendChild(el("span", "picker-sub", item.sub));
       self.list.appendChild(li);
     });
