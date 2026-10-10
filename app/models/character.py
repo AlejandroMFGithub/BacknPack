@@ -102,7 +102,7 @@ class Character:
     def create(user_id, data, campaign_id, for_player=False):
         """Crea el personaje en una campaña (los jugadores, solo en campañas abiertas)."""
         clean = Character._clean(data)
-        clean["campaign_id"] = Campaign.require(campaign_id, for_player=for_player)["id"]
+        clean["campaign_id"] = Campaign.require(campaign_id, player_id=user_id if for_player else None)["id"]
         cols = ", ".join(clean)
         marks = ", ".join("?" for _ in clean)
         db = get_db()
@@ -110,6 +110,7 @@ class Character:
             f"INSERT INTO characters (user_id, {cols}) VALUES (?, {marks})",
             (user_id, *clean.values()),
         )
+        Campaign.add_member(clean["campaign_id"], user_id)  # su dueño pasa a estar en la campaña
         db.commit()
         return character_id
 
@@ -126,6 +127,7 @@ class Character:
         db = get_db()
         db.execute(f"UPDATE characters SET {sets} WHERE id = ?", (*clean.values(), character_id))
         if moving:
+            Campaign.add_member(clean["campaign_id"], current["user_id"])
             db.execute(
                 """UPDATE trades SET status = 'cancelled', resolved_at = ?
                    WHERE status = 'pending' AND (from_character_id = ? OR to_character_id = ?)""",

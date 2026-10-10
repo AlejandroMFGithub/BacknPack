@@ -75,6 +75,24 @@ def choose(character_id):
     return redirect(_safe_next(url_for("characters.show", character_id=character["id"])))
 
 
+@bp.route("/campaigns/join", methods=["POST"])
+@login_required
+def join():
+    """El jugador entra en una campaña con su código y pasa a crear su personaje en ella."""
+    if is_dm():
+        return redirect(url_for("campaigns.index"))
+    try:
+        campaign, already = Campaign.join(g.user["id"], request.form.get("code"))
+    except RuleError as e:
+        flash(str(e), "error")
+        return redirect_back(url_for("characters.new"))
+    if already:
+        flash(f"Ya estabas en «{campaign['name']}».", "ok")
+    else:
+        flash(f"¡Te has unido a «{campaign['name']}»! Ya puedes crear tu personaje en ella.", "ok")
+    return redirect(url_for("characters.new", campaign_id=campaign["id"]))
+
+
 # --- DM: menú de campañas ------------------------------------------------------------------
 
 @bp.route("/campaigns", methods=["GET", "POST"])
@@ -89,7 +107,9 @@ def index():
             _activate(campaign_id)
             flash("Campaña creada. Ahora es tu campaña activa.", "ok")
             return redirect(url_for("campaigns.index"))
-    return render_template("campaigns/index.html", campaigns=Campaign.all())
+    campaigns = Campaign.all()
+    return render_template("campaigns/index.html", campaigns=campaigns,
+                           members={cp["id"]: Campaign.members(cp["id"]) for cp in campaigns})
 
 
 def _activate(campaign_id):
@@ -132,6 +152,15 @@ def toggle(campaign_id, column):
     _campaign_or_404(campaign_id)
     Campaign.toggle(campaign_id, column)
     return redirect_back(url_for("campaigns.index"))
+
+
+@bp.route("/campaigns/<int:campaign_id>/code", methods=["POST"])
+@dm_required
+def regenerate_code(campaign_id):
+    campaign = _campaign_or_404(campaign_id)
+    Campaign.regenerate_code(campaign_id)
+    flash(f"Nuevo código para «{campaign['name']}». El anterior ya no sirve.", "ok")
+    return redirect(url_for("campaigns.index"))
 
 
 @bp.route("/campaigns/<int:campaign_id>/delete", methods=["POST"])

@@ -64,9 +64,32 @@ MIGRATIONS = [
     """,
     # 6: lo que ya existía pasa a una «Campaña principal»
     lambda db: _adopt_orphans(db),
+    # 7: código para unirse a una campaña y jugadores que pertenecen a cada una
+    """
+    ALTER TABLE campaigns ADD COLUMN join_code TEXT;
+    CREATE UNIQUE INDEX idx_campaigns_join_code ON campaigns(join_code);
+    CREATE TABLE campaign_members (
+        campaign_id INTEGER NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+        user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        joined_at   TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (campaign_id, user_id)
+    );
+    """,
+    # 8: códigos para las campañas existentes; quien ya tenía personajes en una, es miembro
+    lambda db: _codes_and_members(db),
 ]
 
 CAMPAIGN_TABLES = ("characters", "shops", "loot_pools")
+
+
+def _codes_and_members(db):
+    from .models.campaign import new_join_code
+    for row in db.execute("SELECT id FROM campaigns WHERE join_code IS NULL").fetchall():
+        db.execute("UPDATE campaigns SET join_code = ? WHERE id = ?", (new_join_code(db), row["id"]))
+    db.execute(
+        """INSERT INTO campaign_members (campaign_id, user_id)
+           SELECT DISTINCT campaign_id, user_id FROM characters WHERE campaign_id IS NOT NULL"""
+    )
 
 
 def _adopt_orphans(db):

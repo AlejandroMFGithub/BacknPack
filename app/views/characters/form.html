@@ -2,8 +2,13 @@
 {% block title %}{{ 'Editar' if editing else 'Nuevo' }} personaje{% endblock %}
 {% block back_url %}{{ url_for('characters.show', character_id=character.id) if editing else url_for('characters.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import picker %}
+{% from "_macros.html" import picker, join_campaign_box %}
 <h1>{{ 'Editar ' ~ character.name if editing else 'Nuevo personaje' }}</h1>
+
+{% if not editing and not is_dm() %}
+  {# Abierto si aún no está en ninguna campaña: es lo primero que tiene que hacer #}
+  {{ join_campaign_box(open=not campaigns) }}
+{% endif %}
 
 <form method="post" class="card">
   <div class="form-grid">
@@ -19,11 +24,15 @@
       <select name="campaign_id" required>
         {% if not editing %}<option value="">— Elige campaña —</option>{% endif %}
         {% for cp in campaigns %}
-          <option value="{{ cp.id }}" {{ 'selected' if cp.id == selected_campaign }}>{{ cp.name }}</option>
+          {# Las campañas cerradas aparecen pero no se pueden elegir (el DM sí puede) #}
+          {% set closed = not cp.is_open and not is_dm() %}
+          <option value="{{ cp.id }}" {{ 'selected' if cp.id == selected_campaign and not closed }} {{ 'disabled' if closed }}>
+            {{ cp.name }}{{ ' (cerrada a personajes nuevos)' if closed }}</option>
         {% endfor %}
       </select>
+      {% if not is_dm() %}<span class="field-hint">Tus campañas. Para entrar en otra, usa su código arriba.</span>{% endif %}
       {% else %}
-      <span class="field-hint">{{ 'Crea antes una campaña.' if is_dm() else 'El DM aún no ha abierto ninguna campaña. Pídeselo.' }}</span>
+      <span class="field-hint">{{ 'Crea antes una campaña.' if is_dm() else 'Aún no estás en ninguna campaña: únete con el código que te dé tu DM.' }}</span>
       {% endif %}
     </label>
     {% if editing %}<p class="field-hint" style="grid-column:1/-1">Si lo mueves de campaña, sus intercambios pendientes se cancelarán.</p>{% endif %}

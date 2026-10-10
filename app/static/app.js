@@ -100,6 +100,24 @@
     document.querySelectorAll("details.menu[open], details.popover[open]").forEach(function (m) { m.removeAttribute("open"); });
   });
 
+  // --- Copiar al portapapeles: <button data-copy="texto"> -------------------------------
+
+  document.addEventListener("click", function (e) {
+    var button = e.target.closest("[data-copy]");
+    if (!button) return;
+    var text = button.getAttribute("data-copy");
+    var label = button.textContent;
+    function done(ok) {
+      button.textContent = ok ? "¡Copiado!" : text;  // si no se puede copiar, al menos se ve entero
+      setTimeout(function () { button.textContent = label; }, 1600);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+    } else {
+      done(false);
+    }
+  });
+
   // --- Listas: los desplegables de filtro/orden se aplican al cambiarlos ----------------
 
   document.addEventListener("change", function (e) {

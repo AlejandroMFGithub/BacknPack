@@ -50,7 +50,8 @@ def create_app(test_config=None):
         return redirect_back(url_for("main.index"))
 
     from .models.avatar import color_for, initial
-    app.jinja_env.globals.update(avatar_color=color_for, avatar_initial=initial)
+    from .models.campaign import format_code
+    app.jinja_env.globals.update(avatar_color=color_for, avatar_initial=initial, format_code=format_code)
 
     @app.template_filter("mod")
     def ability_modifier(score):

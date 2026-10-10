@@ -96,6 +96,11 @@ controlador los muestra como mensaje.
   gestiona las campañas en *Herramientas → Campañas*: crear, editar, cerrar a personajes
   nuevos, archivar (bloquea a los jugadores) y eliminar (solo si no tiene personajes).
 - Mover un personaje de campaña (editando su ficha, solo el DM) cancela sus intercambios pendientes.
+- **Código de campaña**: cada campaña tiene uno (p. ej. `K7QX-M4TP`) que el DM ve y copia en el
+  menú de campañas y puede regenerar si se filtra. Un jugador entra en una campaña con su código
+  y solo puede crear personajes en las campañas en las que está (el creador de personaje muestra
+  un selector con ellas). Una campaña «cerrada» no admite jugadores ni personajes nuevos.
+  El `INVITE_CODE` general sigue sirviendo solo para registrarse en la web.
 - Al actualizar, todo lo que ya existía pasa a una «Campaña principal».
 
 **DM**

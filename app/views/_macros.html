@@ -13,6 +13,21 @@
 </span>
 {%- endmacro %}
 
+{# Recuadro para que un jugador entre en una campaña con su código. #}
+{% macro join_campaign_box(open=false) -%}
+<details class="card join-box" {{ 'open' if open }}>
+  <summary><b>🔑 Unirme a una campaña con un código</b></summary>
+  <form method="post" action="{{ url_for('campaigns.join') }}" class="join-form">
+    <p class="small muted">Pídele a tu DM el código de su campaña (por ejemplo <code>K7QX-M4TP</code>).</p>
+    <div class="row">
+      <input name="code" required placeholder="XXXX-XXXX" maxlength="12" autocomplete="off"
+             autocapitalize="characters" spellcheck="false" class="code-input" aria-label="Código de campaña">
+      <button class="btn-small">Unirme</button>
+    </div>
+  </form>
+</details>
+{%- endmacro %}
+
 {# Barra de una lista: búsqueda por nombre, filtros y «Ordenar por».
    filters: [(nombre, etiqueta, opciones)], opciones = ["valor", …] o [("valor", "texto"), …]
    Los desplegables se aplican al cambiarlos; la búsqueda, con Enter o 🔍. #}

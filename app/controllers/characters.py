@@ -64,11 +64,14 @@ def new():
                 session["character_id"] = character_id  # el personaje nuevo pasa a ser el activo
             flash("Personaje creado.", "ok")
             return redirect(url_for("characters.show", character_id=character_id))
-    campaigns = Campaign.all(include_archived=False) if is_dm() else Campaign.open_for_players()
+    # DM: cualquier campaña. Jugador: solo las suyas (a otras se entra con su código)
+    campaigns = Campaign.all(include_archived=False) if is_dm() else Campaign.for_member(g.user["id"])
+    selected = form_int("campaign_id") or request.args.get("campaign_id", type=int)
+    if selected is None and g.campaign:
+        selected = g.campaign["id"]
     return render_template(
         "characters/form.html", character=request.form or None, editing=False, abilities=ABILITIES,
-        campaigns=campaigns,
-        selected_campaign=form_int("campaign_id") or (g.campaign["id"] if g.campaign else None),
+        campaigns=campaigns, selected_campaign=selected,
     )
 
 

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Elige personaje{% endblock %}
 {% block content %}
-{% from "_macros.html" import avatar %}
+{% from "_macros.html" import avatar, join_campaign_box %}
 <h1>¿Con quién juegas?</h1>
 <p class="muted">Solo verás las tiendas, botines e intercambios de la campaña de tu personaje.</p>
 
@@ -32,4 +32,5 @@
 {% endfor %}
 
 <p><a class="btn btn-ghost btn-small" href="{{ url_for('characters.new') }}">+ Crear personaje nuevo</a></p>
+{{ join_campaign_box() }}
 {% endblock %}

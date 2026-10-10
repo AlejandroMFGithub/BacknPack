@@ -11,7 +11,8 @@
   <form method="post" style="margin-top:.8rem">
     <label>Nombre <input name="name" required placeholder="La Maldición de Strahd"></label>
     <label>Descripción <textarea name="description" placeholder="Para quién es, dónde transcurre…"></textarea></label>
-    <label class="inline"><input type="checkbox" name="is_open" value="1" checked> Los jugadores pueden crear personajes en ella</label>
+    <label class="inline"><input type="checkbox" name="is_open" value="1" checked> Admite jugadores y personajes nuevos</label>
+    <p class="field-hint">Se generará un código para que tus jugadores entren en ella.</p>
     <p><button>Crear campaña</button></p>
   </form>
 </details>
@@ -23,10 +24,16 @@
       <h2>{{ cp.name }}
         {% if g.campaign and cp.id == g.campaign.id %}<span class="badge badge-buff">Activa</span>{% endif %}
         {% if cp.archived %}<span class="badge badge-off">Archivada</span>
-        {% elif not cp.is_open %}<span class="badge">Cerrada a personajes nuevos</span>{% endif %}
+        {% elif not cp.is_open %}<span class="badge">Cerrada a nuevos</span>{% endif %}
       </h2>
       {% if cp.description %}<p class="small">{{ cp.description }}</p>{% endif %}
+      <div class="join-code">
+        <span class="small muted">Código de campaña</span>
+        <code class="code-value">{{ format_code(cp.join_code) }}</code>
+        <button type="button" class="btn-small btn-ghost" data-copy="{{ format_code(cp.join_code) }}">Copiar</button>
+      </div>
       <div class="campaign-stats small muted">
+        <span title="{{ members[cp.id] | map(attribute='username') | join(', ') }}">🧑 {{ cp.member_count }} jugador{{ 'es' if cp.member_count != 1 }}{% if members[cp.id] %}: {{ members[cp.id] | map(attribute='username') | join(', ') }}{% endif %}</span>
         <span>👤 {{ cp.character_count }} personaje{{ 's' if cp.character_count != 1 }}</span>
         <span>🏪 {{ cp.shop_count }} tienda{{ 's' if cp.shop_count != 1 }}</span>
         <span>💰 {{ cp.loot_count }} botín{{ 'es' if cp.loot_count != 1 }}</span>
@@ -41,7 +48,10 @@
         <summary aria-label="Opciones de la campaña">⋯</summary>
         <div class="menu-panel">
           <form method="post" action="{{ url_for('campaigns.toggle', campaign_id=cp.id, column='is_open') }}">
-            <button>{{ '🔒 No admitir personajes nuevos' if cp.is_open else '🔓 Admitir personajes nuevos' }}</button></form>
+            <button>{{ '🔒 No admitir jugadores ni personajes nuevos' if cp.is_open else '🔓 Admitir jugadores y personajes nuevos' }}</button></form>
+          <form method="post" action="{{ url_for('campaigns.regenerate_code', campaign_id=cp.id) }}"
+                onsubmit="return confirm('El código actual dejará de servir. Quien ya está en la campaña sigue dentro. ¿Generar uno nuevo?')">
+            <button>🔄 Generar código nuevo</button></form>
           <form method="post" action="{{ url_for('campaigns.toggle', campaign_id=cp.id, column='archived') }}">
             <button>{{ '📦 Archivar (los jugadores no podrán jugarla)' if not cp.archived else '📤 Desarchivar' }}</button></form>
           <hr>

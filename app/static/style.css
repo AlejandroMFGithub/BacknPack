@@ -491,6 +491,22 @@ a.context-chip:hover, .context-chip > summary:hover, .context-chip[open] > summa
 .campaign-card.is-archived { opacity: .75; }
 .campaign-stats { display: flex; flex-wrap: wrap; gap: .3rem 1rem; }
 .field-hint { display: block; font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+
+/* Código de campaña */
+.join-code { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; margin: .2rem 0 .5rem; }
+.code-value {
+  font-family: "Consolas", "Courier New", monospace; font-size: 1.05rem; font-weight: bold; letter-spacing: .12em;
+  padding: .2rem .55rem; border-radius: 6px; color: var(--ink);
+  background: var(--paper-active); border: 1px dashed var(--gold);
+}
+.join-box summary { cursor: pointer; }
+.join-form { margin-top: .6rem; }
+.join-form .row { flex-wrap: nowrap; }
+.code-input {
+  flex: 1; min-width: 0; max-width: 220px; text-transform: uppercase; letter-spacing: .15em;
+  font-family: "Consolas", "Courier New", monospace; font-size: 1.05rem;
+}
+.code-input::placeholder { letter-spacing: .15em; }
 .fixed-field { min-height: 40px; padding: .2rem .1rem; }
 
 /* --- Pantallas táctiles: objetivos más grandes ------------------------------------- */
