@@ -1,5 +1,5 @@
 from ..db import get_db, now_text
-from ..text import LIKE_ESCAPE, like_prefix, like_terms, normalize
+from ..text import LIKE_ESCAPE, distances, like_prefix, like_terms, normalize
 from . import rules
 from .campaign import Campaign
 from .errors import RuleError
@@ -23,7 +23,7 @@ INT_FIELDS = {
     "armor_class": 10,
     "initiative_bonus": 0,
 }
-FLOAT_FIELDS = {"speed": 9.0}
+FLOAT_FIELDS = {"speed": 30.0}  # velocidad en pies (30 ft = 6 casillas)
 
 _SELECT = """
     SELECT c.*, u.username AS owner, av.version AS avatar_version,
@@ -88,6 +88,7 @@ class Character:
         clean = {"name": name, "search_name": normalize(name)}
         for key in TEXT_FIELDS:
             clean[key] = (data.get(key) or "").strip()
+        clean["notes"] = distances(clean["notes"])
         for key, default in INT_FIELDS.items():
             try:
                 clean[key] = int(data.get(key, default))

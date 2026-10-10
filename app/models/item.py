@@ -1,5 +1,5 @@
 from ..db import get_db
-from ..text import LIKE_ESCAPE, like_prefix, like_terms, normalize
+from ..text import LIKE_ESCAPE, distances, like_prefix, like_terms, normalize
 from .errors import RuleError
 from .listing import PER_PAGE, paginate, sort_sql
 
@@ -58,7 +58,7 @@ class Item:
 
     @staticmethod
     def _clean(data):
-        name = (data.get("name") or "").strip()
+        name = distances((data.get("name") or "").strip())
         if not name:
             raise RuleError("El objeto necesita un nombre.")
         try:
@@ -71,8 +71,8 @@ class Item:
             "category": data.get("category") if data.get("category") in CATEGORIES else "Misceláneo",
             "rarity": data.get("rarity") if data.get("rarity") in RARITIES else "Común",
             "weight": max(weight, 0.0),
-            "properties": (data.get("properties") or "").strip(),
-            "description": (data.get("description") or "").strip(),
+            "properties": distances((data.get("properties") or "").strip()),
+            "description": distances((data.get("description") or "").strip()),
             "attunement": 1 if data.get("attunement") else 0,
         }
 

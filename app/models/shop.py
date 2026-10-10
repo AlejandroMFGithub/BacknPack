@@ -1,5 +1,5 @@
 from ..db import get_db, transaction
-from ..text import LIKE_ESCAPE, like_terms, matches_all_words
+from ..text import LIKE_ESCAPE, distances, like_terms, matches_all_words
 from .activity_log import ActivityLog
 from .campaign import Campaign
 from .currency import Currency
@@ -55,7 +55,7 @@ class Shop:
         db = get_db()
         shop_id = db.insert(
             "INSERT INTO shops (name, description, allow_exchange, campaign_id) VALUES (?, ?, ?, ?)",
-            (name.strip(), (description or "").strip(), 1 if allow_exchange else 0, campaign_id),
+            (name.strip(), distances((description or "").strip()), 1 if allow_exchange else 0, campaign_id),
         )
         db.commit()
         return shop_id

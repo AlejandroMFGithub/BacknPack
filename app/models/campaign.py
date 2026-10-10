@@ -6,6 +6,7 @@ import re
 import secrets
 
 from ..db import get_db
+from ..text import distances
 from .errors import RuleError
 
 # Sin 0/O ni 1/I para que el código se pueda dictar y copiar sin errores
@@ -132,7 +133,7 @@ class Campaign:
         name = (data.get("name") or "").strip()
         if not name:
             raise RuleError("La campaña necesita un nombre.")
-        return name, (data.get("description") or "").strip()
+        return name, distances((data.get("description") or "").strip())
 
     @staticmethod
     def create(data):

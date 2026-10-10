@@ -12,19 +12,19 @@ CURRENCIES = [
 
 ITEMS = [
     # nombre, categoría, rareza, peso (kg), propiedades, descripción, sintonía
-    ("Daga", "Arma", "Común", 0.5, "1d4 perforante · sutil, ligera, arrojadiza (6/18 m)", "", 0),
+    ("Daga", "Arma", "Común", 0.5, "1d4 perforante · sutil, ligera, arrojadiza (20/60 ft)", "", 0),
     ("Espada larga", "Arma", "Común", 1.5, "1d8 cortante · versátil (1d10)", "", 0),
     ("Cimitarra", "Arma", "Común", 1.5, "1d6 cortante · sutil, ligera", "", 0),
     ("Hacha de batalla", "Arma", "Común", 2, "1d8 cortante · versátil (1d10)", "", 0),
-    ("Arco corto", "Arma", "Común", 1, "1d6 perforante · munición (24/96 m), a dos manos", "", 0),
+    ("Arco corto", "Arma", "Común", 1, "1d6 perforante · munición (80/320 ft), a dos manos", "", 0),
     ("Flechas (20)", "Munición", "Común", 0.5, "", "Carcaj con 20 flechas.", 0),
     ("Armadura de cuero", "Armadura", "Común", 5, "CA 11 + mod. Des · ligera", "", 0),
     ("Cota de malla", "Armadura", "Común", 27.5, "CA 16 · Fue 13 · desventaja en Sigilo", "", 0),
     ("Escudo", "Escudo", "Común", 3, "+2 CA", "", 0),
     ("Poción de curación", "Consumible", "Común", 0.25, "Recupera 2d4 + 2 PG", "Líquido rojo que brilla al agitarlo.", 0),
-    ("Antorcha", "Equipo de aventurero", "Común", 0.5, "Luz brillante 6 m, tenue 6 m más · 1 h", "", 0),
+    ("Antorcha", "Equipo de aventurero", "Común", 0.5, "Luz brillante 20 ft, tenue 20 ft más · 1 h", "", 0),
     ("Raciones (1 día)", "Equipo de aventurero", "Común", 1, "", "Comida seca para un día.", 0),
-    ("Cuerda de cáñamo (15 m)", "Equipo de aventurero", "Común", 5, "", "", 0),
+    ("Cuerda de cáñamo", "Equipo de aventurero", "Común", 5, "50 ft", "", 0),
     ("Herramientas de ladrón", "Herramienta", "Común", 0.5, "", "Ganzúas, limas y un espejito.", 0),
     ("Anillo de protección", "Objeto maravilloso", "Raro", 0, "+1 CA y tiradas de salvación", "", 1),
     ("Amuleto de hueso", "Objeto maravilloso", "Poco común", 0, "???", "Un amuleto tallado que susurra de noche.", 1),
@@ -77,7 +77,7 @@ def _seed_demo(db):
         "name": "Lyra Vientoalto", "race": "Elfa del bosque", "class_name": "Exploradora",
         "level": 3, "background": "Forastera", "alignment": "Caótica buena",
         "strength": 11, "dexterity": 17, "constitution": 13, "intelligence": 10,
-        "wisdom": 15, "charisma": 8, "hp_max": 28, "hp_current": 24, "armor_class": 14, "speed": 10.5,
+        "wisdom": 15, "charisma": 8, "hp_max": 28, "hp_current": 24, "armor_class": 14, "speed": 35,
         # Exploradora: salvaciones de FUE y DES; Sigilo con pericia (p. ej. por una dote)
         "save_strength": 1, "save_dexterity": 1, "skill_stealth": 2, "skill_perception": 1,
         "skill_survival": 1, "skill_animal_handling": 1, "skill_acrobatics": 1,
@@ -86,7 +86,7 @@ def _seed_demo(db):
         "name": "Thorgar Puñohierro", "race": "Enano de las montañas", "class_name": "Guerrero",
         "level": 3, "background": "Soldado", "alignment": "Legal neutral",
         "strength": 17, "dexterity": 10, "constitution": 16, "intelligence": 9,
-        "wisdom": 12, "charisma": 10, "hp_max": 34, "hp_current": 34, "armor_class": 18, "speed": 7.5,
+        "wisdom": 12, "charisma": 10, "hp_max": 34, "hp_current": 34, "armor_class": 18, "speed": 25,
         # Guerrero: salvaciones de FUE y CON
         "save_strength": 1, "save_constitution": 1, "skill_athletics": 1, "skill_intimidation": 1,
         "skill_perception": 1,
@@ -105,7 +105,7 @@ def _seed_demo(db):
         (thorgar, "Hacha de batalla", 1, True), (thorgar, "Cota de malla", 1, True),
         (thorgar, "Escudo", 1, True), (thorgar, "Raciones (1 día)", 5, True),
         (thorgar, "Antorcha", 3, True),
-        (sigrid, "Raciones (1 día)", 3, True), (sigrid, "Cuerda de cáñamo (15 m)", 1, True),
+        (sigrid, "Raciones (1 día)", 3, True), (sigrid, "Cuerda de cáñamo", 1, True),
     ]:
         Inventory.add(char_id, item[item_name], qty, visible)
     for row in Inventory.for_character(lyra) + Inventory.for_character(thorgar):
@@ -152,7 +152,7 @@ def _seed_demo(db):
     Loot.add_entry(guarida, currency_id=cur["pp"], quantity=15)
 
     trampero = Shop.create("Puesto del trampero", "Pieles y provisiones a cambio de plata.", helada)
-    for name, price, code in [("Raciones (1 día)", 6, "pp"), ("Antorcha", 1, "pc"), ("Cuerda de cáñamo (15 m)", 1, "po")]:
+    for name, price, code in [("Raciones (1 día)", 6, "pp"), ("Antorcha", 1, "pc"), ("Cuerda de cáñamo", 1, "po")]:
         Shop.add_listing(trampero, item[name], price, cur[code], None)
     cueva = Loot.create("Cueva del oso blanco", "Lo que quedó tras ahuyentar al oso.", "environment", helada)
     Loot.add_entry(cueva, item_id=item["Poción de curación"], quantity=1)

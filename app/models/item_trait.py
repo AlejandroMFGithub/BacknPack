@@ -9,6 +9,7 @@ from collections import defaultdict
 
 from ..db import get_db, transaction
 from .activity_log import ActivityLog
+from ..text import distances
 from .errors import RuleError
 
 KINDS = {
@@ -83,7 +84,7 @@ class ItemTrait:
 
     @staticmethod
     def _clean(data):
-        name = (data.get("name") or "").strip()
+        name = distances((data.get("name") or "").strip())
         kind = data.get("kind")
         if not name:
             raise RuleError("La cualidad necesita un nombre.")
@@ -100,8 +101,8 @@ class ItemTrait:
         elif uses_current is None or not 0 <= uses_current <= uses_max:
             uses_current = uses_max
         return (
-            name, kind, (data.get("description") or "").strip(), uses_max, uses_current,
-            (data.get("recharge") or "").strip(), 1 if data.get("visible") else 0,
+            name, kind, distances((data.get("description") or "").strip()), uses_max, uses_current,
+            distances((data.get("recharge") or "").strip()), 1 if data.get("visible") else 0,
         )
 
     @staticmethod

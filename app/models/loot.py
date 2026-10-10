@@ -2,6 +2,7 @@ from ..db import get_db, transaction
 from .activity_log import ActivityLog
 from .campaign import Campaign
 from .currency import Currency
+from ..text import distances
 from .errors import RuleError
 from .inventory import Inventory
 from .listing import sort_sql
@@ -49,7 +50,7 @@ class Loot:
         db = get_db()
         pool_id = db.insert(
             "INSERT INTO loot_pools (name, description, kind, campaign_id) VALUES (?, ?, ?, ?)",
-            (name.strip(), (description or "").strip(), kind, campaign_id),
+            (name.strip(), distances((description or "").strip()), kind, campaign_id),
         )
         db.commit()
         return pool_id

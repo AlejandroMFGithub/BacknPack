@@ -47,7 +47,7 @@ CREATE TABLE characters (
     hp_max       INTEGER NOT NULL DEFAULT 10,
     hp_current   INTEGER NOT NULL DEFAULT 10,
     armor_class  INTEGER NOT NULL DEFAULT 10,
-    speed        REAL    NOT NULL DEFAULT 9,  -- metros
+    speed        REAL    NOT NULL DEFAULT 9,  -- en metros hasta la migración 10; desde entonces, en pies
     notes        TEXT,
     created_at   TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

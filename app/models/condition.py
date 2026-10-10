@@ -1,4 +1,5 @@
 from ..db import get_db
+from ..text import distances
 from .errors import RuleError
 
 KINDS = {"buff": "Bufo", "curse": "Maldición", "condition": "Estado"}
@@ -29,7 +30,7 @@ class Condition:
 
     @staticmethod
     def create(character_id, data):
-        name = (data.get("name") or "").strip()
+        name = distances((data.get("name") or "").strip())
         kind = data.get("kind")
         if not name:
             raise RuleError("El efecto necesita un nombre.")
@@ -41,8 +42,8 @@ class Condition:
                VALUES (?, ?, ?, ?, ?, ?)""",
             (
                 character_id, name, kind,
-                (data.get("description") or "").strip(),
-                (data.get("duration") or "").strip(),
+                distances((data.get("description") or "").strip()),
+                distances((data.get("duration") or "").strip()),
                 1 if data.get("visible") else 0,
             ),
         )

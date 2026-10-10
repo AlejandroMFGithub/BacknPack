@@ -90,7 +90,38 @@ MIGRATIONS = [
         PRIMARY KEY (character_id, kind, name)
     );
     """,
+    # 10: distancias en pies y casillas (velocidad y textos que hablaban de metros)
+    lambda db: _distances_to_feet(db),
 ]
+
+# Columnas de texto libre donde puede haber distancias
+DISTANCE_TEXT_COLUMNS = {
+    "items": ("name", "properties", "description"),
+    "item_traits": ("name", "description", "recharge"),
+    "conditions": ("name", "description", "duration"),
+    "shops": ("description",),
+    "loot_pools": ("description",),
+    "campaigns": ("description",),
+    "characters": ("notes",),
+}
+
+
+def _distances_to_feet(db):
+    from .text import distances, meters_to_feet, normalize
+    # Velocidad: estaba en metros. Las que ya parecen pies (múltiplos de 5 desde 20) no se tocan.
+    for row in db.execute("SELECT id, speed FROM characters").fetchall():
+        speed = row["speed"] or 0
+        if not (speed >= 20 and speed % 5 == 0):
+            db.execute("UPDATE characters SET speed = ? WHERE id = ?", (meters_to_feet(speed), row["id"]))
+    for table, columns in DISTANCE_TEXT_COLUMNS.items():
+        for row in db.execute(f"SELECT id, {', '.join(columns)} FROM {table}").fetchall():
+            changed = {col: distances(row[col]) for col in columns if row[col] and distances(row[col]) != row[col]}
+            if not changed:
+                continue
+            if table == "items" and "name" in changed:
+                changed["search_name"] = normalize(changed["name"])
+            sets = ", ".join(f"{col} = ?" for col in changed)
+            db.execute(f"UPDATE {table} SET {sets} WHERE id = ?", (*changed.values(), row["id"]))
 
 CAMPAIGN_TABLES = ("characters", "shops", "loot_pools")
 

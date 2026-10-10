@@ -51,11 +51,17 @@ def create_app(test_config=None):
 
     from .models.avatar import color_for, initial
     from .models.campaign import format_code
+    from .text import format_feet
     app.jinja_env.globals.update(avatar_color=color_for, avatar_initial=initial, format_code=format_code)
 
     @app.template_filter("mod")
     def ability_modifier(score):
         return f"{(int(score) - 10) // 2:+d}"
+
+    @app.template_filter("feet")
+    def feet(value):
+        """30 -> «30 ft / 6 casillas»."""
+        return format_feet(float(value or 0))
 
     @app.template_filter("signed")
     def signed(value):

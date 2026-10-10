@@ -67,7 +67,7 @@
   <div class="stats">
     <div class="stat">PG <b>{{ character.hp_current }}</b> / {{ character.hp_max }}</div>
     <div class="stat">CA <b>{{ character.armor_class }}</b></div>
-    <div class="stat">Velocidad <b>{{ '%g' % character.speed }}</b> m</div>
+    <div class="stat">Velocidad <b>{{ character.speed | feet }}</b></div>
     <div class="stat">Carga <b>{{ '%g' % weight }}</b> kg
       <span class="muted small">(máx. {{ character.strength * 7.5 }} kg)</span></div>
   </div>
