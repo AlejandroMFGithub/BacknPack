@@ -25,13 +25,41 @@
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+/* Fondo de taberna para toda la web (el mismo de la pantalla de acceso) */
 body {
-  margin: 0;
-  background: var(--bg);
+  margin: 0; min-height: 100vh;
+  background:
+    radial-gradient(900px 520px at 50% -8%, #6b2a1c 0%, transparent 62%),
+    radial-gradient(700px 420px at 10% 110%, #3b2f17 0%, transparent 60%),
+    radial-gradient(700px 420px at 95% 100%, #2c1f3d 0%, transparent 60%),
+    #1d1510;
   color: var(--ink);
   font: 15px/1.5 Georgia, "Times New Roman", serif;
 }
-a { color: var(--accent); }
+
+/* Dos superficies: el fondo oscuro y el pergamino de las tarjetas.
+   Texto, enlaces y botones secundarios toman sus colores de estas variables,
+   así que se adaptan solos según dónde estén. */
+main {
+  --muted: #cdbb9d;
+  --link: #f0c862;
+  --ghost: #f0c862;
+  --ghost-ink: #1d1510;
+  --line: #f0c86233;
+  color: #f3e9d6;
+}
+.card, .toolbar, .flash, .menu-panel, .picker-list, .picker-filters, .context-panel,
+.nav-tools-panel, .avatar-panel, .play-card, .auth-card, .trait-form form {
+  --muted: #7a6a58;
+  --link: var(--accent);
+  --ghost: var(--accent);
+  --ghost-ink: #fff;
+  --line: #dccbb0;
+  color: var(--ink);
+}
+a { color: var(--link, var(--accent)); }
+/* Títulos que van directamente sobre el fondo */
+main > h1, main > .row h1, main > .sheet-head h1 { text-shadow: 0 2px 12px #000a; }
 h1, h2, h3 { font-family: "Palatino Linotype", Palatino, Georgia, serif; margin: .2em 0 .5em; line-height: 1.2; }
 h1 { font-size: 1.8rem; }
 h2 { font-size: 1.25rem; border-bottom: 1px solid var(--line); padding-bottom: .2em; }
@@ -43,7 +71,9 @@ h3 { font-size: 1.05rem; }
   position: sticky; top: 0; z-index: 30;
   display: flex; align-items: center; gap: 1rem;
   min-height: var(--topbar-h); padding: .4rem 1rem;
-  background: var(--ink); color: #f4ecdc;
+  background: #150f0bd9; color: #f4ecdc;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid #f0c86238; box-shadow: 0 6px 20px -10px #000c;
 }
 .topbar a { color: #f4ecdc; text-decoration: none; }
 .brand { font-weight: bold; font-size: 1.15rem; white-space: nowrap; }
@@ -69,11 +99,32 @@ main { max-width: 1150px; margin: 0 auto; padding: 1rem; }
 
 /* --- Bloques ---------------------------------------------------------------------- */
 
+/* Pergamino: sombra profunda, brillo interior y filete dorado muy sutil */
 .card {
-  background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, #fffdf6 0%, transparent 70%),
+    var(--paper);
+  border: 1px solid #d3bd96; border-radius: 12px;
   padding: 1rem; margin-bottom: 1rem;
+  box-shadow: 0 18px 40px -22px #000d, 0 0 0 1px #f0c8621f, inset 0 1px 0 #fff;
 }
+main { position: relative; z-index: 1; }
+/* Tarjeta entera como enlace (tiendas, botines) */
+a.card-link { display: block; color: var(--ink); text-decoration: none; transition: transform .15s, box-shadow .15s; }
+a.card-link:hover { transform: translateY(-2px); box-shadow: 0 22px 44px -22px #000, 0 0 0 1px #f0c86266, inset 0 1px 0 #fff; }
+
+/* Dados muy tenues fijos al fondo (no en la pantalla de acceso, que tiene los suyos) */
+.page-backdrop { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.die.backdrop-die { position: absolute; width: var(--size); opacity: .13; filter: blur(.6px); transform: rotate(var(--rot)); }
+.backdrop-1 { --size: 240px; --rot: 18deg;  right: -60px; top: 18%; }
+.backdrop-2 { --size: 170px; --rot: -16deg; left: -50px; bottom: 6%; }
+.backdrop-3 { --size: 130px; --rot: 30deg;  left: 8%; top: 32%; opacity: .07; }
+@media (max-width: 1080px) { .backdrop-3 { display: none; } }
+@media (max-width: 640px) { .page-backdrop { display: none; } }
 .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
+.grid { margin-bottom: 1rem; }
+.grid > .card { margin-bottom: 0; }
+.card > .grid:last-child { margin-bottom: 0; }
 .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .spread { justify-content: space-between; }
 .muted { color: var(--muted); }
@@ -128,7 +179,7 @@ form.inline { display: inline; }
   text-align: center;
 }
 .btn:hover, button:hover { filter: brightness(1.15); }
-.btn-ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.btn-ghost { background: transparent; color: var(--ghost, var(--accent)); border: 1px solid var(--ghost, var(--accent)); }
 .btn-small { padding: .15rem .5rem; font-size: .85rem; }
 .btn-danger { background: #5a1010; }
 button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
@@ -149,11 +200,11 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 .menu { position: relative; display: inline-block; }
 .menu > summary {
   list-style: none; cursor: pointer; user-select: none;
-  padding: .15rem .6rem; border: 1px solid var(--accent); border-radius: 5px;
-  color: var(--accent); font-weight: bold; letter-spacing: .1em; line-height: 1.4;
+  padding: .15rem .6rem; border: 1px solid var(--ghost, var(--accent)); border-radius: 5px;
+  color: var(--ghost, var(--accent)); font-weight: bold; letter-spacing: .1em; line-height: 1.4;
 }
 .menu > summary::-webkit-details-marker { display: none; }
-.menu[open] > summary { background: var(--accent); color: #fff; }
+.menu[open] > summary { background: var(--ghost, var(--accent)); color: var(--ghost-ink, #fff); }
 .menu-panel {
   position: absolute; right: 0; top: calc(100% + 4px); z-index: 20;
   min-width: 200px; max-width: min(300px, 90vw); padding: .35rem;
@@ -264,10 +315,10 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 
 .back-link {
   display: inline-flex; align-items: center; gap: .25rem; margin-bottom: .8rem;
-  padding: .25rem .75rem .25rem .45rem; border: 1px solid var(--line); border-radius: 999px;
-  background: var(--paper); color: var(--ink); text-decoration: none; font-size: .9rem;
+  padding: .25rem .75rem .25rem .45rem; border: 1px solid #f0c86244; border-radius: 999px;
+  background: #ffffff10; color: #f3e9d6; text-decoration: none; font-size: .9rem;
 }
-.back-link:hover { border-color: var(--accent); color: var(--accent); }
+.back-link:hover { border-color: #f0c862; color: #f0c862; background: #ffffff18; }
 .back-link svg { display: block; }
 
 .trait-row {
@@ -567,14 +618,7 @@ a.context-chip:hover, .context-chip > summary:hover, .context-chip[open] > summa
 
 /* --- Pantallas de acceso: escena, tarjeta y logo ---------------------------------------- */
 
-body.auth-page {
-  min-height: 100vh;
-  background:
-    radial-gradient(900px 520px at 50% -8%, #6b2a1c 0%, transparent 62%),
-    radial-gradient(700px 420px at 10% 110%, #3b2f17 0%, transparent 60%),
-    radial-gradient(700px 420px at 95% 100%, #2c1f3d 0%, transparent 60%),
-    #1d1510;
-}
+/* body.auth-page usa el fondo general de body */
 body.auth-page main { max-width: none; padding: 0; }
 
 .auth-scene {

@@ -9,7 +9,7 @@
 
 <div class="grid">
   {% for p in pools %}
-  <a class="card" href="{{ url_for('loot.show', pool_id=p.id) }}" style="text-decoration:none;color:inherit">
+  <a class="card card-link" href="{{ url_for('loot.show', pool_id=p.id) }}">
     <h2>{{ p.name }}
       {% if not p.active %}<span class="badge badge-off">Oculto</span>{% endif %}</h2>
     <span class="badge">{{ kinds[p.kind] }}</span>

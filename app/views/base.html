@@ -113,6 +113,15 @@
 </header>
 {% endblock %}
 
+{% block backdrop %}
+{% from "_dice.html" import d20, d6, d8 %}
+<div class="page-backdrop" aria-hidden="true">
+  {{ d20('die-violet backdrop-die backdrop-1') }}
+  {{ d6('die-green backdrop-die backdrop-2') }}
+  {{ d8('die-amber backdrop-die backdrop-3') }}
+</div>
+{% endblock %}
+
 <main>
   {# Cada vista indica su página «padre» en el bloque back_url; si lo deja vacío no hay botón. #}
   {% set back = self.back_url() | trim %}
