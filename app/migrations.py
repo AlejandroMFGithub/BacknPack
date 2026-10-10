@@ -35,6 +35,15 @@ MIGRATIONS = [
     """,
     # 3: rellena search_name en las filas que ya existían
     lambda db: _backfill_search_names(db),
+    # 4: imagen de cada personaje (aparte, para no cargar los bytes en cada lista)
+    """
+    CREATE TABLE character_avatars (
+        character_id INTEGER PRIMARY KEY REFERENCES characters(id) ON DELETE CASCADE,
+        mime         TEXT NOT NULL,
+        data         BLOB NOT NULL,
+        version      TEXT NOT NULL  -- cambia en cada subida: invalida la caché del navegador
+    );
+    """,
 ]
 
 

@@ -1,6 +1,18 @@
 {# Macros compartidas entre vistas.
    Las de listas usan `request`: impórtalas con  {% from "_macros.html" import … with context %} #}
 
+{# Icono de un personaje: su imagen o, si no tiene, la inicial sobre su color.
+   size: sm (lista, 28px) · md (tarjeta, 44px) · lg (ficha, 88px) #}
+{% macro avatar(character_id, name, version=none, size='md') -%}
+<span class="avatar avatar-{{ size }}" style="--avatar-bg: {{ avatar_color(character_id) }}" aria-hidden="true">
+  {%- if version -%}
+    <img src="{{ url_for('characters.avatar', character_id=character_id, v=version) }}" alt="" loading="lazy" decoding="async">
+  {%- else -%}
+    {{ avatar_initial(name) }}
+  {%- endif -%}
+</span>
+{%- endmacro %}
+
 {# Barra de una lista: búsqueda por nombre, filtros y «Ordenar por».
    filters: [(nombre, etiqueta, opciones)], opciones = ["valor", …] o [("valor", "texto"), …]
    Los desplegables se aplican al cambiarlos; la búsqueda, con Enter o 🔍. #}
@@ -66,7 +78,7 @@
 <div class="card acting">
   <form method="get" class="acting-form">
     {% for k, v in request.args.items() if k not in ('as', 'page') %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
-    <label>{{ verb }} como
+    <label>{% if acting %}{{ avatar(acting.id, acting.name, acting.avatar_version, 'sm') }}{% endif %}{{ verb }} como
       {% if is_dm() %}
         {{ picker('as', url_for('api.characters'), 'Buscar personaje…', value=acting.id if acting else none,
                   label=acting.name if acting else '', submit=true) }}

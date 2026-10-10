@@ -2,7 +2,7 @@
 {% block title %}Intercambios{% endblock %}
 {% block back_url %}{{ url_for('main.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import list_toolbar, pager with context %}
+{% from "_macros.html" import avatar, list_toolbar, pager with context %}
 {% macro line_list(items) -%}
   {% for l in items %}<div>{{ l.quantity }}× {{ l.label }}</div>{% else %}<div class="muted">nada</div>{% endfor %}
 {%- endmacro %}
@@ -15,7 +15,9 @@
 {% for t in trades %}
 <div class="card">
   <div class="row spread">
-    <div><b>#{{ t.id }}</b> · <b>{{ t.from_name }}</b> → <b>{{ t.to_name }}</b>
+    <div class="trade-title"><b>#{{ t.id }}</b>
+      <span class="name-with-avatar">{{ avatar(t.from_character_id, t.from_name, t.from_avatar, 'sm') }}<b>{{ t.from_name }}</b></span> →
+      <span class="name-with-avatar">{{ avatar(t.to_character_id, t.to_name, t.to_avatar, 'sm') }}<b>{{ t.to_name }}</b></span>
       <span class="badge {{ 'badge-dm' if t.status == 'pending' else '' }}">{{ status[t.status] }}</span>
       <span class="muted small">{{ t.created_at }}</span></div>
     {% if t.status == 'pending' %}

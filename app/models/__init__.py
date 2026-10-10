@@ -2,6 +2,7 @@
 from .errors import RuleError
 from .user import User
 from .character import Character
+from .avatar import Avatar
 from .currency import Currency
 from .item import Item
 from .item_trait import ItemTrait
@@ -13,6 +14,6 @@ from .loot import Loot
 from .trade import Trade
 
 __all__ = [
-    "RuleError", "User", "Character", "Currency", "Item", "ItemTrait", "Inventory",
+    "RuleError", "User", "Character", "Avatar", "Currency", "Item", "ItemTrait", "Inventory",
     "Condition", "ActivityLog", "Shop", "Loot", "Trade",
 ]

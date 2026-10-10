@@ -2,7 +2,7 @@
 {% block title %}Proponer intercambio{% endblock %}
 {% block back_url %}{{ url_for('trades.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import trait_chip, picker %}
+{% from "_macros.html" import avatar, trait_chip, picker %}
 <h1>Proponer intercambio</h1>
 
 <form method="get" class="card">
@@ -28,7 +28,7 @@
   <input type="hidden" name="to_id" value="{{ to_char.id }}">
   <div class="grid">
     <div>
-      <h2>{{ from_char.name }} ofrece</h2>
+      <h2 class="name-with-avatar">{{ avatar(from_char.id, from_char.name, from_char.avatar_version, 'sm') }} {{ from_char.name }} ofrece</h2>
       {% if from_inventory | length > 6 %}<input type="search" class="quick-filter" data-quick-filter="#give-list" placeholder="Filtrar tus objetos…" aria-label="Filtrar tus objetos">{% endif %}
       <table id="give-list">
         {% for it in from_inventory %}
@@ -43,7 +43,7 @@
       </table>
     </div>
     <div>
-      <h2>{{ to_char.name }} da a cambio</h2>
+      <h2 class="name-with-avatar">{{ avatar(to_char.id, to_char.name, to_char.avatar_version, 'sm') }} {{ to_char.name }} da a cambio</h2>
       {% if to_inventory | length > 6 %}<input type="search" class="quick-filter" data-quick-filter="#take-list" placeholder="Filtrar sus objetos…" aria-label="Filtrar sus objetos">{% endif %}
       <table id="take-list">
         {% for it in to_inventory %}

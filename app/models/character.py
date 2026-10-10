@@ -23,8 +23,10 @@ INT_FIELDS = {
 FLOAT_FIELDS = {"speed": 9.0}
 
 _SELECT = """
-    SELECT c.*, u.username AS owner
-    FROM characters c JOIN users u ON u.id = c.user_id
+    SELECT c.*, u.username AS owner, av.version AS avatar_version
+    FROM characters c
+    JOIN users u ON u.id = c.user_id
+    LEFT JOIN character_avatars av ON av.character_id = c.id
 """
 
 SORTS = {

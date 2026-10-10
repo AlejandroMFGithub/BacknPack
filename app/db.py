@@ -20,7 +20,7 @@ from .migrations import migrate
 TABLES = [
     "users", "characters", "currencies", "character_currencies", "items", "inventory_items",
     "item_traits", "conditions", "shops", "shop_items", "loot_pools", "loot_entries",
-    "trades", "trade_lines", "activity_log",
+    "trades", "trade_lines", "activity_log", "character_avatars",
 ]
 
 
@@ -39,7 +39,8 @@ def to_postgres_ddl(sql):
     sql = sql.replace(
         "DEFAULT CURRENT_TIMESTAMP", "DEFAULT to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS')"
     )
-    return re.sub(r"\bREAL\b", "DOUBLE PRECISION", sql)
+    sql = re.sub(r"\bREAL\b", "DOUBLE PRECISION", sql)
+    return re.sub(r"\bBLOB\b", "BYTEA", sql)
 
 
 class PgRow(tuple):

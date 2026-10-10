@@ -1,8 +1,8 @@
-from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request, url_for
 
 from ..db import transaction
 from ..models import (
-    ActivityLog, Character, Condition, Currency, Inventory, Item, ItemTrait, RuleError, User,
+    ActivityLog, Avatar, Character, Condition, Currency, Inventory, Item, ItemTrait, RuleError, User,
 )
 from ..models.character import ABILITIES
 from ..models.condition import KINDS as CONDITION_KINDS, PRESETS
@@ -286,4 +286,45 @@ def toggle_trait_visibility(character_id, trait_id):
 def delete_trait(character_id, trait_id):
     _own_trait(character_id, trait_id)
     ItemTrait.delete(trait_id)
+    return _back(character_id)
+
+
+# --- Imagen del personaje (dueño o DM) -------------------------------------------------
+
+@bp.route("/<int:character_id>/avatar")
+@login_required
+def avatar(character_id):
+    """Sirve la imagen. La URL lleva ?v=<versión>, así que el navegador puede guardarla
+    en caché indefinidamente: al subir otra, cambia la versión y por tanto la URL."""
+    row = Avatar.get(character_id)
+    if row is None:
+        abort(404)
+    response = make_response(bytes(row["data"]))
+    response.headers["Content-Type"] = row["mime"]
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Cache-Control"] = "private, max-age=31536000, immutable"
+    response.set_etag(row["version"])
+    return response.make_conditional(request)
+
+
+@bp.route("/<int:character_id>/avatar", methods=["POST"])
+@login_required
+def upload_avatar(character_id):
+    get_character_or_404(character_id)
+    upload = request.files.get("image")
+    try:
+        size = Avatar.save(character_id, upload.read() if upload else b"")
+    except RuleError as e:
+        flash(str(e), "error")
+    else:
+        flash(f"Imagen actualizada ({max(1, size // 1024)} KB).", "ok")
+    return _back(character_id)
+
+
+@bp.route("/<int:character_id>/avatar/delete", methods=["POST"])
+@login_required
+def delete_avatar(character_id):
+    get_character_or_404(character_id)
+    Avatar.delete(character_id)
+    flash("Imagen quitada: vuelve a mostrarse la inicial.", "ok")
     return _back(character_id)

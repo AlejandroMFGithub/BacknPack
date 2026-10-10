@@ -2,19 +2,45 @@
 {% block title %}{{ character.name }}{% endblock %}
 {% block back_url %}{{ url_for('characters.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import trait_chip, trait_form, list_toolbar, picker with context %}
+{% from "_macros.html" import avatar, trait_chip, trait_form, list_toolbar, picker with context %}
 {% set dm = is_dm() %}
 {% set item_filters = [{'name': 'category', 'label': 'Categoría', 'options': categories},
                        {'name': 'rarity', 'label': 'Rareza', 'options': rarities}] %}
 
 <div class="card">
   <div class="sheet-head">
-    <div>
-      <h1>{{ character.name }}</h1>
-      <div>{{ character.race or '¿?' }} · {{ character.class_name or '¿?' }} nivel {{ character.level }}
-        {% if character.background %} · {{ character.background }}{% endif %}
-        {% if character.alignment %} · {{ character.alignment }}{% endif %}</div>
-      {% if dm %}<div class="muted small">Jugador: {{ character.owner }}</div>{% endif %}
+    <div class="sheet-id">
+      {# Solo el dueño y el DM llegan a esta ficha, así que ambos pueden cambiar la imagen #}
+      <details class="avatar-editor popover">
+        <summary class="avatar-trigger" title="Cambiar imagen" aria-label="Cambiar imagen de {{ character.name }}">
+          {{ avatar(character.id, character.name, character.avatar_version, 'lg') }}
+          <span class="avatar-edit-badge" aria-hidden="true">✎</span>
+        </summary>
+        <div class="avatar-panel">
+          <form method="post" enctype="multipart/form-data" class="avatar-form"
+                action="{{ url_for('characters.upload_avatar', character_id=character.id) }}">
+            <label class="dropzone">
+              <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" required>
+              <img class="dropzone-preview" alt="" hidden>
+              <span class="dropzone-text"><b>Arrastra una imagen aquí</b><br>o <u>elígela de tu dispositivo</u></span>
+              <span class="dropzone-hint">JPG, PNG, WebP o GIF · máx. 8 MB<br>Se recorta en cuadrado (256 px)</span>
+            </label>
+            <button class="btn-small">Guardar imagen</button>
+          </form>
+          {% if character.avatar_version %}
+          <form method="post" action="{{ url_for('characters.delete_avatar', character_id=character.id) }}">
+            <button class="btn-small btn-ghost">Quitar imagen (volver a la inicial)</button>
+          </form>
+          {% endif %}
+        </div>
+      </details>
+      <div>
+        <h1>{{ character.name }}</h1>
+        <div>{{ character.race or '¿?' }} · {{ character.class_name or '¿?' }} nivel {{ character.level }}
+          {% if character.background %} · {{ character.background }}{% endif %}
+          {% if character.alignment %} · {{ character.alignment }}{% endif %}</div>
+        {% if dm %}<div class="muted small">Jugador: {{ character.owner }}</div>{% endif %}
+      </div>
     </div>
     <div class="row">
       <a class="btn btn-ghost btn-small" href="{{ url_for('trades.new', from_id=character.id) }}">Intercambiar</a>

@@ -99,6 +99,14 @@ controlador los muestra como mensaje.
   en un ejemplar concreto desde la ficha. Viajan con el objeto al intercambiarlo, ocultas incluidas.
   Los objetos solo se apilan si tienen las mismas cualidades y ninguna tiene usos.
 
+**Imagen de personaje**
+- Cada personaje muestra un icono en listas, ficha, intercambios y buscador: su imagen o, si no
+  tiene, la inicial sobre un color fijo.
+- El jugador dueño y el DM pueden cambiarla desde la ficha (pulsando el icono o soltando una
+  imagen encima). JPG, PNG, WebP o GIF de hasta 8 MB.
+- Se guarda en la base de datos (tabla `character_avatars`), recortada a 256×256 en WebP
+  (~10–30 KB) y sin metadatos EXIF (que pueden incluir la ubicación GPS de la foto).
+
 **Búsqueda y listas** (pensado para catálogos de miles de objetos)
 - Buscador desplegable para elegir objetos, personajes y jugadores: consulta `/api/...` mientras
   escribes y trae 20 resultados cada vez, con filtros (categoría, rareza) y «Cargar más».

@@ -16,10 +16,13 @@ STATUS = {
 
 _SELECT = """
     SELECT t.*, fc.name AS from_name, tc.name AS to_name,
-           fc.user_id AS from_user_id, tc.user_id AS to_user_id
+           fc.user_id AS from_user_id, tc.user_id AS to_user_id,
+           fa.version AS from_avatar, ta.version AS to_avatar
     FROM trades t
     JOIN characters fc ON fc.id = t.from_character_id
     JOIN characters tc ON tc.id = t.to_character_id
+    LEFT JOIN character_avatars fa ON fa.character_id = fc.id
+    LEFT JOIN character_avatars ta ON ta.character_id = tc.id
 """
 
 

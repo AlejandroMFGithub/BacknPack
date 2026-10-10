@@ -2,7 +2,8 @@
 import os
 from datetime import timedelta
 
-from flask import Flask, request, url_for
+from flask import Flask, flash, request, url_for
+from werkzeug.exceptions import RequestEntityTooLarge
 
 DEV_SECRET = "dev-cambia-esta-clave"
 
@@ -25,6 +26,8 @@ def create_app(test_config=None):
         SESSION_COOKIE_SAMESITE="Lax",
         SESSION_COOKIE_SECURE=production,
         PERMANENT_SESSION_LIFETIME=timedelta(days=30),
+        # Peticiones de más de 9 MB se rechazan (imágenes de hasta 8 MB + margen del formulario)
+        MAX_CONTENT_LENGTH=9 * 1024 * 1024,
     )
     if test_config:
         app.config.update(test_config)
@@ -38,7 +41,16 @@ def create_app(test_config=None):
     security.init_app(app)
 
     from .controllers import register_controllers
+    from .controllers.helpers import redirect_back
     register_controllers(app)
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def too_large(e):
+        flash("El archivo es demasiado grande (máximo 8 MB).", "error")
+        return redirect_back(url_for("main.index"))
+
+    from .models.avatar import color_for, initial
+    app.jinja_env.globals.update(avatar_color=color_for, avatar_initial=initial)
 
     @app.template_filter("mod")
     def ability_modifier(score):

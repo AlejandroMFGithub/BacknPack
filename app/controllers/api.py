@@ -3,9 +3,10 @@
 Devuelven páginas pequeñas (20 resultados) para que la página no tenga que cargar
 el catálogo entero: {"results": [{id, label, sub}], "has_more": bool, "total": n}
 """
-from flask import Blueprint, g, jsonify, request
+from flask import Blueprint, g, jsonify, request, url_for
 
 from ..models import Character, Item, User
+from ..models.avatar import color_for, initial
 from .helpers import dm_required, is_dm, login_required
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -51,6 +52,12 @@ def characters():
     return _respond(found, lambda r: {
         "id": r["id"], "label": r["name"],
         "sub": f"{r['owner']} · {r['race'] or '¿?'} {r['class_name'] or ''} {r['level']}".strip(),
+        "avatar": {
+            "url": url_for("characters.avatar", character_id=r["id"], v=r["avatar_version"])
+                   if r["avatar_version"] else None,
+            "initial": initial(r["name"]),
+            "color": color_for(r["id"]),
+        },
     })
 
 

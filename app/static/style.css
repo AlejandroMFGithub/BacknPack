@@ -342,6 +342,71 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 .acting-form .picker { flex: 1 1 200px; }
 .acting-name { font-size: 1.05rem; }
 
+/* --- Iconos de personaje -------------------------------------------------------------- */
+
+.avatar {
+  --avatar-size: 44px;
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: var(--avatar-size); height: var(--avatar-size); border-radius: 50%; overflow: hidden;
+  background: var(--avatar-bg, var(--muted)); color: #fff;
+  font-family: "Palatino Linotype", Palatino, Georgia, serif; font-weight: bold;
+  font-size: calc(var(--avatar-size) * .46); line-height: 1; letter-spacing: 0; user-select: none;
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--line-strong);
+  text-shadow: 0 1px 1px #0003;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar-sm { --avatar-size: 28px; box-shadow: 0 0 0 1.5px var(--paper), 0 0 0 2.5px var(--line-strong); }
+.avatar-md { --avatar-size: 44px; }
+.avatar-lg { --avatar-size: 88px; }
+
+.char-card { display: flex; gap: .8rem; align-items: center; }
+.char-card h2 { border: 0; margin: 0 0 .1rem; padding: 0; }
+.name-with-avatar { display: inline-flex; align-items: center; gap: .45rem; vertical-align: middle; }
+.trade-title { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .5rem; }
+.acting-form > label .avatar { margin-right: .1rem; }
+
+/* Ficha: icono grande que abre el editor de imagen */
+.sheet-id { display: flex; gap: 1rem; align-items: center; min-width: 0; }
+.sheet-id h1 { margin-bottom: .2rem; }
+.avatar-editor { position: relative; flex: none; }
+.avatar-trigger { list-style: none; cursor: pointer; position: relative; display: block; border-radius: 50%; }
+.avatar-trigger::-webkit-details-marker { display: none; }
+.avatar-trigger:hover .avatar { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--gold); }
+.avatar-edit-badge {
+  position: absolute; right: -2px; bottom: -2px; width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: .85rem;
+  background: var(--paper); color: var(--accent); border: 1px solid var(--line-strong);
+  box-shadow: 0 1px 3px #4a321a33;
+}
+.avatar-panel {
+  position: absolute; left: 0; top: calc(100% + 8px); z-index: 22;
+  width: min(320px, calc(100vw - 2.5rem)); padding: .75rem;
+  display: flex; flex-direction: column; gap: .5rem;
+  background: var(--paper); border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: var(--shadow-pop);
+}
+.avatar-form { display: flex; flex-direction: column; gap: .5rem; }
+.avatar-form button, .avatar-panel form > .btn-ghost { width: 100%; }
+
+.dropzone {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .35rem; min-height: 150px; padding: 1rem; text-align: center; cursor: pointer;
+  color: var(--ink); font-size: .9rem;
+  background: var(--paper-hover); border: 2px dashed var(--line-strong); border-radius: 10px;
+  transition: background .15s, border-color .15s;
+}
+.dropzone:hover, .dropzone.dragover { background: var(--paper-active); border-color: var(--gold); }
+.dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dropzone-hint { font-size: .75rem; color: var(--muted); }
+.dropzone-preview {
+  width: 96px; height: 96px; border-radius: 50%; object-fit: cover;
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--gold);
+}
+.dropzone.has-file .dropzone-text { font-size: .85rem; }
+
+/* Buscador: resultados con icono */
+.picker-option.with-avatar { flex-direction: row; align-items: center; gap: .6rem; }
+.picker-text { display: flex; flex-direction: column; gap: .05rem; min-width: 0; }
+
 /* --- Pantallas táctiles: objetivos más grandes ------------------------------------- */
 
 @media (pointer: coarse) {
@@ -416,6 +481,10 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
   .list-form { order: 3; flex-basis: 100%; }
   .list-form label { flex: 1 1 100%; }
   .list-form input[type=number] { width: 100%; }
+
+  /* Ficha: icono algo menor */
+  .avatar-lg { --avatar-size: 72px; }
+  .sheet-id { gap: .75rem; }
 
   /* Barra de lista: búsqueda a todo el ancho, desplegables de dos en dos */
   .toolbar { padding: .5rem; }

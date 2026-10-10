@@ -45,6 +45,23 @@
     return span;
   }
 
+  /** Icono de personaje (igual que la macro avatar() de las plantillas). */
+  function avatarIcon(info) {
+    var span = el("span", "avatar avatar-sm");
+    span.style.setProperty("--avatar-bg", info.color);
+    span.setAttribute("aria-hidden", "true");
+    if (info.url) {
+      var img = el("img");
+      img.src = info.url;
+      img.alt = "";
+      img.loading = "lazy";
+      span.appendChild(img);
+    } else {
+      span.textContent = info.initial;
+    }
+    return span;
+  }
+
   var FUNNEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/></svg>';
 
@@ -64,7 +81,7 @@
       setNav(!document.body.classList.contains("nav-open"));
       return;
     }
-    document.querySelectorAll("details.menu[open]").forEach(function (menu) {
+    document.querySelectorAll("details.menu[open], details.popover[open]").forEach(function (menu) {
       if (!menu.contains(e.target)) menu.removeAttribute("open");
     });
   });
@@ -80,7 +97,7 @@
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
     setNav(false);
-    document.querySelectorAll("details.menu[open]").forEach(function (m) { m.removeAttribute("open"); });
+    document.querySelectorAll("details.menu[open], details.popover[open]").forEach(function (m) { m.removeAttribute("open"); });
   });
 
   // --- Listas: los desplegables de filtro/orden se aplican al cambiarlos ----------------
@@ -276,8 +293,15 @@
       li.id = self.list.id + "-" + i;
       li.setAttribute("role", "option");
       li.setAttribute("data-index", i);
-      li.appendChild(highlight(item.label, self.input.value));
-      if (item.sub) li.appendChild(el("span", "picker-sub", item.sub));
+      var text = li;
+      if (item.avatar) {
+        li.classList.add("with-avatar");
+        li.appendChild(avatarIcon(item.avatar));
+        text = el("span", "picker-text");
+        li.appendChild(text);
+      }
+      text.appendChild(highlight(item.label, self.input.value));
+      if (item.sub) text.appendChild(el("span", "picker-sub", item.sub));
       self.list.appendChild(li);
     });
     if (this.hasMore) {
@@ -360,4 +384,108 @@
   };
 
   document.querySelectorAll(".picker").forEach(function (root) { new Picker(root); });
+
+  // --- Imagen de personaje: arrastrar y soltar, vista previa y reducción previa -----------
+  // El servidor vuelve a procesar la imagen (256 px, WebP); aquí solo se reduce para que
+  // la subida sea rápida en el móvil aunque la foto original pese varios MB.
+
+  var MAX_UPLOAD = 8 * 1024 * 1024;
+  var PRE_RESIZE = 512;
+  var IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+  function kb(bytes) { return Math.max(1, Math.round(bytes / 1024)) + " KB"; }
+
+  function setFile(input, file) {
+    try {
+      var dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      return true;
+    } catch (err) {
+      return false;  // navegador antiguo: se envía el archivo original
+    }
+  }
+
+  /** Reduce la imagen a PRE_RESIZE px como máximo (devuelve una promesa con un File o null). */
+  function shrink(file) {
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var scale = Math.min(1, PRE_RESIZE / Math.max(img.naturalWidth, img.naturalHeight));
+        if (scale === 1 && file.size < 300 * 1024) { resolve(null); return; }
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.naturalWidth * scale);
+        canvas.height = Math.round(img.naturalHeight * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          resolve(blob && blob.size < file.size ? new File([blob], "imagen.webp", { type: blob.type }) : null);
+        }, "image/webp", 0.9);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+  }
+
+  function Dropzone(zone) {
+    var input = zone.querySelector("input[type=file]");
+    var preview = zone.querySelector(".dropzone-preview");
+    var text = zone.querySelector(".dropzone-text");
+    var original = text.innerHTML;
+    var editor = zone.closest(".avatar-editor");
+
+    function reset(message) {
+      input.value = "";
+      preview.hidden = true;
+      zone.classList.remove("has-file");
+      text.innerHTML = original;
+      if (message) {
+        var warning = el("span", "picker-error", message);
+        text.appendChild(document.createElement("br"));
+        text.appendChild(warning);
+      }
+    }
+
+    function handle(file) {
+      if (!file) return;
+      if (IMAGE_TYPES.indexOf(file.type) === -1) { reset("Formato no admitido. Usa JPG, PNG, WebP o GIF."); return; }
+      if (file.size > MAX_UPLOAD) { reset("La imagen supera 8 MB."); return; }
+      if (input.files[0] !== file) setFile(input, file);
+      preview.src = URL.createObjectURL(file);
+      preview.hidden = false;
+      zone.classList.add("has-file");
+      text.textContent = file.name + " · " + kb(file.size);
+      shrink(file).then(function (smaller) {
+        if (smaller && setFile(input, smaller)) {
+          text.textContent = file.name + " · se subirá reducida (" + kb(smaller.size) + ")";
+        }
+      });
+    }
+
+    input.addEventListener("change", function () { handle(input.files[0]); });
+    ["dragenter", "dragover"].forEach(function (type) {
+      zone.addEventListener(type, function (e) { e.preventDefault(); zone.classList.add("dragover"); });
+    });
+    ["dragleave", "drop"].forEach(function (type) {
+      zone.addEventListener(type, function () { zone.classList.remove("dragover"); });
+    });
+    zone.addEventListener("drop", function (e) {
+      e.preventDefault();
+      handle(e.dataTransfer.files[0]);
+    });
+
+    // Soltar una imagen directamente sobre el icono abre el editor con ella cargada
+    if (editor) {
+      var trigger = editor.querySelector(".avatar-trigger");
+      trigger.addEventListener("dragover", function (e) { e.preventDefault(); editor.open = true; });
+      trigger.addEventListener("drop", function (e) {
+        e.preventDefault();
+        editor.open = true;
+        handle(e.dataTransfer.files[0]);
+      });
+    }
+  }
+
+  document.querySelectorAll(".dropzone").forEach(function (zone) { new Dropzone(zone); });
 })();

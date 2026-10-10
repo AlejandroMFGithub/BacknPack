@@ -1,6 +1,7 @@
 -- Esquema base de BacknPack, versión 0. Escrito para SQLite; db.py lo traduce a PostgreSQL.
 -- Los cambios posteriores están en migrations.py.
 
+DROP TABLE IF EXISTS character_avatars;
 DROP TABLE IF EXISTS item_traits;
 DROP TABLE IF EXISTS activity_log;
 DROP TABLE IF EXISTS trade_lines;
