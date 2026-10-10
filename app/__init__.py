@@ -86,6 +86,21 @@ def create_app(test_config=None):
         args = {k: v for k, v in args.items() if v not in (None, "")}
         return url_for(request.endpoint, **(request.view_args or {}), **args)
 
+    from .models import effects
+
+    app.jinja_env.globals.update(EFFECT_GROUPS=effects.TARGET_GROUPS, EFFECT_OPS=effects.OPS,
+                                 EFFECT_CAPS=effects.CAP_OPTIONS)
+    app.add_template_filter(effects.summary, "effects_summary")
+
+    @app.template_global()
+    def effect_rows(obj=None):
+        """Filas del editor de efectos: lo enviado (si el formulario volvió con un error) o lo guardado."""
+        if request.method == "POST" and "eff_t" in request.form:
+            f = request.form
+            return [{"t": t, "op": op, "v": v, "cap": cap} for t, op, v, cap in
+                    zip(f.getlist("eff_t"), f.getlist("eff_op"), f.getlist("eff_v"), f.getlist("eff_cap"))]
+        return effects.loads(field(obj, "effects", None))
+
     @app.template_global()
     def field(obj, key, default=""):
         """Lee obj[key] tolerando None/claves ausentes (útil en formularios de alta/edición)."""

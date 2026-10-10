@@ -1,6 +1,7 @@
 from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
 from ..models import ActivityLog, Character, Condition, Currency, Item, ItemTrait, RuleError, Trade
+from ..models.effects import sheets_for
 from ..models.item import CATEGORIES, RARITIES
 from ..models.item_trait import KINDS as TRAIT_KINDS
 from .helpers import ListArgs, campaign_required, dm_required, form_int, redirect_back
@@ -20,6 +21,7 @@ def index():
         characters=characters,
         args=args,
         effects=effects,
+        sheets=sheets_for(characters, show_hidden=True),
         pending_trades=Trade.pending_count(g.campaign["id"]),
         log=ActivityLog.recent(g.campaign["id"]),
     )

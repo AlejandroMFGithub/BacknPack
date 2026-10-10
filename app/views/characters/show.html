@@ -2,7 +2,7 @@
 {% block title %}{{ character.name }}{% endblock %}
 {% block back_url %}{{ url_for('characters.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import avatar, trait_chip, trait_form, list_toolbar, picker with context %}
+{% from "_macros.html" import avatar, trait_chip, trait_form, list_toolbar, picker, calc_class, calc_attrs, calc_pop, effects_editor with context %}
 {% set dm = is_dm() %}
 {% set item_filters = [{'name': 'category', 'label': 'Categoría', 'options': categories},
                        {'name': 'rarity', 'label': 'Rareza', 'options': rarities}] %}
@@ -67,34 +67,50 @@
   {# PG con barra de vida: verde > 50 %, ámbar > 25 %, rojo por debajo #}
   {% set hp_pct = [[(character.hp_current / character.hp_max * 100) if character.hp_max else 0, 0] | max, 100] | min %}
   {% set hp_color = '#2f6b3a' if hp_pct > 50 else ('#b7791f' if hp_pct > 25 else '#a12a22') %}
-  {% set speed_ft, speed_sq = (character.speed | feet).split(' / ') %}
+  {% set speed_ft, speed_sq = (stats.speed.total | feet).split(' / ') %}
   <div class="combat-strip vitals">
-    <div class="combat-box" title="Puntos de golpe">
+    <div class="combat-box {{ calc_class(stats.hp_max) }}" {{ calc_attrs(stats.hp_max, 'Puntos de golpe máximos') }}>
       <span class="combat-label">Puntos de golpe</span>
-      <b>{{ character.hp_current }} <small>/ {{ character.hp_max }}</small></b>
+      <b>{{ character.hp_current }} <small class="calc-value">/ {{ stats.hp_max.total }}</small></b>
       <span class="hp-bar" aria-hidden="true"><span style="width: {{ hp_pct | round(1) }}%; --hp: {{ hp_color }}"></span></span>
+      {{ calc_pop(stats.hp_max, 'Puntos de golpe máximos') }}
     </div>
-    <div class="combat-box">
-      <span class="combat-label">Clase de armadura</span><b>{{ character.armor_class }}</b>
+    <div class="combat-box {{ calc_class(stats.armor_class) }}" {{ calc_attrs(stats.armor_class, 'Clase de armadura') }}>
+      <span class="combat-label">Clase de armadura</span><b class="calc-value">{{ stats.armor_class.total }}</b>
+      {{ calc_pop(stats.armor_class, 'Clase de armadura') }}
     </div>
-    <div class="combat-box">
-      <span class="combat-label">Velocidad</span><b>{{ speed_ft }}</b><small>{{ speed_sq }}</small>
+    <div class="combat-box {{ calc_class(stats.speed) }}" {{ calc_attrs(stats.speed, 'Velocidad') }}>
+      <span class="combat-label">Velocidad</span><b class="calc-value">{{ speed_ft }}</b><small>{{ speed_sq }}</small>
+      {{ calc_pop(stats.speed, 'Velocidad', ' ft') }}
     </div>
-    <div class="combat-box" title="Máximo: FUE × 7,5 kg">
+    {% set str_stat = stats.abilities.strength %}
+    <div class="combat-box {{ calc_class(str_stat) }}" {{ calc_attrs(str_stat, 'Carga máxima') }}>
       <span class="combat-label">Carga</span><b>{{ '%g' % weight }} <small>kg</small></b>
-      <small>máx. {{ '%g' % (character.strength * 7.5) }} kg</small>
+      <small class="calc-value">máx. {{ '%g' % stats.carry_max }} kg</small>
+      <span class="calc-pop" role="tooltip">
+        <span class="calc-title">Carga máxima</span>
+        <span class="calc-line calc-base"><span>FUE{{ ' (modificada)' if str_stat.sign }} × 7,5 kg</span><b>{{ str_stat.total }} × 7,5</b></span>
+        <span class="calc-line calc-total"><span>Máximo</span><b>{{ '%g' % stats.carry_max }} kg</b></span>
+        <span class="calc-line"><span>Llevas ahora</span><b>{{ '%g' % weight }} kg</b></span>
+      </span>
     </div>
   </div>
 
   <div class="combat-strip">
-    <div class="combat-box" title="Modificador de DES{{ ' + ' ~ character.initiative_bonus ~ ' de bonus' if character.initiative_bonus }}">
-      <span class="combat-label">Iniciativa</span><b>{{ stats.initiative | signed }}</b>
+    <div class="combat-box {{ calc_class(stats.initiative) }}" {{ calc_attrs(stats.initiative, 'Iniciativa') }}>
+      <span class="combat-label">Iniciativa</span><b class="calc-value">{{ stats.initiative.total | signed }}</b>
+      {{ calc_pop(stats.initiative, 'Iniciativa', 'signed') }}
     </div>
-    <div class="combat-box" title="{{ 'Según su nivel (' ~ character.level ~ ')' if stats.proficiency_is_auto else 'Fijado a mano' }}">
+    <div class="combat-box calc" tabindex="0" role="button" aria-expanded="false" aria-label="Competencia: ver cálculo">
       <span class="combat-label">Competencia</span><b>{{ stats.proficiency | signed }}</b>
+      <span class="calc-pop" role="tooltip">
+        <span class="calc-title">Bonificador de competencia</span>
+        <span class="calc-line calc-base"><span>{{ 'Según su nivel (' ~ character.level ~ ')' if stats.proficiency_is_auto else 'Fijado a mano en la ficha' }}</span><b>{{ stats.proficiency | signed }}</b></span>
+      </span>
     </div>
-    <div class="combat-box" title="10 + Percepción">
-      <span class="combat-label">Percepción pasiva</span><b>{{ stats.passive_perception }}</b>
+    <div class="combat-box {{ calc_class(stats.passive_perception) }}" {{ calc_attrs(stats.passive_perception, 'Percepción pasiva') }}>
+      <span class="combat-label">Percepción pasiva</span><b class="calc-value">{{ stats.passive_perception.total }}</b>
+      {{ calc_pop(stats.passive_perception, 'Percepción pasiva') }}
     </div>
     <div class="combat-box inspiration {{ 'has-inspiration' if character.inspiration }}">
       <span class="combat-label">Inspiración</span>
@@ -114,10 +130,12 @@
 
   <div class="abilities">
     {% for key, label in abilities %}
-    <div class="ability">
+    {% set st = stats.abilities[key] %}
+    <div class="ability {{ calc_class(st) }}" {{ calc_attrs(st, label) }}>
       <div class="label">{{ label }}</div>
-      <div class="score">{{ character[key] }}</div>
-      <div class="mod">{{ character[key] | mod }}</div>
+      <div class="score calc-value">{{ st.total }}</div>
+      <div class="mod calc-value">{{ st.total | mod }}</div>
+      {{ calc_pop(st, label) }}
     </div>
     {% endfor %}
   </div>
@@ -138,7 +156,7 @@
       <h3>Tiradas de salvación</h3>
       <ul class="check-list">
         {% for s in stats.saves %}
-        <li class="{{ 'is-prof' if s.level }}">{{ prof_dot(s.level) }}<span class="check-name">{{ s.name }}</span><b class="check-total">{{ s.total | signed }}</b></li>
+        <li class="{{ 'is-prof' if s.level }} {{ calc_class(s.stat) }}" {{ calc_attrs(s.stat, 'Salvación de ' ~ s.name) }}>{{ prof_dot(s.level) }}<span class="check-name">{{ s.name }}</span><b class="check-total calc-value">{{ s.total | signed }}</b>{{ calc_pop(s.stat, 'Salvación de ' ~ s.name, 'signed') }}</li>
         {% endfor %}
       </ul>
     </section>
@@ -146,12 +164,14 @@
       <h3>Habilidades</h3>
       <ul class="check-list skills-list">
         {% for s in stats.skills %}
-        <li class="{{ 'is-prof' if s.level }}">{{ prof_dot(s.level) }}<span class="check-name">{{ s.name }} <span class="check-ability">{{ s.ability }}</span></span><b class="check-total">{{ s.total | signed }}</b></li>
+        <li class="{{ 'is-prof' if s.level }} {{ calc_class(s.stat) }}" {{ calc_attrs(s.stat, s.name) }}>{{ prof_dot(s.level) }}<span class="check-name">{{ s.name }} <span class="check-ability">{{ s.ability }}</span></span><b class="check-total calc-value">{{ s.total | signed }}</b>{{ calc_pop(s.stat, s.name, 'signed') }}</li>
         {% endfor %}
       </ul>
     </section>
   </div>
   <p class="field-hint">Total = modificador de la característica + competencia ({{ stats.proficiency | signed }}) si está marcada, el doble con pericia.
+    Pasa el ratón o toca cualquier valor para ver el cálculo: en <span class="mod-up-text">verde</span> lo que mejoran el equipo y los efectos,
+    en <span class="mod-down-text">rojo</span> lo que empeoran y en <span class="mod-mixed-text">ámbar</span> si hay de ambos.
     <a href="{{ url_for('characters.edit', character_id=character.id) }}#competencias">Cambiar competencias</a></p>
 </div>
 
@@ -204,6 +224,7 @@
           </details>
           {% endif %}
         </div>
+        {% if e.effects %}<div class="effects-line small">⚙ {{ e.effects | effects_summary }}</div>{% endif %}
         {% if e.description %}<div class="small">{{ e.description }}</div>{% endif %}
       </div>
     {% else %}
@@ -222,6 +243,7 @@
         <label>Duración <input name="duration" placeholder="1 minuto, hasta descanso largo…"></label>
       </div>
       <label>Descripción <textarea name="description"></textarea></label>
+      {{ effects_editor([], "Activos mientras dure. Si lo dejas vacío, los estados del reglamento (Agarrado, Prisa, Paso largo…) ponen el suyo.") }}
       <label class="inline"><input type="checkbox" name="visible" value="1" checked> Visible para el jugador</label>
       <button class="btn-small">Añadir</button>
       <datalist id="presets">{% for p in presets %}<option value="{{ p }}">{% endfor %}</datalist>
@@ -250,6 +272,7 @@
         {% if not it.visible %}<span class="badge badge-hidden">Oculto al jugador</span>{% endif %}
         <div class="muted small">{{ it.category }} · {{ it.rarity }}{% if it.attunement %} · requiere sintonía{% endif %}</div>
         {% if it.properties %}<div class="small">{{ it.properties }}</div>{% endif %}
+        {% if it.effects %}<div class="effects-line small {{ 'effects-off' if not it.equipped }}">⚙ {{ it.effects | effects_summary }}{% if not it.equipped %} <span class="muted">(al equiparlo)</span>{% endif %}</div>{% endif %}
         {% if it.description %}<div class="muted small">{{ it.description }}</div>{% endif %}
       </div>
       <div class="inv-qty">

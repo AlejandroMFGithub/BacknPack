@@ -38,6 +38,7 @@
     <tr>
       <td><b>{{ l.name }}</b>
         <div class="muted small">{{ l.category }} · {{ l.rarity }}{% if l.properties %} · {{ l.properties }}{% endif %}</div>
+        {% if l.effects %}<div class="effects-line small">⚙ {{ l.effects | effects_summary }}</div>{% endif %}
         {% for t in traits[l.item_id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
       <td data-label="Precio"><b>{{ l.price }} {{ l.currency_code }}</b></td>
       <td data-label="Stock">{{ '∞' if l.stock is none else l.stock }}</td>

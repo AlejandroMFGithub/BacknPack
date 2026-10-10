@@ -10,6 +10,7 @@ from collections import defaultdict
 from ..db import get_db, transaction
 from .activity_log import ActivityLog
 from ..text import distances
+from . import effects
 from .errors import RuleError
 
 KINDS = {
@@ -19,7 +20,7 @@ KINDS = {
     "charges": "Usos limitados",
 }
 
-_COLUMNS = "name, kind, description, uses_max, uses_current, recharge, visible"
+_COLUMNS = "name, kind, description, uses_max, uses_current, recharge, visible, effects"
 
 _SELECT = """
     SELECT t.*, ii.character_id, i.name AS item_name
@@ -103,13 +104,14 @@ class ItemTrait:
         return (
             name, kind, distances((data.get("description") or "").strip()), uses_max, uses_current,
             distances((data.get("recharge") or "").strip()), 1 if data.get("visible") else 0,
+            effects.dumps(effects.from_form(data)),
         )
 
     @staticmethod
     def create(data, item_id=None, inventory_item_id=None):
         db = get_db()
         trait_id = db.insert(
-            f"INSERT INTO item_traits (item_id, inventory_item_id, {_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            f"INSERT INTO item_traits (item_id, inventory_item_id, {_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (item_id, inventory_item_id, *ItemTrait._clean(data)),
         )
         db.commit()

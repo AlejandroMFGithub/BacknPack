@@ -132,6 +132,25 @@ controlador los muestra como mensaje.
   (● competencia, ◉ pericia = el doble). Ej.: DES 20, competencia +2 y Acrobacias → +7.
   Las reglas están en `app/models/rules.py` (funciones puras).
 
+**Estadísticas automáticas** (equipo, bufos, maldiciones y estados)
+- Objetos del catálogo, cualidades de objetos y efectos del personaje pueden llevar **efectos en la
+  ficha**: sobre una característica, la CA, la velocidad, la iniciativa, los PG máximos, la
+  percepción pasiva, una o todas las salvaciones y una o todas las habilidades.
+- Operaciones: `+/−` (escudo: CA +2), `armadura` (la CA pasa a ser valor + DES, con o sin límite:
+  cuero 11 + DES, cota de malla 16 sin DES), `mínimo` (guanteletes de ogro: FUE 19), `×` (velocidad
+  ×0,5) y `=` (agarrado: velocidad 0). Se aplican en ese orden: armadura, mínimo, +/−, ×, =.
+- Los objetos y sus cualidades cuentan **solo si están equipados**; los efectos del personaje, siempre.
+  Al añadir un estado del reglamento sin efectos (Agarrado, Prisa, Ralentizar, Paso largo…) se pone el suyo.
+- La CA de la ficha es la CA **sin armadura** (10 + DES o armadura natural); con varias armaduras
+  equipadas cuenta la mejor.
+- Los cambios se propagan: subir DES cambia CA, iniciativa, salvación y habilidades de DES; FUE cambia
+  la carga máxima.
+- En la ficha: **verde** si equipo/efectos lo mejoran, **rojo** si lo empeoran, **ámbar** si hay de
+  ambos. Al pasar el ratón, enfocar con el teclado o tocar cualquier valor se ve la operación paso a
+  paso con el origen de cada cambio. Un efecto oculto se aplica igual, pero el jugador ve «???» como
+  origen; el DM ve su nombre. Lo que viene del nivel o de lo escrito en la ficha no colorea.
+- El motor está en `rules.sheet()` y los efectos en `app/models/effects.py` (JSON en la columna `effects`).
+
 **Imagen de personaje**
 - Cada personaje muestra un icono en listas, ficha, intercambios y buscador: su imagen o, si no
   tiene, la inicial sobre un color fijo.

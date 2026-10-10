@@ -6,7 +6,7 @@ from ..db import transaction
 from ..models import (
     ActivityLog, Avatar, Campaign, Character, Condition, Currency, Inventory, Item, ItemTrait, RuleError, User,
 )
-from ..models import rules
+from ..models import effects, rules
 from ..models.character import ABILITIES
 from ..models.condition import KINDS as CONDITION_KINDS, PRESETS
 from ..models.item import CATEGORIES, RARITIES
@@ -42,7 +42,8 @@ def index():
         characters = Character.search(args.q, campaign_id=g.campaign["id"], sort=args.sort, page=args.page)
     else:
         characters = Character.search(args.q, user_id=g.user["id"], sort=args.sort, page=args.page)
-    return render_template("characters/index.html", characters=characters, args=args)
+    return render_template("characters/index.html", characters=characters, args=args,
+                           sheets=effects.sheets_for(characters, show_hidden=is_dm()))
 
 
 @bp.route("/new", methods=["GET", "POST"])
@@ -102,7 +103,7 @@ def show(character_id):
         condition_kinds=CONDITION_KINDS,
         presets=PRESETS,
         log=ActivityLog.for_character(character_id),
-        stats=rules.sheet(character, Character.proficiencies(character_id)),
+        stats=rules.sheet(character, Character.proficiencies(character_id), effects.active(character_id, show_hidden=dm)),
     )
 
 

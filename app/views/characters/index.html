@@ -24,7 +24,7 @@
       <div>
         <h2>{{ c.name }}</h2>
         <div>{{ c.race or '¿?' }} · {{ c.class_name or '¿?' }} nivel {{ c.level }}</div>
-        <div class="muted small">PG {{ c.hp_current }}/{{ c.hp_max }} · CA {{ c.armor_class }}
+        <div class="muted small">PG {{ c.hp_current }}/{{ c.hp_max }} · CA {% set ac = sheets[c.id].armor_class %}<b class="{{ 'mod-' ~ ac.sign ~ '-text' if ac.sign }}">{{ ac.total }}</b>
           {% if is_dm() %} · jugador: {{ c.owner }}{% endif %}</div>
       </div>
     </a>

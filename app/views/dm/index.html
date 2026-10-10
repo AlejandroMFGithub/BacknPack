@@ -25,8 +25,9 @@
       </div></td>
       <td data-label="Jugador">{{ c.owner }}</td>
       <td data-label="PG">{{ c.hp_current }}/{{ c.hp_max }}</td>
-      <td data-label="CA">{{ c.armor_class }}</td>
-      <td data-label="Iniciativa">{{ ((c.dexterity - 10) // 2 + c.initiative_bonus) | signed }}</td>
+      {% set sh = sheets[c.id] %}
+      <td data-label="CA"><span class="{{ 'mod-' ~ sh.armor_class.sign ~ '-text' if sh.armor_class.sign }}">{{ sh.armor_class.total }}</span></td>
+      <td data-label="Iniciativa"><span class="{{ 'mod-' ~ sh.initiative.sign ~ '-text' if sh.initiative.sign }}">{{ sh.initiative.total | signed }}</span></td>
       <td data-label="Inspiración">{% if c.inspiration %}<span class="insp-badge">★ {{ c.inspiration }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
       <td data-label="Efectos"><span class="badge-list">
         {% for e in effects[c.id] %}

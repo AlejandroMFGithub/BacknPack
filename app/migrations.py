@@ -94,6 +94,10 @@ MIGRATIONS = [
     lambda db: _distances_to_feet(db),
     # 11: cuándo vio el destinatario la propuesta (para avisarle solo una vez)
     "ALTER TABLE trades ADD COLUMN seen_at TEXT;",
+    # 12: efectos mecánicos (JSON) de objetos, cualidades y estados sobre la ficha
+    """ALTER TABLE items ADD COLUMN effects TEXT;
+       ALTER TABLE item_traits ADD COLUMN effects TEXT;
+       ALTER TABLE conditions ADD COLUMN effects TEXT;""",
 ]
 
 # Columnas de texto libre donde puede haber distancias

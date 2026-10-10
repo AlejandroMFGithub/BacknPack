@@ -1,5 +1,6 @@
 from ..db import get_db
 from ..text import distances
+from . import effects
 from .errors import RuleError
 
 KINDS = {"buff": "Bufo", "curse": "Maldición", "condition": "Estado"}
@@ -9,7 +10,8 @@ PRESETS = [
     "Agarrado", "Apresado", "Asustado", "Aturdido", "Cegado", "Derribado",
     "Ensordecido", "Envenenado", "Hechizado", "Incapacitado", "Inconsciente",
     "Invisible", "Paralizado", "Petrificado", "Agotamiento (nivel 1)",
-    "Bendición", "Inspiración bardica", "Escudo de fe", "Prisa",
+    "Agotamiento (nivel 2)", "Agotamiento (nivel 5)",
+    "Bendición", "Inspiración bardica", "Escudo de fe", "Prisa", "Ralentizar", "Paso largo",
 ]
 
 
@@ -36,15 +38,19 @@ class Condition:
             raise RuleError("El efecto necesita un nombre.")
         if kind not in KINDS:
             raise RuleError("Tipo de efecto no válido.")
+        found = effects.from_form(data)
+        if not found:  # estados del reglamento: su efecto se pone solo
+            found = effects.clean(effects.CONDITION_PRESETS.get(name, []))
         db = get_db()
         condition_id = db.insert(
-            """INSERT INTO conditions (character_id, name, kind, description, duration, visible)
-               VALUES (?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO conditions (character_id, name, kind, description, duration, visible, effects)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (
                 character_id, name, kind,
                 distances((data.get("description") or "").strip()),
                 distances((data.get("duration") or "").strip()),
                 1 if data.get("visible") else 0,
+                effects.dumps(found),
             ),
         )
         db.commit()

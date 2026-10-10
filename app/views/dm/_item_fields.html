@@ -1,3 +1,4 @@
+{% from "_macros.html" import effects_editor %}
 <div class="form-grid">
   <label>Nombre <input name="name" value="{{ field(item, 'name') }}" required></label>
   <label>Categoría
@@ -11,3 +12,4 @@
 <label>Propiedades <input name="properties" value="{{ field(item, 'properties') }}" placeholder="1d8 cortante · versátil (1d10) / CA 14 + Des (máx. 2)…"></label>
 <label>Descripción <textarea name="description">{{ field(item, 'description') }}</textarea></label>
 <label class="inline"><input type="checkbox" name="attunement" value="1" {{ 'checked' if field(item, 'attunement', 0) }}> Requiere sintonía</label>
+{{ effects_editor(effect_rows(item if item is defined else none), "Se aplican a la ficha mientras el objeto esté equipado.") }}

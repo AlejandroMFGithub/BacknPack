@@ -628,4 +628,49 @@
   }
 
   document.querySelectorAll(".dropzone").forEach(function (zone) { new Dropzone(zone); });
+
+  // --- Estadísticas calculadas: desglose al tocar / pulsar --------------------------------
+
+  function closeCalcs(except) {
+    document.querySelectorAll(".calc.open").forEach(function (el) {
+      if (el === except) return;
+      el.classList.remove("open");
+      el.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var calc = e.target.closest(".calc");
+    if (calc && e.target.closest(".calc-pop")) return;  // leer el desglose no lo cierra
+    if (calc && e.target.closest("button, a, form, input, select")) calc = null;
+    closeCalcs(calc);
+    if (calc) {
+      var open = calc.classList.toggle("open");
+      calc.setAttribute("aria-expanded", String(open));
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    var calc = e.target.closest && e.target.closest(".calc");
+    if (e.key === "Escape") { closeCalcs(null); return; }
+    if (calc && e.target === calc && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      calc.click();
+    }
+  });
+
+  // --- Editor de efectos: añadir y quitar filas ------------------------------------------
+
+  document.addEventListener("click", function (e) {
+    var add = e.target.closest(".eff-add");
+    if (add) {
+      var editor = add.closest(".effects-editor");
+      var row = editor.querySelector(".eff-template").content.firstElementChild.cloneNode(true);
+      editor.querySelector(".eff-rows").appendChild(row);
+      row.querySelector("select").focus();
+      return;
+    }
+    var remove = e.target.closest(".eff-remove");
+    if (remove) remove.closest(".eff-row").remove();
+  });
 })();

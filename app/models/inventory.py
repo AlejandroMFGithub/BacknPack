@@ -7,7 +7,7 @@ from .listing import sort_sql
 
 _SELECT = """
     SELECT ii.*, i.name, i.category, i.rarity, i.weight, i.properties,
-           i.description, i.attunement
+           i.description, i.attunement, i.effects
     FROM inventory_items ii JOIN items i ON i.id = ii.item_id
 """
 

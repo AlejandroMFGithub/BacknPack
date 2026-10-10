@@ -1,5 +1,6 @@
 from ..db import get_db
 from ..text import LIKE_ESCAPE, distances, like_prefix, like_terms, normalize
+from . import effects
 from .errors import RuleError
 from .listing import PER_PAGE, paginate, sort_sql
 
@@ -74,6 +75,7 @@ class Item:
             "properties": distances((data.get("properties") or "").strip()),
             "description": distances((data.get("description") or "").strip()),
             "attunement": 1 if data.get("attunement") else 0,
+            "effects": effects.dumps(effects.from_form(data)),
         }
 
     @staticmethod

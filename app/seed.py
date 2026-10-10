@@ -31,6 +31,14 @@ ITEMS = [
     ("Varita de proyectiles mágicos", "Objeto maravilloso", "Poco común", 0.5, "Lanza *proyectil mágico*", "", 0),
 ]
 
+# Efectos en la ficha mientras se lleva equipado (ver models/effects.py)
+ITEM_EFFECTS = {
+    "Armadura de cuero": [{"t": "armor_class", "op": "armor", "v": 11, "cap": None}],
+    "Cota de malla": [{"t": "armor_class", "op": "armor", "v": 16, "cap": 0}],
+    "Escudo": [{"t": "armor_class", "op": "add", "v": 2}],
+    "Anillo de protección": [{"t": "armor_class", "op": "add", "v": 1}, {"t": "saves", "op": "add", "v": 1}],
+}
+
 # Cualidades de plantilla: nombre del objeto -> datos de la cualidad
 ITEM_TRAITS = [
     ("Varita de proyectiles mágicos", {
@@ -51,6 +59,7 @@ def seed(demo=True, dm_password="dm"):
         Item.create({
             "name": name, "category": cat, "rarity": rar, "weight": w,
             "properties": props, "description": desc, "attunement": att,
+            "effects": ITEM_EFFECTS.get(name),
         })
     item_ids = {row["name"]: row["id"] for row in Item.all()}
     for item_name, data in ITEM_TRAITS:
@@ -77,7 +86,7 @@ def _seed_demo(db):
         "name": "Lyra Vientoalto", "race": "Elfa del bosque", "class_name": "Exploradora",
         "level": 3, "background": "Forastera", "alignment": "Caótica buena",
         "strength": 11, "dexterity": 17, "constitution": 13, "intelligence": 10,
-        "wisdom": 15, "charisma": 8, "hp_max": 28, "hp_current": 24, "armor_class": 14, "speed": 35,
+        "wisdom": 15, "charisma": 8, "hp_max": 28, "hp_current": 24, "armor_class": 13, "speed": 35,
         # Exploradora: salvaciones de FUE y DES; Sigilo con pericia (p. ej. por una dote)
         "save_strength": 1, "save_dexterity": 1, "skill_stealth": 2, "skill_perception": 1,
         "skill_survival": 1, "skill_animal_handling": 1, "skill_acrobatics": 1,
@@ -86,7 +95,7 @@ def _seed_demo(db):
         "name": "Thorgar Puñohierro", "race": "Enano de las montañas", "class_name": "Guerrero",
         "level": 3, "background": "Soldado", "alignment": "Legal neutral",
         "strength": 17, "dexterity": 10, "constitution": 16, "intelligence": 9,
-        "wisdom": 12, "charisma": 10, "hp_max": 34, "hp_current": 34, "armor_class": 18, "speed": 25,
+        "wisdom": 12, "charisma": 10, "hp_max": 34, "hp_current": 34, "armor_class": 10, "speed": 25,
         # Guerrero: salvaciones de FUE y CON
         "save_strength": 1, "save_constitution": 1, "skill_athletics": 1, "skill_intimidation": 1,
         "skill_perception": 1,
@@ -117,7 +126,8 @@ def _seed_demo(db):
                               "description": "Una vez por descanso, +1d8 de daño radiante en un impacto."},
                              inventory_item_id=row["id"])
             ItemTrait.create({"name": "Sed de sangre", "kind": "curse", "visible": 0,
-                              "description": "Si no mata en un combate, CD 12 Sab o ataca al aliado más cercano."},
+                              "description": "Si no mata en un combate, CD 12 Sab o ataca al aliado más cercano.",
+                              "effects": [{"t": "wisdom", "op": "add", "v": -2}]},
                              inventory_item_id=row["id"])
 
     for char_id, code, amount in [
@@ -132,7 +142,10 @@ def _seed_demo(db):
     Condition.create(lyra, {"name": "Bendición", "kind": "buff", "visible": 1,
                             "description": "+1d4 a tiradas de ataque y salvación", "duration": "1 minuto"})
     Condition.create(lyra, {"name": "Marca del licántropo", "kind": "curse", "visible": 0,
-                            "description": "Mordida por un hombre lobo. Aún no lo sabe.", "duration": "Hasta luna llena"})
+                            "description": "Mordida por un hombre lobo. Aún no lo sabe.", "duration": "Hasta luna llena",
+                            "effects": [{"t": "speed", "op": "add", "v": -5}]})
+    Condition.create(lyra, {"name": "Paso largo", "kind": "buff", "visible": 1,  # efecto del reglamento: +10 ft
+                            "description": "Conjuro de su compañero druida.", "duration": "1 hora"})
 
     forja = Shop.create("Forja de Brunhilda", "Armas y armaduras de calidad en Puerto Niebla.", costa)
     for name, price, code, stock in [

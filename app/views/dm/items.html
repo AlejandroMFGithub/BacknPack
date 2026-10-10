@@ -23,7 +23,8 @@
       <td><b>{{ i.name }}</b>
         <div class="muted small">{{ i.category }} · {{ i.rarity }}{% if i.attunement %} · sintonía{% endif %}</div>
         {% for t in traits[i.id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
-      <td class="small" data-label="Propiedades">{{ i.properties }}</td>
+      <td class="small" data-label="Propiedades">{{ i.properties }}
+        {% if i.effects %}<div class="effects-line">⚙ {{ i.effects | effects_summary }}</div>{% endif %}</td>
       <td data-label="Peso">{{ '%g' % i.weight }} kg</td>
       <td class="actions">
         <div class="row">

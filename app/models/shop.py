@@ -77,7 +77,7 @@ class Shop:
     # --- Género a la venta ----------------------------------------------------
 
     _LISTING_SQL = """
-        SELECT si.*, i.name, i.category, i.rarity, i.properties, i.description, i.weight,
+        SELECT si.*, i.name, i.category, i.rarity, i.properties, i.description, i.weight, i.effects,
                c.code AS currency_code, c.name AS currency_name, c.value_cp
         FROM shop_items si
         JOIN items i ON i.id = si.item_id

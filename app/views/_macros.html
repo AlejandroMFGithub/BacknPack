@@ -128,6 +128,7 @@
   {%- endif %}
   {%- if t.recharge %} <span class="muted small">· {{ t.recharge }}</span>{% endif %}
   {%- if not t.visible %} <span class="badge badge-hidden">Oculta</span>{% endif %}
+  {%- if t.effects %} <span class="effects-line small" title="Efecto en la ficha al equiparlo">⚙ {{ t.effects | effects_summary }}</span>{% endif %}
   {%- if t.description %}<span class="trait-desc small">{{ t.description }}</span>{% endif %}
 </span>
 {%- endmacro %}
@@ -146,8 +147,64 @@
       <label>Recarga <input name="recharge" placeholder="al amanecer, descanso largo…"></label>
     </div>
     <label>Descripción <textarea name="description"></textarea></label>
+    {{ effects_editor([], "Se aplican a la ficha mientras el objeto esté equipado (también si la cualidad está oculta).") }}
     <label class="inline"><input type="checkbox" name="visible" value="1" checked> Visible para el jugador</label>
     <button class="btn-small">Añadir cualidad</button>
   </form>
 </details>
+{%- endmacro %}
+
+
+{# Editor de efectos mecánicos (filas eff_t / eff_op / eff_v / eff_cap; app.js añade y quita filas). #}
+{% macro effect_row(e={}) -%}
+<div class="eff-row">
+  <select name="eff_t" aria-label="Estadística">
+    <option value="">— estadística —</option>
+    {% for group, targets in EFFECT_GROUPS %}<optgroup label="{{ group }}">
+      {% for key, label in targets %}<option value="{{ key }}" {{ 'selected' if e.t == key }}>{{ label }}</option>{% endfor %}
+    </optgroup>{% endfor %}
+  </select>
+  <select name="eff_op" aria-label="Operación">
+    {% for key, label in EFFECT_OPS.items() %}<option value="{{ key }}" {{ 'selected' if e.op == key }}>{{ label }}</option>{% endfor %}
+  </select>
+  <input name="eff_v" inputmode="decimal" value="{{ e.v if e.v is not none else '' }}" placeholder="valor" aria-label="Valor">
+  <select name="eff_cap" class="eff-cap" aria-label="Destreza en la armadura">
+    {% for key, label in EFFECT_CAPS %}<option value="{{ key }}" {{ 'selected' if (e.cap | string if e.cap is not none else 'none') == key }}>{{ label }}</option>{% endfor %}
+  </select>
+  <button type="button" class="btn-small btn-ghost eff-remove" aria-label="Quitar efecto">✖</button>
+</div>
+{%- endmacro %}
+
+{% macro effects_editor(rows, hint) -%}
+<fieldset class="effects-editor">
+  <legend>Efectos en la ficha</legend>
+  <div class="eff-rows">{% for e in rows %}{{ effect_row(e) }}{% endfor %}</div>
+  <template class="eff-template">{{ effect_row() }}</template>
+  <button type="button" class="btn-small btn-ghost eff-add">+ Añadir efecto</button>
+  <p class="field-hint">{{ hint }} Ej.: <i>CA +2</i> (escudo), <i>armadura 11 + DES</i> (cuero),
+    <i>armadura 16 sin DES</i> (cota de malla), <i>Velocidad = 0</i>, <i>Velocidad ×0,5</i>, <i>FUE mínimo 19</i>.</p>
+</fieldset>
+{%- endmacro %}
+
+{# Estadística calculada: color según cómo la cambian equipo y efectos, y desglose al pasar el
+   ratón, enfocar o tocar. Se usa dentro del elemento que lleva la clase de calc_class(). #}
+{% macro calc_class(stat) -%}
+calc{{ ' mod-' ~ stat.sign if stat.sign }}
+{%- endmacro %}
+
+{% macro calc_attrs(stat, label) -%}
+tabindex="0" role="button" aria-expanded="false" aria-label="{{ label }}: ver cálculo"
+{%- endmacro %}
+
+{% macro calc_pop(stat, label, unit='') -%}
+<span class="calc-pop" role="tooltip">
+  <span class="calc-title">{{ label }}</span>
+  {% for text, value in stat.lines %}
+  <span class="calc-line {{ 'calc-base' if loop.first }}"><span>{{ text }}</span><b>{{ value | signed if unit == 'signed' else ('%g' % value) ~ unit }}</b></span>
+  {% endfor %}
+  {% if stat.lines | length > 1 %}
+  <span class="calc-line calc-total"><span>Total</span><b>{{ stat.total | signed if unit == 'signed' else ('%g' % stat.total) ~ unit }}</b></span>
+  {% endif %}
+  {% if stat.sign %}<span class="calc-note">{{ {'up': 'Mejorada', 'down': 'Empeorada', 'mixed': 'Con mejoras y penalizaciones'}[stat.sign] }} por equipo o efectos</span>{% endif %}
+</span>
 {%- endmacro %}

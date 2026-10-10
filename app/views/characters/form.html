@@ -56,7 +56,8 @@
   <div class="form-grid">
     <label>PG máximos <input name="hp_max" type="number" min="0" value="{{ field(character, 'hp_max', 10) }}"></label>
     <label>PG actuales <input name="hp_current" type="number" value="{{ field(character, 'hp_current', 10) }}"></label>
-    <label>Clase de armadura <input name="armor_class" type="number" min="0" value="{{ field(character, 'armor_class', 10) }}"></label>
+    <label>CA sin armadura <input name="armor_class" type="number" min="0" value="{{ field(character, 'armor_class', 10) }}">
+      <span class="field-hint">10 + mod. DES, o tu armadura natural. La armadura y el escudo equipados la cambian solos.</span></label>
     <label>Velocidad (ft) <input name="speed" type="number" step="5" min="0" value="{{ field(character, 'speed', 30) | int }}">
       <span class="field-hint">En pies: 1 casilla = 5 ft (30 ft = 6 casillas).</span></label>
     <label>Bonus extra a iniciativa
