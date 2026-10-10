@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Mi cuenta{% endblock %}
+{% block back_url %}{{ url_for('main.index') }}{% endblock %}
+{% block content %}
+<div class="card auth">
+  <h1>Cambiar contraseña</h1>
+  <form method="post">
+    <label>Contraseña actual <input name="current" type="password" required autofocus></label>
+    <label>Nueva contraseña <input name="new" type="password" minlength="8" required></label>
+    <label>Repite la nueva <input name="repeat" type="password" minlength="8" required></label>
+    <button>Guardar</button>
+  </form>
+</div>
+{% endblock %}

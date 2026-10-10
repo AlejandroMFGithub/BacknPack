@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Catálogo{% endblock %}
+{% block back_url %}{{ url_for('dm.index') }}{% endblock %}
+{% block content %}
+{% from "_macros.html" import trait_chip %}
+<h1>Catálogo de objetos</h1>
+
+<details class="card">
+  <summary><b>+ Nuevo objeto</b></summary>
+  <form method="post" style="margin-top:.8rem">
+    {% include "dm/_item_fields.html" %}
+    <p><button>Crear</button></p>
+  </form>
+</details>
+
+<div class="card">
+  <table>
+    <tr><th>Objeto</th><th class="hide-sm">Propiedades</th><th>Peso</th><th></th></tr>
+    {% for i in items %}
+    <tr>
+      <td><b>{{ i.name }}</b>
+        <div class="muted small">{{ i.category }} · {{ i.rarity }}{% if i.attunement %} · sintonía{% endif %}</div>
+        {% for t in traits[i.id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
+      <td class="hide-sm small">{{ i.properties }}</td>
+      <td>{{ '%g' % i.weight }} kg</td>
+      <td class="row">
+        <a class="btn btn-small btn-ghost" href="{{ url_for('dm.edit_item', item_id=i.id) }}">Editar</a>
+        <form class="inline" method="post" action="{{ url_for('dm.delete_item', item_id=i.id) }}"
+              onsubmit="return confirm('Se eliminará también de inventarios, tiendas y botines. ¿Seguro?')">
+          <button class="btn-small btn-danger">Borrar</button></form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Intercambios{% endblock %}
+{% block back_url %}{{ url_for('main.index') }}{% endblock %}
+{% block content %}
+{% macro line_list(items) -%}
+  {% for l in items %}<div>{{ l.quantity }}× {{ l.label }}</div>{% else %}<div class="muted">nada</div>{% endfor %}
+{%- endmacro %}
+<div class="row spread">
+  <h1>Intercambios</h1>
+  <a class="btn" href="{{ url_for('trades.new') }}">+ Proponer intercambio</a>
+</div>
+
+{% for t in trades %}
+<div class="card">
+  <div class="row spread">
+    <div><b>#{{ t.id }}</b> · <b>{{ t.from_name }}</b> → <b>{{ t.to_name }}</b>
+      <span class="badge {{ 'badge-dm' if t.status == 'pending' else '' }}">{{ status[t.status] }}</span>
+      <span class="muted small">{{ t.created_at }}</span></div>
+    {% if t.status == 'pending' %}
+    <div class="row">
+      {% if t.to_user_id == g.user.id or is_dm() %}
+        <form class="inline" method="post" action="{{ url_for('trades.resolve', trade_id=t.id, action='accept') }}"><button class="btn-small">Aceptar</button></form>
+        <form class="inline" method="post" action="{{ url_for('trades.resolve', trade_id=t.id, action='reject') }}"><button class="btn-small btn-ghost">Rechazar</button></form>
+      {% endif %}
+      {% if t.from_user_id == g.user.id or is_dm() %}
+        <form class="inline" method="post" action="{{ url_for('trades.resolve', trade_id=t.id, action='cancel') }}"><button class="btn-small btn-danger">Cancelar</button></form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% if t.message %}<p class="small"><i>«{{ t.message }}»</i></p>{% endif %}
+  <div class="grid small">
+    <div><b>{{ t.from_name }} entrega:</b>{{ line_list(lines[t.id].give) }}</div>
+    <div><b>{{ t.to_name }} entrega:</b>{{ line_list(lines[t.id].take) }}</div>
+  </div>
+</div>
+{% else %}
+<div class="card muted">Sin intercambios.</div>
+{% endfor %}
+{% endblock %}

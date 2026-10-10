@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Registro{% endblock %}
+{% block back_url %}{{ url_for('auth.login') }}{% endblock %}
+{% block content %}
+<div class="card auth">
+  <h1>Nueva cuenta de jugador</h1>
+  {% if registration == 'closed' %}
+    <p>El registro está cerrado. Pide a tu DM que lo abra o que te dé acceso.</p>
+  {% else %}
+  <form method="post">
+    <label>Usuario <input name="username" required autofocus></label>
+    <label>Contraseña <input name="password" type="password" required></label>
+    {% if registration == 'invite' %}
+      <label>Código de invitación <input name="invite" required autocomplete="off"></label>
+    {% endif %}
+    <button>Crear cuenta</button>
+  </form>
+  {% endif %}
+  <p class="small">¿Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Entra</a>.</p>
+</div>
+{% endblock %}

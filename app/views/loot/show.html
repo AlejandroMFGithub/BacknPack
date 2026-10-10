@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ pool.name }}{% endblock %}
+{% block back_url %}{{ url_for('loot.index') }}{% endblock %}
+{% block content %}
+<div class="row spread">
+  <div>
+    <h1>{{ pool.name }}
+      {% if not pool.active %}<span class="badge badge-off">Oculto a los jugadores</span>{% endif %}</h1>
+    <span class="badge">{{ kinds[pool.kind] }}</span>
+    <p class="muted">{{ pool.description }}</p>
+  </div>
+  {% if is_dm() %}
+  <div class="row">
+    <form class="inline" method="post" action="{{ url_for('loot.toggle', pool_id=pool.id) }}">
+      <button class="btn-ghost">{{ 'Ocultar' if pool.active else 'Revelar a los jugadores' }}</button></form>
+    <form class="inline" method="post" action="{{ url_for('loot.delete', pool_id=pool.id) }}" onsubmit="return confirm('¿Eliminar este botín?')">
+      <button class="btn-danger">Eliminar</button></form>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <table>
+    <tr><th>Contenido</th><th>Cantidad</th><th>Recoger</th>{% if is_dm() %}<th></th>{% endif %}</tr>
+    {% for e in entries %}
+    <tr>
+      <td>
+        {% if e.item_id %}<b>{{ e.item_name }}</b><div class="muted small">{{ e.category }} · {{ e.rarity }}</div>
+        {% else %}<b>{{ e.currency_name }}</b> <span class="muted">({{ e.currency_code }})</span>{% endif %}
+      </td>
+      <td>{{ e.quantity }}</td>
+      <td>
+        {% if characters %}
+        <form method="post" action="{{ url_for('loot.claim', pool_id=pool.id, entry_id=e.id) }}" class="row">
+          {% if characters|length == 1 %}
+            <input type="hidden" name="character_id" value="{{ characters[0].id }}">
+          {% else %}
+            <select name="character_id">{% for c in characters %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select>
+          {% endif %}
+          <input type="number" name="quantity" min="1" max="{{ e.quantity }}" value="{{ e.quantity }}">
+          <button class="btn-small">Coger</button>
+        </form>
+        {% endif %}
+      </td>
+      {% if is_dm() %}
+      <td><form class="inline" method="post" action="{{ url_for('loot.remove_entry', pool_id=pool.id, entry_id=e.id) }}">
+        <button class="btn-small btn-danger">Quitar</button></form></td>
+      {% endif %}
+    </tr>
+    {% else %}
+    <tr><td colspan="4" class="muted">No queda nada.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% if is_dm() %}
+<form method="post" action="{{ url_for('loot.add_entry', pool_id=pool.id) }}" class="card">
+  <h2>Añadir al botín</h2>
+  <div class="row">
+    <select name="ref" required>
+      <option value="">— Objeto o divisa —</option>
+      <optgroup label="Divisas">{% for c in currencies %}<option value="currency:{{ c.id }}">{{ c.name }} ({{ c.code }})</option>{% endfor %}</optgroup>
+      <optgroup label="Objetos">{% for i in catalog %}<option value="item:{{ i.id }}">{{ i.name }}</option>{% endfor %}</optgroup>
+    </select>
+    <input type="number" name="quantity" min="1" value="1">
+    <button class="btn-small">Añadir</button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

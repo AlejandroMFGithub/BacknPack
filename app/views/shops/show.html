@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ shop.name }}{% endblock %}
+{% block back_url %}{{ url_for('shops.index') }}{% endblock %}
+{% block content %}
+{% from "_macros.html" import trait_chip %}
+<div class="row spread">
+  <div>
+    <h1>{{ shop.name }} {% if not shop.active %}<span class="badge badge-off">Cerrada</span>{% endif %}</h1>
+    <p class="muted">{{ shop.description }}</p>
+  </div>
+  {% if is_dm() %}
+  <div class="row">
+    <form class="inline" method="post" action="{{ url_for('shops.toggle', shop_id=shop.id, column='active') }}">
+      <button class="btn-ghost">{{ 'Cerrar tienda' if shop.active else 'Abrir tienda' }}</button></form>
+    <form class="inline" method="post" action="{{ url_for('shops.toggle', shop_id=shop.id, column='allow_exchange') }}">
+      <button class="btn-ghost">{{ 'Desactivar cambio de divisa' if shop.allow_exchange else 'Permitir cambio de divisa' }}</button></form>
+    <form class="inline" method="post" action="{{ url_for('shops.delete', shop_id=shop.id) }}" onsubmit="return confirm('¿Eliminar tienda?')">
+      <button class="btn-danger">Eliminar</button></form>
+  </div>
+  {% endif %}
+</div>
+
+{% if characters %}
+<div class="card">
+  <h3>Tu bolsa</h3>
+  {% for c in characters %}
+    <div class="row small"><b>{{ c.name }}:</b>
+      {% for b in balances[c.id] if b.amount %}<span class="coin">{{ b.amount }} {{ b.code }}</span>{% else %}<span class="muted">sin dinero</span>{% endfor %}
+    </div>
+  {% endfor %}
+  {% if shop.allow_exchange %}
+    <p class="muted small">Puedes pagar con cualquier divisa convertible: el precio se convierte según su valor y se redondea hacia arriba.</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+  <table>
+    <tr><th>Artículo</th><th>Precio</th><th>Stock</th><th>Comprar</th>{% if is_dm() %}<th></th>{% endif %}</tr>
+    {% for l in listings %}
+    <tr>
+      <td><b>{{ l.name }}</b>
+        <div class="muted small">{{ l.category }} · {{ l.rarity }}{% if l.properties %} · {{ l.properties }}{% endif %}</div>
+        {% for t in traits[l.item_id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
+      <td>{{ l.price }} {{ l.currency_code }}</td>
+      <td>{{ '∞' if l.stock is none else l.stock }}</td>
+      <td>
+        {% if characters and (l.stock is none or l.stock > 0) %}
+        <form method="post" action="{{ url_for('shops.buy', shop_id=shop.id, listing_id=l.id) }}" class="row">
+          {% if characters|length == 1 %}
+            <input type="hidden" name="character_id" value="{{ characters[0].id }}">
+          {% else %}
+            <select name="character_id">{% for c in characters %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select>
+          {% endif %}
+          <input type="number" name="quantity" min="1" {% if l.stock is not none %}max="{{ l.stock }}"{% endif %} value="1">
+          {% if shop.allow_exchange %}
+            <select name="currency_id">
+              {% for cur in currencies if cur.id == l.currency_id or (cur.value_cp and l.value_cp) %}
+                <option value="{{ cur.id }}" {{ 'selected' if cur.id == l.currency_id }}>{{ cur.code }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            <input type="hidden" name="currency_id" value="{{ l.currency_id }}">
+          {% endif %}
+          <button class="btn-small">Comprar</button>
+        </form>
+        {% elif l.stock == 0 %}<span class="muted">Agotado</span>{% endif %}
+      </td>
+      {% if is_dm() %}
+      <td><form class="inline" method="post" action="{{ url_for('shops.remove_listing', shop_id=shop.id, listing_id=l.id) }}">
+        <button class="btn-small btn-danger">Quitar</button></form></td>
+      {% endif %}
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="muted">Estanterías vacías.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% if is_dm() %}
+<form method="post" action="{{ url_for('shops.add_listing', shop_id=shop.id) }}" class="card">
+  <h2>Poner a la venta</h2>
+  <div class="row">
+    <select name="item_id" required>
+      <option value="">— Objeto —</option>
+      {% for i in catalog %}<option value="{{ i.id }}">{{ i.name }}</option>{% endfor %}
+    </select>
+    <label class="inline">Precio <input type="number" name="price" min="0" value="1"></label>
+    <select name="currency_id">{% for cur in currencies %}<option value="{{ cur.id }}" {{ 'selected' if cur.code == 'po' }}>{{ cur.code }}</option>{% endfor %}</select>
+    <label class="inline">Stock <input type="number" name="stock" min="0" placeholder="∞"></label>
+    <button class="btn-small">Añadir</button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

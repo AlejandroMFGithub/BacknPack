@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Botín{% endblock %}
+{% block back_url %}{{ url_for('main.index') }}{% endblock %}
+{% block content %}
+<h1>Botín</h1>
+<p class="muted">Objetos y monedas tras un combate o encontrados en el entorno. Quien llega primero, se lo lleva.</p>
+
+<div class="grid">
+  {% for p in pools %}
+  <a class="card" href="{{ url_for('loot.show', pool_id=p.id) }}" style="text-decoration:none;color:inherit">
+    <h2>{{ p.name }}
+      {% if not p.active %}<span class="badge badge-off">Oculto</span>{% endif %}</h2>
+    <span class="badge">{{ kinds[p.kind] }}</span>
+    <div class="small">{{ p.description }}</div>
+  </a>
+  {% else %}
+  <div class="card muted">No hay nada que recoger… por ahora.</div>
+  {% endfor %}
+</div>
+
+{% if is_dm() %}
+<form method="post" action="{{ url_for('loot.new') }}" class="card">
+  <h2>Nuevo botín</h2>
+  <div class="form-grid">
+    <label>Nombre <input name="name" required placeholder="Cofre del altar"></label>
+    <label>Tipo <select name="kind">{% for k, label in kinds.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select></label>
+  </div>
+  <label>Descripción <textarea name="description"></textarea></label>
+  <p><button>Crear</button></p>
+</form>
+{% endif %}
+{% endblock %}

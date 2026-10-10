@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Personajes{% endblock %}
+{% block back_url %}{% if is_dm() %}{{ url_for('dm.index') }}{% endif %}{% endblock %}
+{% block content %}
+<div class="row spread">
+  <h1>{{ 'Todos los personajes' if is_dm() else 'Mis personajes' }}</h1>
+  <a class="btn" href="{{ url_for('characters.new') }}">+ Nuevo personaje</a>
+</div>
+
+{% if not characters %}
+  <div class="card muted">Aún no hay personajes.</div>
+{% endif %}
+
+<div class="grid">
+  {% for c in characters %}
+  <a class="card" href="{{ url_for('characters.show', character_id=c.id) }}" style="text-decoration:none;color:inherit">
+    <h2>{{ c.name }}</h2>
+    <div>{{ c.race or '¿?' }} · {{ c.class_name or '¿?' }} nivel {{ c.level }}</div>
+    <div class="muted small">PG {{ c.hp_current }}/{{ c.hp_max }} · CA {{ c.armor_class }}
+      {% if is_dm() %} · jugador: {{ c.owner }}{% endif %}</div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

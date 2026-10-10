@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if editing else 'Nuevo' }} personaje{% endblock %}
+{% block back_url %}{{ url_for('characters.show', character_id=character.id) if editing else url_for('characters.index') }}{% endblock %}
+{% block content %}
+<h1>{{ 'Editar ' ~ character.name if editing else 'Nuevo personaje' }}</h1>
+
+<form method="post" class="card">
+  <div class="form-grid">
+    <label>Nombre <input name="name" value="{{ field(character, 'name') }}" required></label>
+    <label>Raza <input name="race" value="{{ field(character, 'race') }}"></label>
+    <label>Clase <input name="class_name" value="{{ field(character, 'class_name') }}"></label>
+    <label>Nivel <input name="level" type="number" min="1" max="20" value="{{ field(character, 'level', 1) }}"></label>
+    <label>Trasfondo <input name="background" value="{{ field(character, 'background') }}"></label>
+    <label>Alineamiento <input name="alignment" value="{{ field(character, 'alignment') }}"></label>
+    {% if users %}
+    <label>Jugador
+      <select name="user_id">
+        {% for u in users %}<option value="{{ u.id }}" {{ 'selected' if u.id == g.user.id }}>{{ u.username }}{{ ' (DM)' if u.role == 'dm' }}</option>{% endfor %}
+      </select>
+    </label>
+    {% endif %}
+  </div>
+
+  <h3>Características</h3>
+  <div class="form-grid">
+    {% for key, label in abilities %}
+      <label>{{ label }} <input name="{{ key }}" type="number" min="1" max="30" value="{{ field(character, key, 10) }}"></label>
+    {% endfor %}
+  </div>
+
+  <h3>Combate</h3>
+  <div class="form-grid">
+    <label>PG máximos <input name="hp_max" type="number" min="0" value="{{ field(character, 'hp_max', 10) }}"></label>
+    <label>PG actuales <input name="hp_current" type="number" value="{{ field(character, 'hp_current', 10) }}"></label>
+    <label>Clase de armadura <input name="armor_class" type="number" min="0" value="{{ field(character, 'armor_class', 10) }}"></label>
+    <label>Velocidad (m) <input name="speed" type="number" step="0.5" min="0" value="{{ field(character, 'speed', 9) }}"></label>
+  </div>
+
+  <label>Notas <textarea name="notes">{{ field(character, 'notes') }}</textarea></label>
+  <p><button>Guardar</button>
+    <a class="btn btn-ghost" href="{{ url_for('characters.show', character_id=character.id) if editing else url_for('characters.index') }}">Cancelar</a></p>
+</form>
+{% endblock %}

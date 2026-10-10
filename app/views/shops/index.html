@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Tiendas{% endblock %}
+{% block back_url %}{{ url_for('main.index') }}{% endblock %}
+{% block content %}
+<h1>Tiendas</h1>
+
+<div class="grid">
+  {% for s in shops %}
+  <a class="card" href="{{ url_for('shops.show', shop_id=s.id) }}" style="text-decoration:none;color:inherit">
+    <h2>{{ s.name }}
+      {% if not s.active %}<span class="badge badge-off">Cerrada</span>{% endif %}</h2>
+    <div class="small">{{ s.description }}</div>
+    {% if not s.allow_exchange %}<div class="muted small">Solo acepta la divisa indicada en cada artículo.</div>{% endif %}
+  </a>
+  {% else %}
+  <div class="card muted">No hay tiendas abiertas ahora mismo.</div>
+  {% endfor %}
+</div>
+
+{% if is_dm() %}
+<form method="post" action="{{ url_for('shops.new') }}" class="card">
+  <h2>Nueva tienda</h2>
+  <div class="form-grid">
+    <label>Nombre <input name="name" required></label>
+    <label>Descripción <input name="description"></label>
+  </div>
+  <label class="inline"><input type="checkbox" name="allow_exchange" value="1" checked> Acepta pago con otras divisas convertibles</label>
+  <p><button>Crear tienda</button></p>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,37 @@
+{# Macros compartidas entre vistas #}
+
+{% set TRAIT_BADGE = {"property": "", "blessing": "badge-buff", "curse": "badge-curse", "charges": "badge-condition"} %}
+
+{# Muestra una cualidad de objeto: tipo, nombre, usos, recarga y si está oculta. #}
+{% macro trait_chip(t, kinds) -%}
+<span class="trait {{ 'trait-hidden' if not t.visible }}" title="{{ t.description }}">
+  <span class="badge {{ TRAIT_BADGE[t.kind] }}">{{ kinds[t.kind] }}</span>
+  <b>{{ t.name }}</b>
+  {%- if t.uses_max is not none %}
+    <span class="uses {{ 'uses-empty' if t.uses_current == 0 }}">{{ t.uses_current }}/{{ t.uses_max }}</span>
+  {%- endif %}
+  {%- if t.recharge %} <span class="muted small">· {{ t.recharge }}</span>{% endif %}
+  {%- if not t.visible %} <span class="badge badge-hidden">Oculta</span>{% endif %}
+  {%- if t.description %}<span class="trait-desc small">{{ t.description }}</span>{% endif %}
+</span>
+{%- endmacro %}
+
+{# Formulario para añadir una cualidad. #}
+{% macro trait_form(action, kinds, summary="+ Cualidad") -%}
+<details class="trait-form">
+  <summary class="small">{{ summary }}</summary>
+  <form method="post" action="{{ action }}">
+    <div class="form-grid">
+      <label>Nombre <input name="name" required placeholder="Sed de sangre, Cargas…"></label>
+      <label>Tipo
+        <select name="kind">{% for k, label in kinds.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select>
+      </label>
+      <label>Usos máx. <input name="uses_max" type="number" min="1" placeholder="—"></label>
+      <label>Recarga <input name="recharge" placeholder="al amanecer, descanso largo…"></label>
+    </div>
+    <label>Descripción <textarea name="description"></textarea></label>
+    <label class="inline"><input type="checkbox" name="visible" value="1" checked> Visible para el jugador</label>
+    <button class="btn-small">Añadir cualidad</button>
+  </form>
+</details>
+{%- endmacro %}

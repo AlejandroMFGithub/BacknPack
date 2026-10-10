@@ -1,0 +1,13 @@
+<div class="form-grid">
+  <label>Nombre <input name="name" value="{{ field(item, 'name') }}" required></label>
+  <label>Categoría
+    <select name="category">{% for c in categories %}<option {{ 'selected' if field(item, 'category') == c }}>{{ c }}</option>{% endfor %}</select>
+  </label>
+  <label>Rareza
+    <select name="rarity">{% for r in rarities %}<option {{ 'selected' if field(item, 'rarity') == r }}>{{ r }}</option>{% endfor %}</select>
+  </label>
+  <label>Peso (kg) <input name="weight" type="number" step="0.05" min="0" value="{{ field(item, 'weight', 0) }}"></label>
+</div>
+<label>Propiedades <input name="properties" value="{{ field(item, 'properties') }}" placeholder="1d8 cortante · versátil (1d10) / CA 14 + Des (máx. 2)…"></label>
+<label>Descripción <textarea name="description">{{ field(item, 'description') }}</textarea></label>
+<label class="inline"><input type="checkbox" name="attunement" value="1" {{ 'checked' if field(item, 'attunement', 0) }}> Requiere sintonía</label>

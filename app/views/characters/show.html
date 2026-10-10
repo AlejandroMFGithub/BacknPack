@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}{{ character.name }}{% endblock %}
+{% block back_url %}{{ url_for('characters.index') }}{% endblock %}
+{% block content %}
+{% from "_macros.html" import trait_chip, trait_form %}
+{% set dm = is_dm() %}
+
+<div class="card">
+  <div class="row spread">
+    <div>
+      <h1>{{ character.name }}</h1>
+      <div>{{ character.race or '¿?' }} · {{ character.class_name or '¿?' }} nivel {{ character.level }}
+        {% if character.background %} · {{ character.background }}{% endif %}
+        {% if character.alignment %} · {{ character.alignment }}{% endif %}</div>
+      {% if dm %}<div class="muted small">Jugador: {{ character.owner }}</div>{% endif %}
+    </div>
+    <div class="row">
+      <a class="btn btn-ghost" href="{{ url_for('characters.edit', character_id=character.id) }}">Editar ficha</a>
+      <a class="btn btn-ghost" href="{{ url_for('trades.new', from_id=character.id) }}">Intercambiar</a>
+      {% if dm %}
+      <form class="inline" method="post" action="{{ url_for('characters.delete', character_id=character.id) }}"
+            onsubmit='return confirm({{ ("¿Eliminar a " ~ character.name ~ " con todo su inventario?") | tojson }})'>
+        <button class="btn-danger">Eliminar</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">PG <b>{{ character.hp_current }}</b> / {{ character.hp_max }}</div>
+    <div class="stat">CA <b>{{ character.armor_class }}</b></div>
+    <div class="stat">Velocidad <b>{{ '%g' % character.speed }}</b> m</div>
+    <div class="stat">Carga <b>{{ '%g' % weight }}</b> kg
+      <span class="muted small">(máx. {{ character.strength * 7.5 }} kg)</span></div>
+  </div>
+
+  <div class="abilities">
+    {% for key, label in abilities %}
+    <div class="ability">
+      <div class="label">{{ label }}</div>
+      <div class="score">{{ character[key] }}</div>
+      <div class="mod">{{ character[key] | mod }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if character.notes %}<p class="small" style="white-space:pre-line">{{ character.notes }}</p>{% endif %}
+</div>
+
+<div class="grid">
+  <!-- Bolsa -->
+  <div class="card">
+    <h2>Bolsa</h2>
+    {% if dm %}
+      <form method="post" action="{{ url_for('characters.set_currencies', character_id=character.id) }}">
+        <div class="form-grid">
+        {% for b in balances %}
+          <label>{{ b.name }} ({{ b.code }})
+            <input type="number" min="0" name="cur_{{ b.id }}" value="{{ b.amount }}"></label>
+        {% endfor %}
+        </div>
+        <button class="btn-small">Guardar bolsa</button>
+      </form>
+    {% else %}
+      <div class="purse">
+        {% for b in balances if b.amount %}
+          <span class="coin" title="{{ b.name }}"><b>{{ b.amount }}</b> {{ b.code }}</span>
+        {% else %}
+          <span class="muted">Bolsillos vacíos.</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Efectos -->
+  <div class="card">
+    <h2>Bufos, maldiciones y estados</h2>
+    {% for e in conditions %}
+      <div class="effect {{ e.kind }}">
+        <div class="row spread">
+          <div>
+            <span class="badge badge-{{ e.kind }}">{{ condition_kinds[e.kind] }}</span>
+            <b>{{ e.name }}</b>
+            {% if e.duration %}<span class="muted small">· {{ e.duration }}</span>{% endif %}
+            {% if not e.visible %}<span class="badge badge-hidden">Oculto al jugador</span>{% endif %}
+          </div>
+          {% if dm %}
+          <div class="row">
+            <form class="inline" method="post" action="{{ url_for('characters.toggle_condition_visibility', character_id=character.id, condition_id=e.id) }}">
+              <button class="btn-small btn-ghost">{{ 'Ocultar' if e.visible else 'Revelar' }}</button></form>
+            <form class="inline" method="post" action="{{ url_for('characters.delete_condition', character_id=character.id, condition_id=e.id) }}">
+              <button class="btn-small btn-danger">Quitar</button></form>
+          </div>
+          {% endif %}
+        </div>
+        {% if e.description %}<div class="small">{{ e.description }}</div>{% endif %}
+      </div>
+    {% else %}
+      <p class="muted">Sin efectos activos.</p>
+    {% endfor %}
+
+    {% if dm %}
+    <form method="post" action="{{ url_for('characters.add_condition', character_id=character.id) }}">
+      <h3>Añadir efecto</h3>
+      <div class="form-grid">
+        <label>Nombre <input name="name" list="presets" required></label>
+        <label>Tipo
+          <select name="kind">{% for k, label in condition_kinds.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select>
+        </label>
+        <label>Duración <input name="duration" placeholder="1 minuto, hasta descanso largo…"></label>
+      </div>
+      <label>Descripción <textarea name="description"></textarea></label>
+      <label class="inline"><input type="checkbox" name="visible" value="1" checked> Visible para el jugador</label>
+      <button class="btn-small">Añadir</button>
+      <datalist id="presets">{% for p in presets %}<option value="{{ p }}">{% endfor %}</datalist>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Inventario -->
+<div class="card">
+  <h2>Inventario</h2>
+  {% if inventory %}
+  <table>
+    <tr><th>Objeto</th><th class="hide-sm">Detalles</th><th>Cant.</th><th class="hide-sm">Peso</th><th></th></tr>
+    {% for it in inventory %}
+    <tr class="{{ 'hidden-row' if not it.visible }}">
+      <td>
+        <b>{{ it.name }}</b>
+        {% if it.equipped %}<span class="badge badge-buff">Equipado</span>{% endif %}
+        {% if not it.visible %}<span class="badge badge-hidden">Oculto al jugador</span>{% endif %}
+        <div class="muted small">{{ it.category }} · {{ it.rarity }}{% if it.attunement %} · requiere sintonía{% endif %}</div>
+        {% for t in traits[it.id] %}
+        <div class="trait-row">
+          {{ trait_chip(t, trait_kinds) }}
+          <div class="row">
+            {% if t.uses_max is not none %}
+              <form class="inline" method="post" action="{{ url_for('characters.use_trait', character_id=character.id, trait_id=t.id) }}">
+                <button class="btn-small" {{ 'disabled' if t.uses_current == 0 }}>Usar</button></form>
+              {% if dm %}
+              <form class="inline row" method="post" action="{{ url_for('characters.set_trait_uses', character_id=character.id, trait_id=t.id) }}">
+                <input type="number" name="uses_current" min="0" max="{{ t.uses_max }}" value="{{ t.uses_current }}" style="width:4em">
+                <button class="btn-small btn-ghost">Fijar</button></form>
+              <form class="inline" method="post" action="{{ url_for('characters.set_trait_uses', character_id=character.id, trait_id=t.id) }}">
+                <button class="btn-small btn-ghost">Recargar</button></form>
+              {% endif %}
+            {% endif %}
+            {% if dm %}
+              <form class="inline" method="post" action="{{ url_for('characters.toggle_trait_visibility', character_id=character.id, trait_id=t.id) }}">
+                <button class="btn-small btn-ghost">{{ 'Ocultar' if t.visible else 'Revelar' }}</button></form>
+              <form class="inline" method="post" action="{{ url_for('characters.delete_trait', character_id=character.id, trait_id=t.id) }}">
+                <button class="btn-small btn-danger">Quitar</button></form>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+        {% if dm %}{{ trait_form(url_for('characters.add_trait', character_id=character.id, inventory_id=it.id), trait_kinds) }}{% endif %}
+      </td>
+      <td class="hide-sm small">{{ it.properties }}{% if it.description %}<div class="muted">{{ it.description }}</div>{% endif %}</td>
+      <td>{{ it.quantity }}</td>
+      <td class="hide-sm">{{ '%g' % (it.weight * it.quantity) }} kg</td>
+      <td>
+        <div class="row">
+          <form class="inline" method="post" action="{{ url_for('characters.toggle_equip', character_id=character.id, inventory_id=it.id) }}">
+            <button class="btn-small btn-ghost">{{ 'Quitar' if it.equipped else 'Equipar' }}</button></form>
+          {% if dm %}
+          <form class="inline" method="post" action="{{ url_for('characters.toggle_item_visibility', character_id=character.id, inventory_id=it.id) }}">
+            <button class="btn-small btn-ghost">{{ 'Ocultar' if it.visible else 'Revelar' }}</button></form>
+          {% endif %}
+          <form class="inline row" method="post" action="{{ url_for('characters.remove_item', character_id=character.id, inventory_id=it.id) }}"
+                onsubmit='return confirm({{ ("¿" ~ ("Retirar " if dm else "Tirar ") ~ it.name ~ "?") | tojson }})'>
+            {% if it.quantity > 1 %}<input type="number" name="quantity" min="1" max="{{ it.quantity }}" value="1">{% endif %}
+            <button class="btn-small btn-danger">{{ 'Retirar' if dm else 'Tirar' }}</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    <p class="muted">La mochila está vacía.</p>
+  {% endif %}
+
+  {% if dm %}
+  <form method="post" action="{{ url_for('characters.add_item', character_id=character.id) }}" class="row" style="margin-top:1rem">
+    <select name="item_id" required>
+      <option value="">— Objeto del catálogo —</option>
+      {% for i in catalog %}<option value="{{ i.id }}">{{ i.name }} ({{ i.category }})</option>{% endfor %}
+    </select>
+    <input type="number" name="quantity" min="1" value="1">
+    <label class="inline"><input type="checkbox" name="visible" value="1" checked> Visible</label>
+    <button class="btn-small">Dar objeto</button>
+    <a class="small" href="{{ url_for('dm.items') }}">Crear objeto nuevo en el catálogo</a>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Historial</h2>
+  {% for entry in log %}
+    <div class="small"><span class="muted">{{ entry.created_at }}</span> · {{ entry.message }}</div>
+  {% else %}
+    <p class="muted small">Sin movimientos todavía.</p>
+  {% endfor %}
+</div>
+{% endblock %}

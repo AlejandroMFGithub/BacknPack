@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Divisas{% endblock %}
+{% block back_url %}{{ url_for('dm.index') }}{% endblock %}
+{% block content %}
+<h1>Divisas</h1>
+<p class="muted">El <b>valor en pc</b> indica cuántas piezas de cobre vale una unidad y se usa para pagar
+  en tiendas con otra divisa. Pon <b>0</b> para divisas no convertibles (fichas, favores, gemas especiales…).</p>
+
+<div class="card">
+  <table>
+    <tr><th>Código</th><th>Nombre</th><th>Valor en pc</th><th></th></tr>
+    {% for c in currencies %}
+    <tr>
+      <td><b>{{ c.code }}</b></td>
+      <td colspan="2">
+        <form method="post" action="{{ url_for('dm.update_currency', currency_id=c.id) }}" class="row">
+          <input name="name" value="{{ c.name }}" required>
+          <input name="value_cp" type="number" min="0" value="{{ c.value_cp }}">
+          <button class="btn-small btn-ghost">Guardar</button>
+        </form>
+      </td>
+      <td>
+        <form class="inline" method="post" action="{{ url_for('dm.delete_currency', currency_id=c.id) }}"
+              onsubmit="return confirm('Se borrará de todas las bolsas, tiendas y botines. ¿Seguro?')">
+          <button class="btn-small btn-danger">Borrar</button></form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<form method="post" class="card">
+  <h2>Nueva divisa</h2>
+  <div class="form-grid">
+    <label>Código <input name="code" required placeholder="gema"></label>
+    <label>Nombre <input name="name" required placeholder="Gema de 50 po"></label>
+    <label>Valor en pc <input name="value_cp" type="number" min="0" value="0"></label>
+  </div>
+  <button>Crear</button>
+</form>
+{% endblock %}

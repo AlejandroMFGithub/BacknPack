@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Editar {{ item.name }}{% endblock %}
+{% block back_url %}{{ url_for('dm.items') }}{% endblock %}
+{% block content %}
+{% from "_macros.html" import trait_chip, trait_form %}
+<h1>Editar {{ item.name }}</h1>
+<form method="post" class="card">
+  {% include "dm/_item_fields.html" %}
+  <p><button>Guardar</button> <a class="btn btn-ghost" href="{{ url_for('dm.items') }}">Cancelar</a></p>
+</form>
+
+<div class="card">
+  <h2>Cualidades de plantilla</h2>
+  <p class="muted small">Se copian a cada ejemplar <b>nuevo</b> de este objeto (al darlo, comprarlo o recogerlo).
+    Los ejemplares que ya existen no cambian: edítalos desde la ficha de su personaje.</p>
+  {% for t in traits %}
+    <div class="trait-row">
+      {{ trait_chip(t, trait_kinds) }}
+      <div class="row">
+        <form class="inline" method="post" action="{{ url_for('dm.toggle_item_trait_visibility', item_id=item.id, trait_id=t.id) }}">
+          <button class="btn-small btn-ghost">{{ 'Ocultar' if t.visible else 'Revelar' }}</button></form>
+        <form class="inline" method="post" action="{{ url_for('dm.delete_item_trait', item_id=item.id, trait_id=t.id) }}">
+          <button class="btn-small btn-danger">Quitar</button></form>
+      </div>
+    </div>
+  {% else %}
+    <p class="muted">Sin cualidades.</p>
+  {% endfor %}
+  {{ trait_form(url_for('dm.add_item_trait', item_id=item.id), trait_kinds) }}
+</div>
+{% endblock %}
