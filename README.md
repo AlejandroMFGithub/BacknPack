@@ -1,4 +1,4 @@
-# 🎒 BacknPack
+# 🎒 Back&Pack
 
 Gestor web de personajes e inventario para D&D 5e. Flask, organizado en MVC.
 SQLite en local y PostgreSQL (Neon) en producción (Render).

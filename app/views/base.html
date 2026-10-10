@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Inicio{% endblock %} · BacknPack</title>
+  <title>{% block title %}Inicio{% endblock %} · Back&amp;Pack</title>
   {#- Bloque vacío por defecto: lo rellenan las vistas hijas y lo lee <main>. -#}
   {%- if false %}{% block back_url %}{% endblock %}{% endif %}
   <link rel="stylesheet" href="{{ asset('style.css') }}">
@@ -34,7 +34,7 @@
 {%- endmacro %}
 
 <header class="topbar">
-  <a class="brand" href="{{ url_for('main.index') }}">🎒 <span class="brand-text">BacknPack</span></a>
+  <a class="brand" href="{{ url_for('main.index') }}">🎒 <span class="brand-text">Back&amp;Pack</span></a>
   {% if g.user %}
   {% from "_macros.html" import avatar %}
   {# Contexto: con qué personaje juega el jugador / en qué campaña trabaja el DM #}
