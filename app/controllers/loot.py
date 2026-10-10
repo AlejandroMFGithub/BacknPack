@@ -1,8 +1,12 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from ..models import Currency, Item, Loot, RuleError
+from ..models.item import CATEGORIES, RARITIES
 from ..models.loot import KINDS
-from .helpers import dm_required, form_int, get_character_or_404, is_dm, login_required, my_characters
+from .helpers import (
+    ListArgs, acting_character, dm_required, form_int, get_character_or_404, is_dm, login_required,
+    my_characters, redirect_back,
+)
 
 bp = Blueprint("loot", __name__, url_prefix="/loot")
 
@@ -17,7 +21,9 @@ def _get_pool(pool_id):
 @bp.route("/")
 @login_required
 def index():
-    return render_template("loot/index.html", pools=Loot.all(active_only=not is_dm()), kinds=KINDS)
+    args = ListArgs(Loot.SORTS, "recent", filters=["kind"])
+    pools = Loot.all(active_only=not is_dm(), q=args.q, kind=args.kind, sort=args.sort)
+    return render_template("loot/index.html", pools=pools, args=args, kinds=KINDS)
 
 
 @bp.route("/new", methods=["POST"])
@@ -35,13 +41,19 @@ def new():
 @login_required
 def show(pool_id):
     pool = _get_pool(pool_id)
+    args = ListArgs(Loot.ENTRY_SORTS, "type")
+    acting = acting_character()
     return render_template(
         "loot/show.html",
         pool=pool,
         kinds=KINDS,
-        entries=Loot.entries(pool_id),
-        characters=my_characters(),
-        catalog=Item.all() if is_dm() else [],
+        args=args,
+        entries=Loot.entries(pool_id, sort=args.sort),
+        acting=acting,
+        balance=Currency.balances(acting["id"]) if acting else [],
+        own_characters=[] if is_dm() else my_characters(),
+        categories=CATEGORIES,
+        rarities=RARITIES,
         currencies=Currency.all() if is_dm() else [],
     )
 
@@ -58,7 +70,7 @@ def claim(pool_id, entry_id):
         flash(str(e), "error")
     else:
         flash(f"{character['name']} recoge {qty}× {label}.", "ok")
-    return redirect(url_for("loot.show", pool_id=pool_id))
+    return redirect_back(url_for("loot.show", pool_id=pool_id, **{"as": character["id"]}))
 
 
 # --- Gestión (DM) -------------------------------------------------------------------
@@ -67,7 +79,7 @@ def claim(pool_id, entry_id):
 @dm_required
 def toggle(pool_id):
     Loot.toggle(pool_id)
-    return redirect(url_for("loot.show", pool_id=pool_id))
+    return redirect_back(url_for("loot.show", pool_id=pool_id))
 
 
 @bp.route("/<int:pool_id>/delete", methods=["POST"])
@@ -81,25 +93,25 @@ def delete(pool_id):
 @bp.route("/<int:pool_id>/entries", methods=["POST"])
 @dm_required
 def add_entry(pool_id):
+    """Añade un objeto (item_id) o monedas (currency_id) al botín."""
     _get_pool(pool_id)
-    ref = request.form.get("ref", "")  # "item:3" o "currency:2"
-    kind, _, ref_id = ref.partition(":")
+    item_id, currency_id = form_int("item_id"), form_int("currency_id")
     try:
-        if not ref_id.isdigit() or kind not in ("item", "currency"):
-            raise RuleError("Elige un objeto o una divisa.")
+        if item_id and not Item.get(item_id):
+            raise RuleError("Ese objeto no existe.")
+        if currency_id and not Currency.get(currency_id):
+            raise RuleError("Esa divisa no existe.")
         Loot.add_entry(
-            pool_id,
-            item_id=int(ref_id) if kind == "item" else None,
-            currency_id=int(ref_id) if kind == "currency" else None,
+            pool_id, item_id=item_id or None, currency_id=currency_id or None,
             quantity=form_int("quantity", 1),
         )
     except RuleError as e:
         flash(str(e), "error")
-    return redirect(url_for("loot.show", pool_id=pool_id))
+    return redirect_back(url_for("loot.show", pool_id=pool_id))
 
 
 @bp.route("/<int:pool_id>/entries/<int:entry_id>/delete", methods=["POST"])
 @dm_required
 def remove_entry(pool_id, entry_id):
     Loot.remove_entry(entry_id)
-    return redirect(url_for("loot.show", pool_id=pool_id))
+    return redirect_back(url_for("loot.show", pool_id=pool_id))

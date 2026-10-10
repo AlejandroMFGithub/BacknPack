@@ -2,8 +2,10 @@
 {% block title %}Botín{% endblock %}
 {% block back_url %}{{ url_for('main.index') }}{% endblock %}
 {% block content %}
+{% from "_macros.html" import list_toolbar with context %}
 <h1>Botín</h1>
 <p class="muted">Objetos y monedas tras un combate o encontrados en el entorno. Quien llega primero, se lo lleva.</p>
+{{ list_toolbar(args, 'Buscar botín…', filters=[('kind', 'Tipo', kinds.items() | list)]) }}
 
 <div class="grid">
   {% for p in pools %}

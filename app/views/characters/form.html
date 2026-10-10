@@ -2,6 +2,7 @@
 {% block title %}{{ 'Editar' if editing else 'Nuevo' }} personaje{% endblock %}
 {% block back_url %}{{ url_for('characters.show', character_id=character.id) if editing else url_for('characters.index') }}{% endblock %}
 {% block content %}
+{% from "_macros.html" import picker %}
 <h1>{{ 'Editar ' ~ character.name if editing else 'Nuevo personaje' }}</h1>
 
 <form method="post" class="card">
@@ -12,12 +13,11 @@
     <label>Nivel <input name="level" type="number" min="1" max="20" value="{{ field(character, 'level', 1) }}"></label>
     <label>Trasfondo <input name="background" value="{{ field(character, 'background') }}"></label>
     <label>Alineamiento <input name="alignment" value="{{ field(character, 'alignment') }}"></label>
-    {% if users %}
-    <label>Jugador
-      <select name="user_id">
-        {% for u in users %}<option value="{{ u.id }}" {{ 'selected' if u.id == g.user.id }}>{{ u.username }}{{ ' (DM)' if u.role == 'dm' }}</option>{% endfor %}
-      </select>
-    </label>
+    {% if is_dm() and not editing %}
+    <div class="field">
+      <span class="field-label">Jugador</span>
+      {{ picker('user_id', url_for('api.users'), 'Buscar jugador…', value=g.user.id, label=g.user.username) }}
+    </div>
     {% endif %}
   </div>
 

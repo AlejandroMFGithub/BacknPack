@@ -2,7 +2,7 @@
 import os
 from datetime import timedelta
 
-from flask import Flask
+from flask import Flask, request, url_for
 
 DEV_SECRET = "dev-cambia-esta-clave"
 
@@ -43,6 +43,24 @@ def create_app(test_config=None):
     @app.template_filter("mod")
     def ability_modifier(score):
         return f"{(int(score) - 10) // 2:+d}"
+
+    @app.template_global()
+    def asset(filename):
+        """URL de un archivo estático con su fecha de modificación: tras cada despliegue
+        el navegador descarga la versión nueva en vez de usar la de su caché."""
+        try:
+            version = int(os.path.getmtime(os.path.join(app.static_folder, filename)))
+        except OSError:
+            version = 0
+        return url_for("static", filename=filename, v=version)
+
+    @app.template_global()
+    def url_with(**changes):
+        """URL de la página actual cambiando algunos parámetros (p. ej. page=2)."""
+        args = request.args.to_dict()
+        args.update(changes)
+        args = {k: v for k, v in args.items() if v not in (None, "")}
+        return url_for(request.endpoint, **(request.view_args or {}), **args)
 
     @app.template_global()
     def field(obj, key, default=""):

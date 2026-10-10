@@ -2,23 +2,22 @@
 {% block title %}Proponer intercambio{% endblock %}
 {% block back_url %}{{ url_for('trades.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import trait_chip %}
+{% from "_macros.html" import trait_chip, picker %}
 <h1>Proponer intercambio</h1>
 
 <form method="get" class="card">
   <div class="form-grid">
-    <label>Tu personaje
-      <select name="from_id" required>
-        <option value="">—</option>
-        {% for c in mine %}<option value="{{ c.id }}" {{ 'selected' if from_char and c.id == from_char.id }}>{{ c.name }}</option>{% endfor %}
-      </select>
-    </label>
-    <label>Con
-      <select name="to_id" required>
-        <option value="">—</option>
-        {% for c in targets %}<option value="{{ c.id }}" {{ 'selected' if to_char and c.id == to_char.id }}>{{ c.name }} ({{ c.owner }})</option>{% endfor %}
-      </select>
-    </label>
+    <div class="field">
+      <span class="field-label">Tu personaje</span>
+      {{ picker('from_id', url_for('api.characters'), 'Buscar tu personaje…', params={'mine': '1'},
+                value=from_char.id if from_char else none, label=from_char.name if from_char else '') }}
+    </div>
+    <div class="field">
+      <span class="field-label">Con</span>
+      {{ picker('to_id', url_for('api.characters'), 'Buscar personaje o jugador…',
+                params={'exclude': from_char.id} if from_char else {},
+                value=to_char.id if to_char else none, label=to_char.name if to_char else '') }}
+    </div>
   </div>
   <button class="btn-ghost">Elegir</button>
 </form>
@@ -30,9 +29,10 @@
   <div class="grid">
     <div>
       <h2>{{ from_char.name }} ofrece</h2>
-      <table>
+      {% if from_inventory | length > 6 %}<input type="search" class="quick-filter" data-quick-filter="#give-list" placeholder="Filtrar tus objetos…" aria-label="Filtrar tus objetos">{% endif %}
+      <table id="give-list">
         {% for it in from_inventory %}
-        <tr><td>{{ it.name }} <span class="muted small">(tienes {{ it.quantity }})</span>
+        <tr data-filter-text="{{ it.name }} {{ it.category }}"><td>{{ it.name }} <span class="muted small">(tienes {{ it.quantity }})</span>
               {% for t in traits[it.id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
             <td><input type="number" name="give_item_{{ it.id }}" min="0" max="{{ it.quantity }}" value="0"></td></tr>
         {% endfor %}
@@ -44,9 +44,10 @@
     </div>
     <div>
       <h2>{{ to_char.name }} da a cambio</h2>
-      <table>
+      {% if to_inventory | length > 6 %}<input type="search" class="quick-filter" data-quick-filter="#take-list" placeholder="Filtrar sus objetos…" aria-label="Filtrar sus objetos">{% endif %}
+      <table id="take-list">
         {% for it in to_inventory %}
-        <tr><td>{{ it.name }} <span class="muted small">(tiene {{ it.quantity }})</span>
+        <tr data-filter-text="{{ it.name }} {{ it.category }}"><td>{{ it.name }} <span class="muted small">(tiene {{ it.quantity }})</span>
               {% for t in traits[it.id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
             <td><input type="number" name="take_item_{{ it.id }}" min="0" max="{{ it.quantity }}" value="0"></td></tr>
         {% endfor %}

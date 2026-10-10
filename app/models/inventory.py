@@ -1,6 +1,9 @@
 from ..db import get_db
+from ..text import LIKE_ESCAPE, like_terms
 from .errors import RuleError
+from .item import CATEGORIES, rarity_order
 from .item_trait import ItemTrait
+from .listing import sort_sql
 
 _SELECT = """
     SELECT ii.*, i.name, i.category, i.rarity, i.weight, i.properties,
@@ -8,23 +11,54 @@ _SELECT = """
     FROM inventory_items ii JOIN items i ON i.id = ii.item_id
 """
 
+SORTS = {
+    "equipped": ("Equipados primero", "ii.equipped DESC, i.category, i.search_name, ii.id"),
+    "name": ("Nombre", "i.search_name, ii.id"),
+    "category": ("Categoría", "i.category, i.search_name, ii.id"),
+    "rarity": ("Rareza (de más rara)", f"{rarity_order('i.rarity')} DESC, i.name, ii.id"),
+    "weight": ("Peso total (mayor primero)", "i.weight * ii.quantity DESC, i.name, ii.id"),
+    "quantity": ("Cantidad (mayor primero)", "ii.quantity DESC, i.name, ii.id"),
+    "recent": ("Añadidos recientemente", "ii.id DESC"),
+}
+
 
 class Inventory:
+    SORTS = SORTS
+
     @staticmethod
-    def for_character(character_id, include_hidden=False):
+    def for_character(character_id, include_hidden=False, q="", category="", sort="equipped"):
         sql = _SELECT + " WHERE ii.character_id = ?"
+        params = [character_id]
         if not include_hidden:
             sql += " AND ii.visible = 1"
-        sql += " ORDER BY ii.equipped DESC, i.category, i.name"
-        return get_db().execute(sql, (character_id,)).fetchall()
+        for term in like_terms(q):
+            sql += " AND i.search_name LIKE ?" + LIKE_ESCAPE
+            params.append(term)
+        if category in CATEGORIES:
+            sql += " AND i.category = ?"
+            params.append(category)
+        sql += " ORDER BY " + sort_sql(SORTS, sort, "equipped")
+        return get_db().execute(sql, tuple(params)).fetchall()
 
     @staticmethod
     def get(inventory_id):
         return get_db().execute(_SELECT + " WHERE ii.id = ?", (inventory_id,)).fetchone()
 
     @staticmethod
-    def total_weight(rows):
-        return round(sum(r["weight"] * r["quantity"] for r in rows), 2)
+    def total_weight(character_id, include_hidden=False):
+        """Peso de todo lo que lleva (sin aplicar los filtros de la lista)."""
+        sql = """SELECT COALESCE(SUM(i.weight * ii.quantity), 0)
+                 FROM inventory_items ii JOIN items i ON i.id = ii.item_id WHERE ii.character_id = ?"""
+        if not include_hidden:
+            sql += " AND ii.visible = 1"
+        return round(get_db().execute(sql, (character_id,)).fetchone()[0], 2)
+
+    @staticmethod
+    def count(character_id, include_hidden=False):
+        sql = "SELECT COUNT(*) FROM inventory_items WHERE character_id = ?"
+        if not include_hidden:
+            sql += " AND visible = 1"
+        return get_db().execute(sql, (character_id,)).fetchone()[0]
 
     # --- Operaciones sin commit (para componer dentro de transaction()) -------
 

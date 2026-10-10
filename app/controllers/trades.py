@@ -3,7 +3,7 @@ from flask import Blueprint, abort, flash, g, redirect, render_template, request
 from ..models import Character, Currency, Inventory, ItemTrait, RuleError, Trade
 from ..models.item_trait import KINDS as TRAIT_KINDS
 from ..models.trade import STATUS
-from .helpers import collect_quantities, get_character_or_404, is_dm, login_required, my_characters
+from .helpers import ListArgs, collect_quantities, redirect_back, get_character_or_404, is_dm, login_required
 
 bp = Blueprint("trades", __name__, url_prefix="/trades")
 
@@ -11,10 +11,14 @@ bp = Blueprint("trades", __name__, url_prefix="/trades")
 @bp.route("/")
 @login_required
 def index():
-    trades = Trade.all() if is_dm() else Trade.for_user(g.user["id"])
+    args = ListArgs(Trade.SORTS, "pending", filters=["status"])
+    trades = Trade.search(
+        None if is_dm() else g.user["id"], status=args.status, sort=args.sort, page=args.page,
+    )
     return render_template(
         "trades/index.html",
         trades=trades,
+        args=args,
         lines=Trade.lines_for([t["id"] for t in trades]),
         status=STATUS,
     )
@@ -58,14 +62,7 @@ def new():
             ),
             "trait_kinds": TRAIT_KINDS,
         }
-    return render_template(
-        "trades/new.html",
-        mine=my_characters(),
-        targets=[c for c in Character.all() if not from_char or c["id"] != from_char["id"]],
-        from_char=from_char,
-        to_char=to_char,
-        **ctx,
-    )
+    return render_template("trades/new.html", from_char=from_char, to_char=to_char, **ctx)
 
 
 def _resolve(trade_id, action):
@@ -87,7 +84,7 @@ def _resolve(trade_id, action):
             flash("Intercambio cerrado.", "ok")
     except RuleError as e:
         flash(str(e), "error")
-    return redirect(url_for("trades.index"))
+    return redirect_back(url_for("trades.index"))
 
 
 @bp.route("/<int:trade_id>/<any(accept, reject, cancel):action>", methods=["POST"])

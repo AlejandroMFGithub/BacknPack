@@ -1,7 +1,9 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..db import get_db
+from ..text import LIKE_ESCAPE, like_contains
 from .errors import RuleError
+from .listing import paginate
 
 
 class User:
@@ -18,6 +20,14 @@ class User:
     @staticmethod
     def all():
         return get_db().execute("SELECT * FROM users ORDER BY role, username").fetchall()
+
+    @staticmethod
+    def search(q="", page=1, per_page=20):
+        where, params = [], []
+        if q:
+            where.append("LOWER(username) LIKE ?" + LIKE_ESCAPE)
+            params.append(like_contains(q))
+        return paginate("SELECT id, username, role FROM users", where, params, "role, username", page, per_page)
 
     @staticmethod
     def create(username, password, role="player"):

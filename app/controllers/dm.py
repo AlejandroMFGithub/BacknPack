@@ -3,7 +3,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from ..models import ActivityLog, Character, Condition, Currency, Item, ItemTrait, RuleError, Trade
 from ..models.item import CATEGORIES, RARITIES
 from ..models.item_trait import KINDS as TRAIT_KINDS
-from .helpers import dm_required, form_int
+from .helpers import ListArgs, dm_required, form_int, redirect_back
 
 bp = Blueprint("dm", __name__, url_prefix="/dm")
 
@@ -11,11 +11,13 @@ bp = Blueprint("dm", __name__, url_prefix="/dm")
 @bp.route("/")
 @dm_required
 def index():
-    characters = Character.all()
+    args = ListArgs(Character.SORTS, "name")
+    characters = Character.search(args.q, sort=args.sort, page=args.page)
     effects = {c["id"]: Condition.for_character(c["id"], include_hidden=True) for c in characters}
     return render_template(
         "dm/index.html",
         characters=characters,
+        args=args,
         effects=effects,
         pending_trades=Trade.pending_count(),
         log=ActivityLog.recent(),
@@ -34,10 +36,11 @@ def items():
             flash(str(e), "error")
         else:
             flash("Objeto añadido al catálogo.", "ok")
-        return redirect(url_for("dm.items"))
-    items = Item.all()
+        return redirect_back(url_for("dm.items"))
+    args = ListArgs(Item.SORTS, "name", filters=["category", "rarity"])
+    items = Item.search(args.q, args.category, args.rarity, sort=args.sort, page=args.page)
     return render_template(
-        "dm/items.html", items=items, item=None, categories=CATEGORIES, rarities=RARITIES,
+        "dm/items.html", items=items, args=args, item=None, categories=CATEGORIES, rarities=RARITIES,
         traits=ItemTrait.for_items([i["id"] for i in items]), trait_kinds=TRAIT_KINDS,
     )
 
@@ -65,7 +68,7 @@ def edit_item(item_id):
 def delete_item(item_id):
     Item.delete(item_id)
     flash("Objeto eliminado del catálogo (y de todos los inventarios y tiendas).", "ok")
-    return redirect(url_for("dm.items"))
+    return redirect_back(url_for("dm.items"))
 
 
 # --- Cualidades de plantilla (se copian a cada ejemplar nuevo) ------------------------

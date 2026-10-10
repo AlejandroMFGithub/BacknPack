@@ -2,13 +2,15 @@
 {% block title %}Intercambios{% endblock %}
 {% block back_url %}{{ url_for('main.index') }}{% endblock %}
 {% block content %}
+{% from "_macros.html" import list_toolbar, pager with context %}
 {% macro line_list(items) -%}
   {% for l in items %}<div>{{ l.quantity }}× {{ l.label }}</div>{% else %}<div class="muted">nada</div>{% endfor %}
 {%- endmacro %}
 <div class="row spread">
   <h1>Intercambios</h1>
-  <a class="btn" href="{{ url_for('trades.new') }}">+ Proponer intercambio</a>
+  <a class="btn btn-small" href="{{ url_for('trades.new') }}">+ Proponer intercambio</a>
 </div>
+{{ list_toolbar(args, search=false, filters=[('status', 'Estado', status.items() | list)]) }}
 
 {% for t in trades %}
 <div class="card">
@@ -35,6 +37,7 @@
   </div>
 </div>
 {% else %}
-<div class="card muted">Sin intercambios.</div>
+<div class="card muted">{{ 'Ningún intercambio en ese estado.' if args.status else 'Sin intercambios.' }}</div>
 {% endfor %}
+{{ pager(trades) }}
 {% endblock %}

@@ -99,6 +99,14 @@ controlador los muestra como mensaje.
   en un ejemplar concreto desde la ficha. Viajan con el objeto al intercambiarlo, ocultas incluidas.
   Los objetos solo se apilan si tienen las mismas cualidades y ninguna tiene usos.
 
+**Búsqueda y listas** (pensado para catálogos de miles de objetos)
+- Buscador desplegable para elegir objetos, personajes y jugadores: consulta `/api/...` mientras
+  escribes y trae 20 resultados cada vez, con filtros (categoría, rareza) y «Cargar más».
+- Búsqueda por palabras, sin tildes ni mayúsculas: «cur pocion» encuentra «Poción de curación».
+- Barra de lista con búsqueda, filtros y **«Ordenar por»** en inventarios, catálogo, personajes,
+  tiendas, botines e intercambios; paginación de 50 en 50.
+- En tiendas y botines se elige una vez el personaje que actúa («Comprar como» / «Recoger como»).
+
 **Jugador**
 - Crea y edita sus personajes; ve solo lo que el DM le deja ver.
 - Equipa y tira objetos; gasta usos de sus objetos (cargas de una varita, una bendición diaria…).

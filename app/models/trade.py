@@ -5,6 +5,7 @@ from .activity_log import ActivityLog
 from .currency import Currency
 from .errors import RuleError
 from .inventory import Inventory
+from .listing import PER_PAGE, paginate, sort_sql
 
 STATUS = {
     "pending": "Pendiente",
@@ -22,17 +23,27 @@ _SELECT = """
 """
 
 
+SORTS = {
+    "pending": ("Pendientes primero", "t.status <> 'pending', t.id DESC"),
+    "recent": ("Más recientes", "t.id DESC"),
+    "oldest": ("Más antiguos", "t.id"),
+}
+
+
 class Trade:
-    @staticmethod
-    def all():
-        return get_db().execute(_SELECT + " ORDER BY t.status != 'pending', t.id DESC").fetchall()
+    SORTS = SORTS
 
     @staticmethod
-    def for_user(user_id):
-        return get_db().execute(
-            _SELECT + " WHERE fc.user_id = ? OR tc.user_id = ? ORDER BY t.status != 'pending', t.id DESC",
-            (user_id, user_id),
-        ).fetchall()
+    def search(user_id=None, status="", sort="pending", page=1, per_page=PER_PAGE):
+        """Intercambios (todos para el DM, o los de los personajes de user_id)."""
+        where, params = [], []
+        if user_id is not None:
+            where.append("(fc.user_id = ? OR tc.user_id = ?)")
+            params += [user_id, user_id]
+        if status in STATUS:
+            where.append("t.status = ?")
+            params.append(status)
+        return paginate(_SELECT, where, params, sort_sql(SORTS, sort, "pending"), page, per_page)
 
     @staticmethod
     def pending_count():

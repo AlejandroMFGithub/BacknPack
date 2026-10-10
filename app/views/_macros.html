@@ -1,4 +1,95 @@
-{# Macros compartidas entre vistas #}
+{# Macros compartidas entre vistas.
+   Las de listas usan `request`: impórtalas con  {% from "_macros.html" import … with context %} #}
+
+{# Barra de una lista: búsqueda por nombre, filtros y «Ordenar por».
+   filters: [(nombre, etiqueta, opciones)], opciones = ["valor", …] o [("valor", "texto"), …]
+   Los desplegables se aplican al cambiarlos; la búsqueda, con Enter o 🔍. #}
+{% macro list_toolbar(args, placeholder="Buscar por nombre…", filters=[], search=true) -%}
+{%- set managed = ['q', 'sort', 'page'] + (filters | map(attribute=0) | list) -%}
+{%- set clear = {'q': '', 'page': ''} -%}
+{%- for f in filters %}{% set _ = clear.update({f[0]: ''}) %}{% endfor -%}
+<form method="get" class="toolbar" role="search">
+  {% for k, v in request.args.items() if k not in managed %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+  {% if search %}
+  <div class="toolbar-search">
+    <input type="search" name="q" value="{{ args.q }}" placeholder="{{ placeholder }}" aria-label="Buscar">
+    <button class="btn-small" aria-label="Buscar">🔍</button>
+  </div>
+  {% endif %}
+  {% for name, label, options in filters %}
+  <label class="toolbar-field">{{ label }}
+    <select name="{{ name }}" data-autosubmit>
+      <option value="">Cualquiera</option>
+      {% for opt in options %}
+        {% set value, text = (opt, opt) if opt is string else opt %}
+        <option value="{{ value }}" {{ 'selected' if args.filters[name] == value | string }}>{{ text }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  {% endfor %}
+  <label class="toolbar-field">Ordenar por
+    <select name="sort" data-autosubmit>
+      {% for key, label in args.sort_options %}<option value="{{ key }}" {{ 'selected' if key == args.sort }}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  {% if args.q or (args.filters.values() | select | list) %}
+    <a class="small toolbar-clear" href="{{ url_with(**clear) }}">✖ Quitar filtros</a>
+  {% endif %}
+</form>
+{%- endmacro %}
+
+{# Paginación de una Page (models/listing.py). #}
+{% macro pager(p) -%}
+{% if p.pages > 1 %}
+<nav class="pager" aria-label="Páginas">
+  {% if p.has_prev %}<a class="btn btn-small btn-ghost" href="{{ url_with(page=p.page - 1) }}">← Anterior</a>{% else %}<span></span>{% endif %}
+  <span class="small muted">Página {{ p.page }} de {{ p.pages }} · {{ p.total }} resultados</span>
+  {% if p.has_next %}<a class="btn btn-small btn-ghost" href="{{ url_with(page=p.page + 1) }}">Siguiente →</a>{% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+{%- endmacro %}
+
+{# Buscador desplegable (static/app.js). Consulta `source` (JSON) mientras se escribe y
+   guarda el id elegido en un campo oculto `name`.
+   filters: [{"name", "label", "options"}] · params: parámetros fijos de la consulta
+   submit=true: envía el formulario al elegir. #}
+{% macro picker(name, source, placeholder="Buscar…", required=true, filters=[], params={}, value=none, label="", submit=false) -%}
+<div class="picker" data-source="{{ source }}" data-filters='{{ filters | tojson }}' data-params='{{ params | tojson }}'
+     {{ 'data-required' if required }} {{ 'data-submit' if submit }}>
+  <input type="hidden" name="{{ name }}" value="{{ value if value is not none else '' }}">
+  <input type="search" class="picker-input" placeholder="{{ placeholder }}" value="{{ label }}" autocomplete="off" aria-label="{{ placeholder }}">
+</div>
+{%- endmacro %}
+
+{# «Comprar como» / «Recoger como»: personaje que actúa en tiendas y botines (?as=). #}
+{% macro acting_box(acting, own_characters, balance, verb) -%}
+<div class="card acting">
+  <form method="get" class="acting-form">
+    {% for k, v in request.args.items() if k not in ('as', 'page') %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <label>{{ verb }} como
+      {% if is_dm() %}
+        {{ picker('as', url_for('api.characters'), 'Buscar personaje…', value=acting.id if acting else none,
+                  label=acting.name if acting else '', submit=true) }}
+      {% elif own_characters | length > 1 %}
+        <select name="as" data-autosubmit>
+          {% for c in own_characters %}<option value="{{ c.id }}" {{ 'selected' if acting and c.id == acting.id }}>{{ c.name }}</option>{% endfor %}
+        </select>
+      {% elif acting %}
+        <b class="acting-name">{{ acting.name }}</b>
+      {% endif %}
+    </label>
+  </form>
+  {% if acting %}
+    <div class="purse">
+      {% for b in balance if b.amount %}<span class="coin" title="{{ b.name }}"><b>{{ b.amount }}</b> {{ b.code }}</span>{% else %}<span class="muted small">Sin dinero.</span>{% endfor %}
+    </div>
+  {% elif is_dm() %}
+    <p class="muted small">Elige un personaje para actuar en su nombre.</p>
+  {% else %}
+    <p class="muted small">Necesitas un personaje. <a href="{{ url_for('characters.new') }}">Crea uno</a>.</p>
+  {% endif %}
+</div>
+{%- endmacro %}
 
 {% set TRAIT_BADGE = {"property": "", "blessing": "badge-buff", "curse": "badge-curse", "charges": "badge-condition"} %}
 

@@ -213,6 +213,63 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 .auth { max-width: 360px; margin: 2rem auto; }
 .auth label { margin-bottom: .6rem; }
 
+/* --- Listas: búsqueda, filtros, orden y paginación ---------------------------------- */
+
+[hidden] { display: none !important; }
+
+.toolbar {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: .5rem .8rem;
+  margin: 0 0 .9rem; padding: .6rem; background: #fff; border: 1px solid var(--line); border-radius: 8px;
+}
+.toolbar-search { display: flex; gap: .3rem; flex: 1 1 220px; }
+.toolbar-search input { flex: 1; min-width: 0; }
+.toolbar-field { flex: 0 1 auto; font-size: .78rem; }
+.toolbar-field select { display: block; margin-top: .1rem; }
+.toolbar-clear { align-self: center; }
+
+.pager { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin-top: .8rem; }
+
+.quick-filter { width: 100%; margin-bottom: .4rem; }
+
+/* --- Buscador desplegable (picker) ------------------------------------------------- */
+
+.field-label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: .1rem; }
+.picker { position: relative; }
+.picker-control { display: flex; gap: .35rem; align-items: stretch; }
+.picker-input { flex: 1; min-width: 0; width: 100%; }
+.picker.has-value .picker-input { border-color: var(--buff); background: #f2f8f0; font-weight: bold; }
+.picker.loading .picker-input {
+  background-image: linear-gradient(90deg, transparent, #dccbb066, transparent);
+  background-size: 200% 100%; animation: picker-loading 1s linear infinite;
+}
+@keyframes picker-loading { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.picker.invalid .picker-input { border-color: #b33; }
+.picker-error { color: #a22; font-size: .8rem; margin-top: .2rem; }
+.picker-filter-btn { white-space: nowrap; }
+.picker-filters { display: flex; flex-wrap: wrap; gap: .4rem .8rem; margin-top: .4rem; font-size: .8rem; }
+.picker-filters select { display: block; margin-top: .1rem; }
+.picker-list {
+  position: absolute; left: 0; right: 0; top: calc(100% + 3px); z-index: 25;
+  max-height: min(320px, 55vh); overflow-y: auto; margin: 0; padding: .25rem; list-style: none;
+  background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px #2b211833;
+}
+.picker-filters:not([hidden]) ~ .picker-list { top: auto; }
+.picker-option { display: flex; flex-direction: column; padding: .45rem .6rem; border-radius: 5px; cursor: pointer; }
+.picker-option.active, .picker-option:hover { background: var(--bg); }
+.picker-label { font-weight: bold; }
+.picker-sub { font-size: .8rem; color: var(--muted); }
+.picker-empty { padding: .5rem .6rem; color: var(--muted); }
+.picker-more { padding: .5rem .6rem; color: var(--accent); cursor: pointer; text-align: center; border-top: 1px solid var(--line); }
+.inv-add { margin-top: 1rem; padding-top: .6rem; border-top: 1px dashed var(--line); }
+.inv-add .row { margin-top: .5rem; }
+
+/* «Comprar como» / «Recoger como» */
+.acting { display: flex; flex-wrap: wrap; gap: .6rem 1.2rem; align-items: center; justify-content: space-between; }
+.acting-form { flex: 1 1 260px; }
+.acting-form > label { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; font-size: .95rem; color: var(--ink); }
+.acting-form .picker { flex: 1 1 200px; }
+.acting-name { font-size: 1.05rem; }
+
 /* --- Pantallas táctiles: objetivos más grandes ------------------------------------- */
 
 @media (pointer: coarse) {
@@ -287,6 +344,14 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
   .list-form { order: 3; flex-basis: 100%; }
   .list-form label { flex: 1 1 100%; }
   .list-form input[type=number] { width: 100%; }
+
+  /* Barra de lista: búsqueda a todo el ancho, desplegables de dos en dos */
+  .toolbar { padding: .5rem; }
+  .toolbar-search { flex-basis: 100%; }
+  .toolbar-field { flex: 1 1 calc(50% - .4rem); }
+  .toolbar-field select { width: 100%; }
+  .pager { flex-wrap: wrap; justify-content: center; }
+  .picker-option { padding: .6rem; }
 
   /* Intercambios: el campo de cantidad no aprieta el nombre */
   .card table:not(.stack) td:last-child input[type=number] { width: 4.5em; }

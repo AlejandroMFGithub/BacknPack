@@ -3,17 +3,37 @@ from .activity_log import ActivityLog
 from .currency import Currency
 from .errors import RuleError
 from .inventory import Inventory
+from .listing import sort_sql
+from .shop import filter_by_name
 
 KINDS = {"combat": "Tras combate", "environment": "Entorno"}
 
+SORTS = {
+    "recent": ("Más recientes", "id DESC"),
+    "name": ("Nombre", "name, id"),
+    "kind": ("Tipo", "kind, name, id"),
+}
+ENTRY_SORTS = {
+    "type": ("Monedas primero", "le.currency_id IS NULL, le.id"),
+    "name": ("Nombre", "COALESCE(i.name, c.name), le.id"),
+    "quantity": ("Cantidad (mayor primero)", "le.quantity DESC, le.id"),
+}
+
 
 class Loot:
+    SORTS = SORTS
+    ENTRY_SORTS = ENTRY_SORTS
+
     @staticmethod
-    def all(active_only=False):
-        sql = "SELECT * FROM loot_pools"
+    def all(active_only=False, q="", kind="", sort="recent"):
+        sql, params = "SELECT * FROM loot_pools WHERE 1 = 1", []
         if active_only:
-            sql += " WHERE active = 1"
-        return get_db().execute(sql + " ORDER BY id DESC").fetchall()
+            sql += " AND active = 1"
+        if kind in KINDS:
+            sql += " AND kind = ?"
+            params.append(kind)
+        rows = get_db().execute(sql + " ORDER BY " + sort_sql(SORTS, sort, "recent"), tuple(params)).fetchall()
+        return filter_by_name(rows, q)
 
     @staticmethod
     def get(pool_id):
@@ -48,7 +68,7 @@ class Loot:
     # --- Contenido ----------------------------------------------------------------
 
     @staticmethod
-    def entries(pool_id):
+    def entries(pool_id, sort="type"):
         return get_db().execute(
             """SELECT le.*, i.name AS item_name, i.category, i.rarity, i.description,
                       c.name AS currency_name, c.code AS currency_code
@@ -56,7 +76,7 @@ class Loot:
                LEFT JOIN items i ON i.id = le.item_id
                LEFT JOIN currencies c ON c.id = le.currency_id
                WHERE le.pool_id = ?
-               ORDER BY le.currency_id IS NULL, le.id""",
+               ORDER BY """ + sort_sql(ENTRY_SORTS, sort, "type"),
             (pool_id,),
         ).fetchall()
 

@@ -6,14 +6,15 @@ from ..models import (
 )
 from ..models.character import ABILITIES
 from ..models.condition import KINDS as CONDITION_KINDS, PRESETS
+from ..models.item import CATEGORIES, RARITIES
 from ..models.item_trait import KINDS as TRAIT_KINDS
-from .helpers import dm_required, form_int, get_character_or_404, is_dm, login_required, my_characters
+from .helpers import ListArgs, dm_required, redirect_back, form_int, get_character_or_404, is_dm, login_required
 
 bp = Blueprint("characters", __name__, url_prefix="/characters")
 
 
 def _back(character_id):
-    return redirect(url_for("characters.show", character_id=character_id))
+    return redirect_back(url_for("characters.show", character_id=character_id))
 
 
 def _own_inventory_row(character_id, inventory_id):
@@ -30,7 +31,11 @@ def _own_inventory_row(character_id, inventory_id):
 @bp.route("/")
 @login_required
 def index():
-    return render_template("characters/index.html", characters=my_characters())
+    args = ListArgs(Character.SORTS, "name")
+    characters = Character.search(
+        args.q, user_id=None if is_dm() else g.user["id"], sort=args.sort, page=args.page,
+    )
+    return render_template("characters/index.html", characters=characters, args=args)
 
 
 @bp.route("/new", methods=["GET", "POST"])
@@ -41,6 +46,8 @@ def new():
         if is_dm() and form_int("user_id"):
             owner_id = form_int("user_id")
         try:
+            if User.get(owner_id) is None:
+                raise RuleError("Ese jugador no existe.")
             character_id = Character.create(owner_id, request.form)
         except RuleError as e:
             flash(str(e), "error")
@@ -48,8 +55,7 @@ def new():
             flash("Personaje creado.", "ok")
             return _back(character_id)
     return render_template(
-        "characters/form.html", character=request.form or None, editing=False,
-        abilities=ABILITIES, users=User.all() if is_dm() else [],
+        "characters/form.html", character=request.form or None, editing=False, abilities=ABILITIES,
     )
 
 
@@ -58,20 +64,26 @@ def new():
 def show(character_id):
     character = get_character_or_404(character_id)
     dm = is_dm()
-    inventory = Inventory.for_character(character_id, include_hidden=dm)
+    args = ListArgs(Inventory.SORTS, "equipped", filters=["category"])
+    inventory = Inventory.for_character(
+        character_id, include_hidden=dm, q=args.q, category=args.category, sort=args.sort,
+    )
     return render_template(
         "characters/show.html",
         character=character,
         abilities=ABILITIES,
         inventory=inventory,
+        inventory_total=Inventory.count(character_id, include_hidden=dm),
+        args=args,
+        categories=CATEGORIES,
+        rarities=RARITIES,
         traits=ItemTrait.for_inventory([row["id"] for row in inventory], include_hidden=dm),
         trait_kinds=TRAIT_KINDS,
-        weight=Inventory.total_weight(inventory),
+        weight=Inventory.total_weight(character_id, include_hidden=dm),
         balances=Currency.balances(character_id),
         conditions=Condition.for_character(character_id, include_hidden=dm),
         condition_kinds=CONDITION_KINDS,
         presets=PRESETS,
-        catalog=Item.all() if dm else [],
         log=ActivityLog.for_character(character_id),
     )
 

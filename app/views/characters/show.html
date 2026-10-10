@@ -2,8 +2,10 @@
 {% block title %}{{ character.name }}{% endblock %}
 {% block back_url %}{{ url_for('characters.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import trait_chip, trait_form %}
+{% from "_macros.html" import trait_chip, trait_form, list_toolbar, picker with context %}
 {% set dm = is_dm() %}
+{% set item_filters = [{'name': 'category', 'label': 'Categoría', 'options': categories},
+                       {'name': 'rarity', 'label': 'Rareza', 'options': rarities}] %}
 
 <div class="card">
   <div class="sheet-head">
@@ -130,7 +132,14 @@
 
 <!-- Inventario -->
 <div class="card">
-  <h2>Inventario</h2>
+  <h2>Inventario
+    <span class="muted small">
+      {%- if inventory | length != inventory_total %} · {{ inventory | length }} de {{ inventory_total }}{% else %} · {{ inventory_total }}{% endif %}
+    </span>
+  </h2>
+  {% if inventory_total > 0 %}
+    {{ list_toolbar(args, 'Buscar en la mochila…', filters=[('category', 'Categoría', categories)]) }}
+  {% endif %}
   <div class="inv-list">
     {% for it in inventory %}
     <div class="inv-item {{ 'hidden-row' if not it.visible }} {{ 'equipped' if it.equipped }}">
@@ -205,19 +214,19 @@
       {% endif %}
     </div>
     {% else %}
-      <p class="muted">La mochila está vacía.</p>
+      <p class="muted">{{ 'Ningún objeto coincide con la búsqueda.' if inventory_total else 'La mochila está vacía.' }}</p>
     {% endfor %}
   </div>
 
   {% if dm %}
-  <form method="post" action="{{ url_for('characters.add_item', character_id=character.id) }}" class="row stack-sm inv-add">
-    <select name="item_id" required aria-label="Objeto">
-      <option value="">— Objeto del catálogo —</option>
-      {% for i in catalog %}<option value="{{ i.id }}">{{ i.name }} ({{ i.category }})</option>{% endfor %}
-    </select>
-    <input type="number" name="quantity" min="1" value="1" aria-label="Cantidad">
-    <label class="inline"><input type="checkbox" name="visible" value="1" checked> Visible</label>
-    <button class="btn-small">Dar objeto</button>
+  <form method="post" action="{{ url_for('characters.add_item', character_id=character.id) }}" class="inv-add">
+    <h3>Dar objeto</h3>
+    {{ picker('item_id', url_for('api.items'), 'Buscar objeto del catálogo…', filters=item_filters) }}
+    <div class="row">
+      <label class="inline">Cantidad <input type="number" name="quantity" min="1" value="1"></label>
+      <label class="inline"><input type="checkbox" name="visible" value="1" checked> Visible</label>
+      <button class="btn-small">Dar objeto</button>
+    </div>
   </form>
   <p class="small"><a href="{{ url_for('dm.items') }}">Crear objeto nuevo en el catálogo</a></p>
   {% endif %}

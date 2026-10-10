@@ -6,37 +6,10 @@
   <title>{% block title %}Inicio{% endblock %} · BacknPack</title>
   {#- Bloque vacío por defecto: lo rellenan las vistas hijas y lo lee <main>. -#}
   {%- if false %}{% block back_url %}{% endblock %}{% endif %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ asset('style.css') }}">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <script>
     document.documentElement.classList.add("js");
-
-    // Menú hamburguesa y desplegables «⋯»
-    document.addEventListener("click", function (e) {
-      var toggle = e.target.closest(".menu-toggle");
-      if (toggle) {
-        var open = document.body.classList.toggle("nav-open");
-        toggle.setAttribute("aria-expanded", open);
-        toggle.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
-        return;
-      }
-      // Cierra los desplegables abiertos al tocar fuera de ellos
-      document.querySelectorAll("details.menu[open]").forEach(function (menu) {
-        if (!menu.contains(e.target)) menu.removeAttribute("open");
-      });
-    });
-    // Solo un desplegable abierto a la vez
-    document.addEventListener("toggle", function (e) {
-      if (!e.target.matches || !e.target.matches("details.menu") || !e.target.open) return;
-      document.querySelectorAll("details.menu[open]").forEach(function (menu) {
-        if (menu !== e.target) menu.removeAttribute("open");
-      });
-    }, true);
-    document.addEventListener("keydown", function (e) {
-      if (e.key !== "Escape") return;
-      document.body.classList.remove("nav-open");
-      document.querySelectorAll("details.menu[open]").forEach(function (m) { m.removeAttribute("open"); });
-    });
 
     // Añade el token CSRF a todos los formularios POST al enviarlos.
     document.addEventListener("submit", function (e) {
@@ -49,6 +22,7 @@
       form.appendChild(input);
     }, true);
   </script>
+  <script src="{{ asset('app.js') }}" defer></script>
 </head>
 <body>
 {# Enlace del menú; se marca activo si la página actual pertenece a esa sección. #}

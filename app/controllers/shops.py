@@ -1,8 +1,12 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from ..models import Currency, Item, ItemTrait, RuleError, Shop
+from ..models.item import CATEGORIES, RARITIES
 from ..models.item_trait import KINDS as TRAIT_KINDS
-from .helpers import dm_required, form_int, get_character_or_404, is_dm, login_required, my_characters
+from .helpers import (
+    ListArgs, acting_character, dm_required, form_int, get_character_or_404, is_dm, login_required,
+    my_characters, redirect_back,
+)
 
 bp = Blueprint("shops", __name__, url_prefix="/shops")
 
@@ -17,7 +21,9 @@ def _get_shop(shop_id):
 @bp.route("/")
 @login_required
 def index():
-    return render_template("shops/index.html", shops=Shop.all(active_only=not is_dm()))
+    args = ListArgs(Shop.SORTS, "name")
+    shops = Shop.all(active_only=not is_dm(), q=args.q, sort=args.sort)
+    return render_template("shops/index.html", shops=shops, args=args)
 
 
 @bp.route("/new", methods=["POST"])
@@ -38,18 +44,22 @@ def new():
 @login_required
 def show(shop_id):
     shop = _get_shop(shop_id)
-    characters = my_characters()
-    listings = Shop.listings(shop_id)
+    args = ListArgs(Shop.LISTING_SORTS, "category", filters=["category"])
+    listings = Shop.listings(shop_id, q=args.q, category=args.category, sort=args.sort)
+    acting = acting_character()
     return render_template(
         "shops/show.html",
         shop=shop,
         listings=listings,
+        args=args,
+        categories=CATEGORIES,
+        rarities=RARITIES,
         traits=ItemTrait.for_items({l["item_id"] for l in listings}, include_hidden=is_dm()),
         trait_kinds=TRAIT_KINDS,
         currencies=Currency.all(),
-        characters=characters,
-        balances={c["id"]: Currency.balances(c["id"]) for c in characters},
-        catalog=Item.all() if is_dm() else [],
+        acting=acting,
+        own_characters=[] if is_dm() else my_characters(),
+        balance=Currency.balances(acting["id"]) if acting else [],
     )
 
 
@@ -67,7 +77,7 @@ def buy(shop_id, listing_id):
         flash(str(e), "error")
     else:
         flash(f"{character['name']} compra {listing['name']} por {cost} {pay['code']}.", "ok")
-    return redirect(url_for("shops.show", shop_id=shop_id))
+    return redirect_back(url_for("shops.show", shop_id=shop_id, **{"as": character["id"]}))
 
 
 # --- Gestión (DM) ----------------------------------------------------------------------
@@ -78,7 +88,7 @@ def toggle(shop_id, column):
     if column not in ("active", "allow_exchange"):
         abort(400)
     Shop.toggle(shop_id, column)
-    return redirect(url_for("shops.show", shop_id=shop_id))
+    return redirect_back(url_for("shops.show", shop_id=shop_id))
 
 
 @bp.route("/<int:shop_id>/delete", methods=["POST"])
@@ -103,11 +113,11 @@ def add_listing(shop_id):
         )
     except RuleError as e:
         flash(str(e), "error")
-    return redirect(url_for("shops.show", shop_id=shop_id))
+    return redirect_back(url_for("shops.show", shop_id=shop_id))
 
 
 @bp.route("/<int:shop_id>/listings/<int:listing_id>/delete", methods=["POST"])
 @dm_required
 def remove_listing(shop_id, listing_id):
     Shop.remove_listing(listing_id)
-    return redirect(url_for("shops.show", shop_id=shop_id))
+    return redirect_back(url_for("shops.show", shop_id=shop_id))

@@ -2,6 +2,7 @@
 {% block title %}{{ pool.name }}{% endblock %}
 {% block back_url %}{{ url_for('loot.index') }}{% endblock %}
 {% block content %}
+{% from "_macros.html" import list_toolbar, picker, acting_box with context %}
 <div class="sheet-head">
   <div>
     <h1>{{ pool.name }}
@@ -23,7 +24,10 @@
   {% endif %}
 </div>
 
+{{ acting_box(acting, own_characters, balance, 'Recoger') }}
+
 <div class="card">
+  {% if entries | length > 1 %}{{ list_toolbar(args, search=false) }}{% endif %}
   <table class="stack">
     <thead><tr><th>Contenido</th><th>Cantidad</th><th>Recoger</th>{% if is_dm() %}<th></th>{% endif %}</tr></thead>
     <tbody>
@@ -35,13 +39,9 @@
       </td>
       <td data-label="Quedan">{{ e.quantity }}</td>
       <td class="actions">
-        {% if characters %}
+        {% if acting %}
         <form method="post" action="{{ url_for('loot.claim', pool_id=pool.id, entry_id=e.id) }}" class="row">
-          {% if characters|length == 1 %}
-            <input type="hidden" name="character_id" value="{{ characters[0].id }}">
-          {% else %}
-            <select name="character_id" aria-label="Personaje">{% for c in characters %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select>
-          {% endif %}
+          <input type="hidden" name="character_id" value="{{ acting.id }}">
           <input type="number" name="quantity" min="1" max="{{ e.quantity }}" value="{{ e.quantity }}" aria-label="Cantidad">
           <button class="btn-small">Coger</button>
         </form>
@@ -60,17 +60,28 @@
 </div>
 
 {% if is_dm() %}
-<form method="post" action="{{ url_for('loot.add_entry', pool_id=pool.id) }}" class="card">
+<div class="card">
   <h2>Añadir al botín</h2>
-  <div class="row stack-sm">
-    <select name="ref" required aria-label="Objeto o divisa">
-      <option value="">— Objeto o divisa —</option>
-      <optgroup label="Divisas">{% for c in currencies %}<option value="currency:{{ c.id }}">{{ c.name }} ({{ c.code }})</option>{% endfor %}</optgroup>
-      <optgroup label="Objetos">{% for i in catalog %}<option value="item:{{ i.id }}">{{ i.name }}</option>{% endfor %}</optgroup>
-    </select>
-    <input type="number" name="quantity" min="1" value="1" aria-label="Cantidad">
-    <button class="btn-small">Añadir</button>
-  </div>
-</form>
+  <form method="post" action="{{ url_for('loot.add_entry', pool_id=pool.id) }}">
+    <h3>Objeto</h3>
+    {{ picker('item_id', url_for('api.items'), 'Buscar objeto del catálogo…',
+              filters=[{'name': 'category', 'label': 'Categoría', 'options': categories},
+                       {'name': 'rarity', 'label': 'Rareza', 'options': rarities}]) }}
+    <div class="row" style="margin-top:.5rem">
+      <label class="inline">Cantidad <input type="number" name="quantity" min="1" value="1"></label>
+      <button class="btn-small">Añadir objeto</button>
+    </div>
+  </form>
+  <form method="post" action="{{ url_for('loot.add_entry', pool_id=pool.id) }}" style="margin-top:1rem">
+    <h3>Monedas</h3>
+    <div class="row">
+      <select name="currency_id" required aria-label="Divisa">
+        {% for c in currencies %}<option value="{{ c.id }}">{{ c.name }} ({{ c.code }})</option>{% endfor %}
+      </select>
+      <label class="inline">Cantidad <input type="number" name="quantity" min="1" value="1"></label>
+      <button class="btn-small">Añadir monedas</button>
+    </div>
+  </form>
+</div>
 {% endif %}
 {% endblock %}

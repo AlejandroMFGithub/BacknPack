@@ -2,7 +2,9 @@
 {% block title %}Tiendas{% endblock %}
 {% block back_url %}{{ url_for('main.index') }}{% endblock %}
 {% block content %}
+{% from "_macros.html" import list_toolbar with context %}
 <h1>Tiendas</h1>
+{{ list_toolbar(args, 'Buscar tienda…') }}
 
 <div class="grid">
   {% for s in shops %}
@@ -13,7 +15,7 @@
     {% if not s.allow_exchange %}<div class="muted small">Solo acepta la divisa indicada en cada artículo.</div>{% endif %}
   </a>
   {% else %}
-  <div class="card muted">No hay tiendas abiertas ahora mismo.</div>
+  <div class="card muted">{{ 'Ninguna tienda coincide con la búsqueda.' if args.q else 'No hay tiendas abiertas ahora mismo.' }}</div>
   {% endfor %}
 </div>
 

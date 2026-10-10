@@ -26,12 +26,32 @@ MIGRATIONS = [
     CREATE INDEX idx_item_traits_item ON item_traits(item_id);
     CREATE INDEX idx_item_traits_inventory ON item_traits(inventory_item_id);
     """,
+    # 2: nombres normalizados (sin tildes ni mayúsculas) para el buscador
+    """
+    ALTER TABLE items ADD COLUMN search_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE characters ADD COLUMN search_name TEXT NOT NULL DEFAULT '';
+    CREATE INDEX idx_items_category ON items(category);
+    CREATE INDEX idx_inventory_character ON inventory_items(character_id);
+    """,
+    # 3: rellena search_name en las filas que ya existían
+    lambda db: _backfill_search_names(db),
 ]
 
 
+def _backfill_search_names(db):
+    from .text import normalize
+    for table in ("items", "characters"):
+        for row in db.execute(f"SELECT id, name FROM {table}").fetchall():
+            db.execute(f"UPDATE {table} SET search_name = ? WHERE id = ?", (normalize(row["name"]), row["id"]))
+
+
 def migrate(db):
+    """Aplica las migraciones pendientes. Cada una es SQL (texto) o una función(db)."""
     version = db.get_version()
-    for number, script in enumerate(MIGRATIONS[version:], start=version + 1):
-        db.script(script)
+    for number, step in enumerate(MIGRATIONS[version:], start=version + 1):
+        if callable(step):
+            step(db)
+        else:
+            db.script(step)
         db.set_version(number)
     db.commit()

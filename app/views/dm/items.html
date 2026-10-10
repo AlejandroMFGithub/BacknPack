@@ -2,8 +2,8 @@
 {% block title %}Catálogo{% endblock %}
 {% block back_url %}{{ url_for('dm.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import trait_chip %}
-<h1>Catálogo de objetos</h1>
+{% from "_macros.html" import trait_chip, list_toolbar, pager with context %}
+<h1>Catálogo de objetos <span class="muted small">· {{ items.total }}</span></h1>
 
 <details class="card">
   <summary><b>+ Nuevo objeto</b></summary>
@@ -14,6 +14,7 @@
 </details>
 
 <div class="card">
+  {{ list_toolbar(args, 'Buscar objeto…', filters=[('category', 'Categoría', categories), ('rarity', 'Rareza', rarities)]) }}
   <table class="stack">
     <thead><tr><th>Objeto</th><th>Propiedades</th><th>Peso</th><th></th></tr></thead>
     <tbody>
@@ -38,8 +39,11 @@
         </div>
       </td>
     </tr>
+    {% else %}
+    <tr><td colspan="4" class="muted">Ningún objeto coincide con la búsqueda.</td></tr>
     {% endfor %}
     </tbody>
   </table>
+  {{ pager(items) }}
 </div>
 {% endblock %}

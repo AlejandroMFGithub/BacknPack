@@ -1,17 +1,47 @@
 from ..db import get_db, transaction
+from ..text import LIKE_ESCAPE, like_terms, matches_all_words
 from .activity_log import ActivityLog
 from .currency import Currency
 from .errors import RuleError
 from .inventory import Inventory
+from .item import CATEGORIES, rarity_order
+from .listing import sort_sql
+
+SORTS = {
+    "name": ("Nombre", "name, id"),
+    "open": ("Abiertas primero", "active DESC, name, id"),
+    "recent": ("Creadas recientemente", "id DESC"),
+}
+
+# Precio comparable entre divisas: en piezas de cobre; las no convertibles van al final
+_PRICE_CP = "si.price * c.value_cp"
+_CONVERTIBLE_FIRST = "CASE WHEN c.value_cp > 0 THEN 0 ELSE 1 END"
+LISTING_SORTS = {
+    "category": ("Categoría", "i.category, i.search_name, si.id"),
+    "name": ("Nombre", "i.search_name, si.id"),
+    "price": ("Precio (más barato)", f"{_CONVERTIBLE_FIRST}, {_PRICE_CP}, si.price, i.search_name"),
+    "price_desc": ("Precio (más caro)", f"{_CONVERTIBLE_FIRST}, {_PRICE_CP} DESC, si.price DESC, i.search_name"),
+    "rarity": ("Rareza (de más rara)", f"{rarity_order('i.rarity')} DESC, i.search_name, si.id"),
+    "stock": ("Más unidades", "CASE WHEN si.stock IS NULL THEN 0 ELSE 1 END, si.stock DESC, i.search_name"),
+}
+
+
+def filter_by_name(rows, q):
+    """Filtro sin tildes ni mayúsculas para listas cortas (tiendas, botines)."""
+    return [r for r in rows if matches_all_words(q, r["name"])] if q else rows
 
 
 class Shop:
+    SORTS = SORTS
+    LISTING_SORTS = LISTING_SORTS
+
     @staticmethod
-    def all(active_only=False):
+    def all(active_only=False, q="", sort="name"):
         sql = "SELECT * FROM shops"
         if active_only:
             sql += " WHERE active = 1"
-        return get_db().execute(sql + " ORDER BY name").fetchall()
+        rows = get_db().execute(sql + " ORDER BY " + sort_sql(SORTS, sort, "name")).fetchall()
+        return filter_by_name(rows, q)
 
     @staticmethod
     def get(shop_id):
@@ -54,10 +84,17 @@ class Shop:
     """
 
     @staticmethod
-    def listings(shop_id):
-        return get_db().execute(
-            Shop._LISTING_SQL + " WHERE si.shop_id = ? ORDER BY i.category, i.name", (shop_id,)
-        ).fetchall()
+    def listings(shop_id, q="", category="", sort="category"):
+        sql = Shop._LISTING_SQL + " WHERE si.shop_id = ?"
+        params = [shop_id]
+        for term in like_terms(q):
+            sql += " AND i.search_name LIKE ?" + LIKE_ESCAPE
+            params.append(term)
+        if category in CATEGORIES:
+            sql += " AND i.category = ?"
+            params.append(category)
+        sql += " ORDER BY " + sort_sql(LISTING_SORTS, sort, "category")
+        return get_db().execute(sql, tuple(params)).fetchall()
 
     @staticmethod
     def get_listing(listing_id):
