@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Panel del DM{% endblock %}
 {% block content %}
-{% from "_macros.html" import avatar, list_toolbar, pager with context %}
+{% from "_macros.html" import avatar, list_toolbar, pager, hidden_badge, hide_toggle with context %}
 <div class="row spread">
   <h1>Panel del DM <span class="h1-sub">{{ g.campaign.name }}</span></h1>
   <div class="row">
@@ -23,7 +23,7 @@
         <div><a href="{{ url_for('characters.show', character_id=c.id) }}"><b>{{ c.name }}</b></a>
           <div class="muted small">{{ c.race }} · {{ c.class_name }} {{ c.level }}</div></div>
       </div></td>
-      <td data-label="Jugador">{{ c.owner }}</td>
+      <td data-label="Jugador"><div class="owner-cell">{{ c.owner }} {{ hide_toggle(c) }} {{ hidden_badge(c) }}</div></td>
       <td data-label="PG">{{ c.hp_current }}/{{ c.hp_max }}</td>
       {% set sh = sheets[c.id] %}
       <td data-label="CA"><span class="{{ 'mod-' ~ sh.armor_class.sign ~ '-text' if sh.armor_class.sign }}">{{ sh.armor_class.total }}</span></td>

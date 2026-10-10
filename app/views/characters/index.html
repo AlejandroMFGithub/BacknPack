@@ -2,7 +2,7 @@
 {% block title %}Personajes{% endblock %}
 {% block back_url %}{% if is_dm() %}{{ url_for('dm.index') }}{% endif %}{% endblock %}
 {% block content %}
-{% from "_macros.html" import avatar, list_toolbar, pager with context %}
+{% from "_macros.html" import avatar, list_toolbar, pager, hidden_badge, hide_toggle with context %}
 <div class="row spread">
   <h1>{{ 'Personajes' if is_dm() else 'Mis personajes' }}
     {% if is_dm() %}<span class="h1-sub">{{ g.campaign.name }}</span>{% endif %}</h1>
@@ -23,6 +23,7 @@
       {{ avatar(c.id, c.name, c.avatar_version, 'md') }}
       <div>
         <h2>{{ c.name }}</h2>
+        {% if c.hidden_by %}<div>{{ hidden_badge(c) }}</div>{% endif %}
         <div>{{ c.race or '¿?' }} · {{ c.class_name or '¿?' }} nivel {{ c.level }}</div>
         <div class="muted small">PG {{ c.hp_current }}/{{ c.hp_max }} · CA {% set ac = sheets[c.id].armor_class %}<b class="{{ 'mod-' ~ ac.sign ~ '-text' if ac.sign }}">{{ ac.total }}</b>
           {% if is_dm() %} · jugador: {{ c.owner }}{% endif %}</div>
@@ -39,6 +40,7 @@
       {% else %}
         <span class="badge badge-off">Campaña archivada</span>
       {% endif %}
+      {{ hide_toggle(c) }}
       <form class="inline" method="post" action="{{ url_for('characters.delete', character_id=c.id) }}"
             onsubmit='return confirm({{ ("¿Eliminar a " ~ c.name ~ " con todo su inventario? No se puede deshacer.") | tojson }})'>
         <button class="btn-icon btn-icon-danger" title="Eliminar a {{ c.name }}" aria-label="Eliminar a {{ c.name }}">

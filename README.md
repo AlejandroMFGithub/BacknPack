@@ -102,6 +102,11 @@ controlador los muestra como mensaje.
   un selector con ellas). Una campaña «cerrada» no admite jugadores ni personajes nuevos.
   El `INVITE_CODE` general sigue sirviendo solo para registrarse en la web.
 - Al actualizar, todo lo que ya existía pasa a una «Campaña principal».
+- **Personajes ocultos**: el jugador puede ocultar sus personajes al resto de jugadores (botón del ojo en
+  «Mis personajes» o menú ⋯ de la ficha) y el DM puede ocultar o mostrar cualquiera (ojo en el panel).
+  Un personaje oculto no aparece en el buscador de los demás jugadores y no pueden proponerle
+  intercambios (su URL da 404). Si lo oculta el DM, el jugador no puede volver a mostrarlo. El DM y el
+  propio dueño lo siguen viendo siempre. Los intercambios que ya existían no se ven afectados.
 
 **DM**
 - Panel con todo el grupo, efectos activos y actividad reciente.

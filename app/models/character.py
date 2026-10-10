@@ -47,10 +47,15 @@ class Character:
     SORTS = SORTS
 
     @staticmethod
-    def search(q="", user_id=None, exclude_id=None, campaign_id=None, sort="name", page=1, per_page=PER_PAGE):
+    def search(q="", user_id=None, exclude_id=None, campaign_id=None, sort="name", page=1, per_page=PER_PAGE,
+               visible_to=None):
         """Personajes filtrados (por nombre o jugador) y paginados.
-        sort='relevance' pone primero los nombres que empiezan por q."""
+        sort='relevance' pone primero los nombres que empiezan por q.
+        visible_to=<user_id>: sin los personajes ocultos de otros jugadores."""
         where, params = [], []
+        if visible_to is not None:
+            where.append("(c.hidden_by IS NULL OR c.user_id = ?)")
+            params.append(visible_to)
         for term in like_terms(q):  # cada palabra, en el nombre o en el jugador
             where.append("(c.search_name LIKE ?" + LIKE_ESCAPE + " OR LOWER(u.username) LIKE ?" + LIKE_ESCAPE + ")")
             params += [term, term]
@@ -187,6 +192,27 @@ class Character:
             )
         db.commit()
         return moving
+
+    @staticmethod
+    def is_hidden_from(character, user_id):
+        """¿Debe dejar de verlo este jugador? (sus propios personajes los ve siempre)"""
+        return character["hidden_by"] is not None and character["user_id"] != user_id
+
+    @staticmethod
+    def set_hidden(character_id, hide, by_dm):
+        """Oculta o muestra un personaje al resto de jugadores.
+        Lo que oculta el DM solo lo puede volver a mostrar el DM."""
+        character = Character.get(character_id)
+        if hide:
+            hidden_by = "dm" if by_dm or character["hidden_by"] == "dm" else "player"
+        else:
+            if character["hidden_by"] == "dm" and not by_dm:
+                raise RuleError("El DM ha ocultado a este personaje: solo el DM puede volver a mostrarlo.")
+            hidden_by = None
+        db = get_db()
+        db.execute("UPDATE characters SET hidden_by = ? WHERE id = ?", (hidden_by, character_id))
+        db.commit()
+        return hidden_by
 
     @staticmethod
     def delete(character_id):

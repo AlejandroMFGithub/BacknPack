@@ -2,7 +2,7 @@
 {% block title %}{{ character.name }}{% endblock %}
 {% block back_url %}{{ url_for('characters.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import avatar, trait_chip, trait_form, list_toolbar, picker, calc_class, calc_attrs, calc_pop, effects_editor with context %}
+{% from "_macros.html" import avatar, trait_chip, trait_form, list_toolbar, picker, calc_class, calc_attrs, calc_pop, effects_editor, hidden_badge, hide_toggle with context %}
 {% set dm = is_dm() %}
 {% set item_filters = [{'name': 'category', 'label': 'Categoría', 'options': categories},
                        {'name': 'rarity', 'label': 'Rareza', 'options': rarities}] %}
@@ -36,6 +36,7 @@
       </details>
       <div>
         <h1>{{ character.name }}</h1>
+        {% if character.hidden_by %}<div>{{ hidden_badge(character) }}</div>{% endif %}
         <div>{{ character.race or '¿?' }} · {{ character.class_name or '¿?' }} nivel {{ character.level }}
           {% if character.background %} · {{ character.background }}{% endif %}
           {% if character.alignment %} · {{ character.alignment }}{% endif %}</div>
@@ -53,6 +54,9 @@
         <summary aria-label="Más opciones">⋯</summary>
         <div class="menu-panel">
           <a class="menu-item" href="{{ url_for('characters.edit', character_id=character.id) }}">✏️ Editar ficha</a>
+          {% if character.hidden_by == 'dm' and not dm %}
+          <div class="menu-label">🙈 Oculto por el DM a los demás jugadores</div>
+          {% else %}{{ hide_toggle(character, menu=true) }}{% endif %}
           {# Solo el dueño y el DM llegan a esta ficha: ambos pueden eliminar el personaje #}
           <hr>
           <form method="post" action="{{ url_for('characters.delete', character_id=character.id) }}"

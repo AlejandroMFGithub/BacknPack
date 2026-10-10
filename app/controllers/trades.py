@@ -45,6 +45,8 @@ def new():
     else:
         from_char = g.character  # el jugador comercia con el personaje con el que juega
     to_char = _campaign_character(to_id) if to_id else None
+    if to_char and not is_dm() and Character.is_hidden_from(to_char, g.user["id"]):
+        abort(404)  # oculto a los demás jugadores: para ellos no existe
 
     if request.method == "POST" and from_char and to_char:
         try:

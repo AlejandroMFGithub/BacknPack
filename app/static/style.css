@@ -1038,3 +1038,15 @@ main > .sheet-head > div:first-child { min-width: 0; }
   .eff-row .eff-cap { display: none; }
   .eff-row:has(select[name="eff_op"] option[value="armor"]:checked) .eff-cap { display: block; }
 }
+
+/* Personajes ocultos a los demás jugadores */
+.btn-icon.is-active { background: #efe4f4; color: var(--curse); border-color: #c7a8cf; }
+.owner-cell { display: flex; align-items: center; gap: .4rem; }
+.owner-cell .btn-icon { width: 30px; height: 30px; }
+.owner-cell .btn-icon svg { width: 16px; height: 16px; }
+.owner-cell { flex-wrap: wrap; }
+.owner-cell .badge, .char-card .badge-hidden { white-space: nowrap; }
+@media (max-width: 640px) {
+  /* En la ficha los botones bajan a la izquierda: el menú se abre hacia la derecha */
+  .sheet-head > .row .menu-panel { left: 0; right: auto; }
+}

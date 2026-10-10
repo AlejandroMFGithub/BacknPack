@@ -51,9 +51,10 @@ def characters():
         exclude_id=request.args.get("exclude", type=int),
         campaign_id=g.campaign["id"],  # solo personajes de la campaña activa
         sort=sort, page=page, per_page=PAGE_SIZE,
+        visible_to=None if is_dm() else g.user["id"],  # los ocultos de otros jugadores no aparecen
     )
     return _respond(found, lambda r: {
-        "id": r["id"], "label": r["name"],
+        "id": r["id"], "label": r["name"] + (" 🙈" if r["hidden_by"] and is_dm() else ""),
         "sub": f"{r['owner']} · {r['race'] or '¿?'} {r['class_name'] or ''} {r['level']}".strip(),
         "avatar": {
             "url": url_for("characters.avatar", character_id=r["id"], v=r["avatar_version"])

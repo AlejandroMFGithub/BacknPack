@@ -98,6 +98,8 @@ MIGRATIONS = [
     """ALTER TABLE items ADD COLUMN effects TEXT;
        ALTER TABLE item_traits ADD COLUMN effects TEXT;
        ALTER TABLE conditions ADD COLUMN effects TEXT;""",
+    # 13: personajes ocultos al resto de jugadores (NULL visible, 'player' o 'dm' según quién lo ocultó)
+    "ALTER TABLE characters ADD COLUMN hidden_by TEXT;",
 ]
 
 # Columnas de texto libre donde puede haber distancias

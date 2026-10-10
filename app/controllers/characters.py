@@ -170,6 +170,22 @@ def delete(character_id):
     return redirect(url_for("characters.index"))
 
 
+@bp.route("/<int:character_id>/hidden", methods=["POST"])
+@login_required
+def set_hidden(character_id):
+    """El dueño oculta (o vuelve a mostrar) su personaje al resto de jugadores; el DM, cualquiera."""
+    character = get_character_or_404(character_id)
+    hide = request.form.get("hide") == "1"
+    try:
+        Character.set_hidden(character_id, hide, by_dm=is_dm())
+    except RuleError as e:
+        flash(str(e), "error")
+    else:
+        flash(f"{character['name']} " + ("ya no aparece para los demás jugadores." if hide
+                                          else "vuelve a ser visible para los demás jugadores."), "ok")
+    return redirect_back(url_for("characters.show", character_id=character_id))
+
+
 # --- Inventario: acciones del jugador (y del DM) ---------------------------------
 
 @bp.route("/<int:character_id>/inventory/<int:inventory_id>/equip", methods=["POST"])
