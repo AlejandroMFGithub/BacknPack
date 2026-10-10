@@ -116,6 +116,14 @@ controlador los muestra como mensaje.
   en un ejemplar concreto desde la ficha. Viajan con el objeto al intercambiarlo, ocultas incluidas.
   Los objetos solo se apilan si tienen las mismas cualidades y ninguna tiene usos.
 
+**Ficha de 5e**
+- Iniciativa (modificador de DES + bonus extra opcional), bonificador de competencia (automático
+  según el nivel o fijado a mano), percepción pasiva y puntos de inspiración (el DM los da,
+  el jugador los gasta).
+- Tiradas de salvación y las 18 habilidades con su total calculado: modificador + competencia
+  (● competencia, ◉ pericia = el doble). Ej.: DES 20, competencia +2 y Acrobacias → +7.
+  Las reglas están en `app/models/rules.py` (funciones puras).
+
 **Imagen de personaje**
 - Cada personaje muestra un icono en listas, ficha, intercambios y buscador: su imagen o, si no
   tiene, la inicial sobre un color fijo.

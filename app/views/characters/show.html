@@ -72,6 +72,32 @@
       <span class="muted small">(máx. {{ character.strength * 7.5 }} kg)</span></div>
   </div>
 
+  <div class="combat-strip">
+    <div class="combat-box" title="Modificador de DES{{ ' + ' ~ character.initiative_bonus ~ ' de bonus' if character.initiative_bonus }}">
+      <span class="combat-label">Iniciativa</span><b>{{ stats.initiative | signed }}</b>
+    </div>
+    <div class="combat-box" title="{{ 'Según su nivel (' ~ character.level ~ ')' if stats.proficiency_is_auto else 'Fijado a mano' }}">
+      <span class="combat-label">Competencia</span><b>{{ stats.proficiency | signed }}</b>
+    </div>
+    <div class="combat-box" title="10 + Percepción">
+      <span class="combat-label">Percepción pasiva</span><b>{{ stats.passive_perception }}</b>
+    </div>
+    <div class="combat-box inspiration {{ 'has-inspiration' if character.inspiration }}">
+      <span class="combat-label">Inspiración</span>
+      <b><span aria-hidden="true">★</span> {{ character.inspiration }}</b>
+      <div class="inspiration-actions">
+        <form class="inline" method="post" action="{{ url_for('characters.inspiration', character_id=character.id) }}">
+          <input type="hidden" name="action" value="use">
+          <button class="btn-small btn-ghost" {{ 'disabled' if not character.inspiration }} title="Gastar un punto">Usar</button></form>
+        {% if dm %}
+        <form class="inline" method="post" action="{{ url_for('characters.inspiration', character_id=character.id) }}">
+          <input type="hidden" name="action" value="give">
+          <button class="btn-small" title="Dar un punto de inspiración">+1</button></form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
   <div class="abilities">
     {% for key, label in abilities %}
     <div class="ability">
@@ -82,6 +108,37 @@
     {% endfor %}
   </div>
   {% if character.notes %}<p class="small" style="white-space:pre-line">{{ character.notes }}</p>{% endif %}
+</div>
+
+{# Salvaciones y habilidades: ○ sin competencia · ● competencia · ◉ pericia (competencia doble) #}
+{% macro prof_dot(level) -%}
+  <span class="prof-dot prof-{{ level }}" title="{{ ['Sin competencia', 'Competencia', 'Pericia (competencia doble)'][level] }}"></span>
+{%- endmacro %}
+<div class="card">
+  <div class="row spread">
+    <h2>Tiradas</h2>
+    <span class="prof-legend small muted">{{ prof_dot(1) }} competencia · {{ prof_dot(2) }} pericia</span>
+  </div>
+  <div class="checks">
+    <section class="checks-saves">
+      <h3>Tiradas de salvación</h3>
+      <ul class="check-list">
+        {% for s in stats.saves %}
+        <li class="{{ 'is-prof' if s.level }}">{{ prof_dot(s.level) }}<span class="check-name">{{ s.name }}</span><b class="check-total">{{ s.total | signed }}</b></li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section class="checks-skills">
+      <h3>Habilidades</h3>
+      <ul class="check-list skills-list">
+        {% for s in stats.skills %}
+        <li class="{{ 'is-prof' if s.level }}">{{ prof_dot(s.level) }}<span class="check-name">{{ s.name }} <span class="check-ability">{{ s.ability }}</span></span><b class="check-total">{{ s.total | signed }}</b></li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+  <p class="field-hint">Total = modificador de la característica + competencia ({{ stats.proficiency | signed }}) si está marcada, el doble con pericia.
+    <a href="{{ url_for('characters.edit', character_id=character.id) }}#competencias">Cambiar competencias</a></p>
 </div>
 
 <div class="grid">

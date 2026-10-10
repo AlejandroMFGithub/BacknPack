@@ -183,6 +183,53 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 .stats { display: flex; gap: .6rem 1.5rem; flex-wrap: wrap; margin: .8rem 0; }
 .stat b { font-size: 1.2rem; }
 
+/* Iniciativa, competencia, percepción pasiva e inspiración */
+.combat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin: 0 0 .8rem; }
+.combat-box {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem;
+  padding: .45rem .4rem; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 8px;
+}
+.combat-box b { font-size: 1.25rem; line-height: 1.1; }
+.combat-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.combat-box.inspiration b span { color: var(--line-strong); }
+.combat-box.has-inspiration { border-color: var(--gold); background: #fdf6e3; }
+.combat-box.has-inspiration b span { color: var(--gold); }
+.inspiration-actions { display: flex; gap: .3rem; margin-top: .15rem; }
+.insp-badge { color: #8a6416; font-weight: bold; white-space: nowrap; }
+
+/* Puntos de competencia: ○ nada · ● competencia · ◉ pericia */
+.prof-dot {
+  flex: none; display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+  border: 1.5px solid var(--line-strong); background: transparent; vertical-align: -1px;
+}
+.prof-dot.prof-1 { background: var(--ink); border-color: var(--ink); }
+.prof-dot.prof-2 { background: var(--ink); border-color: var(--ink); box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--gold); }
+.prof-legend { display: inline-flex; align-items: center; gap: .35rem; }
+
+/* Salvaciones y habilidades */
+.checks { display: grid; grid-template-columns: minmax(200px, 1fr) 2fr; gap: .4rem 1.5rem; }
+.checks h3 { font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: .2rem 0 .3rem; }
+.check-list { list-style: none; margin: 0; padding: 0; }
+.skills-list { columns: 2; column-gap: 1.5rem; }
+.check-list li {
+  display: flex; align-items: center; gap: .5rem; padding: .28rem .2rem; break-inside: avoid;
+  border-bottom: 1px dotted var(--line);
+}
+.check-list li.is-prof .check-name { font-weight: 600; }
+.check-name { flex: 1; min-width: 0; }
+.check-ability { font-size: .7rem; color: var(--muted); letter-spacing: .03em; font-weight: normal; }
+.check-total { min-width: 2.4em; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Formulario de competencias */
+.prof-form { display: grid; grid-template-columns: minmax(180px, 1fr) 3fr; gap: 1rem; margin-bottom: .8rem; }
+.prof-form fieldset { border: 1px solid var(--line); border-radius: 8px; padding: .5rem .7rem .7rem; margin: 0; background: #fff; }
+.prof-form legend { font-size: .85rem; color: var(--muted); padding: 0 .3rem; }
+.prof-saves { display: flex; flex-direction: column; gap: .3rem; }
+.prof-check { color: var(--ink); font-size: .92rem; }
+.prof-skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: .35rem 1rem; }
+.prof-skill { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--ink); font-size: .92rem; }
+.prof-skill select { width: auto; margin: 0; padding: .2rem .3rem; font-size: .85rem; }
+
 .purse { display: flex; flex-wrap: wrap; gap: .6rem; }
 .coin { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: .25rem .6rem; }
 
@@ -590,6 +637,12 @@ a.context-chip:hover, .context-chip > summary:hover, .context-chip[open] > summa
   .brand-text { display: none; }
   .topbar { gap: .6rem; padding: .4rem .75rem; }
   a.context-chip, .context-chip > summary { max-width: 190px; }
+
+  /* Tiradas y competencias en una columna */
+  .combat-strip { grid-template-columns: repeat(2, 1fr); }
+  .checks, .prof-form { grid-template-columns: 1fr; }
+  .skills-list { columns: 1; }
+  .prof-skill select { font-size: 16px; }
 
   /* Ficha: icono algo menor */
   .avatar-lg { --avatar-size: 72px; }

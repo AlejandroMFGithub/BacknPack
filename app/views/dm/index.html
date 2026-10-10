@@ -14,7 +14,7 @@
   <h2>Grupo <span class="muted small">· {{ characters.total }}</span></h2>
   {{ list_toolbar(args, 'Buscar personaje o jugador…') }}
   <table class="stack">
-    <thead><tr><th>Personaje</th><th>Jugador</th><th>PG</th><th>CA</th><th>Efectos</th></tr></thead>
+    <thead><tr><th>Personaje</th><th>Jugador</th><th>PG</th><th>CA</th><th title="Iniciativa">Inic.</th><th title="Inspiración">Insp.</th><th>Efectos</th></tr></thead>
     <tbody>
     {% for c in characters %}
     <tr>
@@ -26,6 +26,8 @@
       <td data-label="Jugador">{{ c.owner }}</td>
       <td data-label="PG">{{ c.hp_current }}/{{ c.hp_max }}</td>
       <td data-label="CA">{{ c.armor_class }}</td>
+      <td data-label="Iniciativa">{{ ((c.dexterity - 10) // 2 + c.initiative_bonus) | signed }}</td>
+      <td data-label="Inspiración">{% if c.inspiration %}<span class="insp-badge">★ {{ c.inspiration }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
       <td data-label="Efectos">
         {% for e in effects[c.id] %}
           <span class="badge badge-{{ e.kind }}" title="{{ e.description }}">{{ e.name }}{{ ' 👁‍🗨' if not e.visible }}</span>
@@ -33,7 +35,7 @@
       </td>
     </tr>
     {% else %}
-    <tr><td colspan="5" class="muted">{{ 'Ningún personaje coincide.' if args.q else 'No hay personajes.' }}</td></tr>
+    <tr><td colspan="7" class="muted">{{ 'Ningún personaje coincide.' if args.q else 'No hay personajes.' }}</td></tr>
     {% endfor %}
     </tbody>
   </table>

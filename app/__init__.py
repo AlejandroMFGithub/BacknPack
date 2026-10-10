@@ -57,6 +57,11 @@ def create_app(test_config=None):
     def ability_modifier(score):
         return f"{(int(score) - 10) // 2:+d}"
 
+    @app.template_filter("signed")
+    def signed(value):
+        """7 -> «+7», -1 -> «−1» (signo menos tipográfico)."""
+        return f"{int(value):+d}".replace("-", "−")
+
     @app.template_global()
     def asset(filename):
         """URL de un archivo estático con su fecha de modificación: tras cada despliegue

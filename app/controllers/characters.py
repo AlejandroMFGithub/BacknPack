@@ -6,6 +6,7 @@ from ..db import transaction
 from ..models import (
     ActivityLog, Avatar, Campaign, Character, Condition, Currency, Inventory, Item, ItemTrait, RuleError, User,
 )
+from ..models import rules
 from ..models.character import ABILITIES
 from ..models.condition import KINDS as CONDITION_KINDS, PRESETS
 from ..models.item import CATEGORIES, RARITIES
@@ -71,7 +72,7 @@ def new():
         selected = g.campaign["id"]
     return render_template(
         "characters/form.html", character=request.form or None, editing=False, abilities=ABILITIES,
-        campaigns=campaigns, selected_campaign=selected,
+        campaigns=campaigns, selected_campaign=selected, **_proficiency_form_context(None),
     )
 
 
@@ -101,6 +102,7 @@ def show(character_id):
         condition_kinds=CONDITION_KINDS,
         presets=PRESETS,
         log=ActivityLog.for_character(character_id),
+        stats=rules.sheet(character, Character.proficiencies(character_id)),
     )
 
 
@@ -122,8 +124,37 @@ def edit(character_id):
     return render_template(
         "characters/form.html", character=character, editing=True, abilities=ABILITIES,
         campaigns=Campaign.all(include_archived=False) if is_dm() else [],
-        selected_campaign=character["campaign_id"],
+        selected_campaign=character["campaign_id"], **_proficiency_form_context(character_id),
     )
+
+
+def _proficiency_form_context(character_id):
+    """Datos del bloque de competencias del formulario."""
+    if request.method == "POST":  # si el formulario volvió con un error, se conserva lo marcado
+        profs = {("save", k): 1 for k in rules.SAVE_KEYS if request.form.get(f"save_{k}")}
+        profs.update({("skill", k): int(request.form.get(f"skill_{k}") or 0) for k in rules.SKILL_KEYS})
+    else:
+        profs = Character.proficiencies(character_id) if character_id else {}
+    return {"save_list": rules.ABILITIES, "skill_list": rules.SKILLS, "profs": profs,
+            "ability_short": rules.ABILITY_SHORT}
+
+
+@bp.route("/<int:character_id>/inspiration", methods=["POST"])
+@login_required
+def inspiration(character_id):
+    """El DM da (+1) o quita (-1) inspiración; el jugador solo puede gastarla (-1)."""
+    character = get_character_or_404(character_id)
+    delta = 1 if request.form.get("action") == "give" else -1
+    if delta > 0 and not is_dm():
+        abort(403)
+    try:
+        total = Character.change_inspiration(character_id, delta)
+    except RuleError as e:
+        flash(str(e), "error")
+    else:
+        with transaction():
+            ActivityLog.add(character_id, ("Recibe" if delta > 0 else "Gasta") + f" inspiración (le quedan {total})")
+    return _back(character_id)
 
 
 @bp.route("/<int:character_id>/delete", methods=["POST"])

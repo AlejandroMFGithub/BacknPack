@@ -77,6 +77,19 @@ MIGRATIONS = [
     """,
     # 8: códigos para las campañas existentes; quien ya tenía personajes en una, es miembro
     lambda db: _codes_and_members(db),
+    # 9: iniciativa, inspiración, competencia y competencias en salvaciones y habilidades
+    """
+    ALTER TABLE characters ADD COLUMN inspiration INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE characters ADD COLUMN initiative_bonus INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE characters ADD COLUMN proficiency_bonus INTEGER;  -- NULL = automático según el nivel
+    CREATE TABLE character_proficiencies (
+        character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+        kind         TEXT    NOT NULL CHECK (kind IN ('save', 'skill')),
+        name         TEXT    NOT NULL,
+        level        INTEGER NOT NULL DEFAULT 1 CHECK (level IN (1, 2)),  -- 1 competencia, 2 pericia
+        PRIMARY KEY (character_id, kind, name)
+    );
+    """,
 ]
 
 CAMPAIGN_TABLES = ("characters", "shops", "loot_pools")

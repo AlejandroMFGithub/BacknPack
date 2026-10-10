@@ -1,5 +1,6 @@
 from ..db import get_db, now_text
 from ..text import LIKE_ESCAPE, like_prefix, like_terms, normalize
+from . import rules
 from .campaign import Campaign
 from .errors import RuleError
 from .listing import PER_PAGE, paginate, sort_sql
@@ -20,6 +21,7 @@ INT_FIELDS = {
     "hp_max": 10,
     "hp_current": 10,
     "armor_class": 10,
+    "initiative_bonus": 0,
 }
 FLOAT_FIELDS = {"speed": 9.0}
 
@@ -96,7 +98,54 @@ class Character:
                 clean[key] = float(str(data.get(key, default)).replace(",", "."))
             except ValueError:
                 clean[key] = default
+        # Competencia: vacío = automática según el nivel
+        try:
+            clean["proficiency_bonus"] = max(0, min(int(data.get("proficiency_bonus")), 10))
+        except (TypeError, ValueError):
+            clean["proficiency_bonus"] = None
         return clean
+
+    # --- Competencias en salvaciones y habilidades -------------------------------------------
+
+    @staticmethod
+    def proficiencies(character_id):
+        """{("save"|"skill", clave): 1 competencia | 2 pericia}"""
+        rows = get_db().execute(
+            "SELECT kind, name, level FROM character_proficiencies WHERE character_id = ?", (character_id,)
+        ).fetchall()
+        return {(r["kind"], r["name"]): r["level"] for r in rows}
+
+    @staticmethod
+    def _save_proficiencies(character_id, data):
+        """Sustituye las competencias con las del formulario (save_<car>=1, skill_<hab>=0/1/2). Sin commit."""
+        rows = [("save", key, rules.PROFICIENT) for key in rules.SAVE_KEYS if data.get(f"save_{key}")]
+        for key in rules.SKILL_KEYS:
+            try:
+                level = int(data.get(f"skill_{key}") or 0)
+            except ValueError:
+                level = 0
+            if level in (rules.PROFICIENT, rules.EXPERTISE):
+                rows.append(("skill", key, level))
+        db = get_db()
+        db.execute("DELETE FROM character_proficiencies WHERE character_id = ?", (character_id,))
+        for kind, name, level in rows:
+            db.execute(
+                "INSERT INTO character_proficiencies (character_id, kind, name, level) VALUES (?, ?, ?, ?)",
+                (character_id, kind, name, level),
+            )
+
+    # --- Inspiración ---------------------------------------------------------------------------
+
+    @staticmethod
+    def change_inspiration(character_id, delta):
+        """Suma o resta puntos de inspiración (nunca por debajo de 0)."""
+        character = Character.get(character_id)
+        if delta < 0 and character["inspiration"] < -delta:
+            raise RuleError("No te quedan puntos de inspiración.")
+        db = get_db()
+        db.execute("UPDATE characters SET inspiration = inspiration + ? WHERE id = ?", (delta, character_id))
+        db.commit()
+        return character["inspiration"] + delta
 
     @staticmethod
     def create(user_id, data, campaign_id, for_player=False):
@@ -111,6 +160,7 @@ class Character:
             (user_id, *clean.values()),
         )
         Campaign.add_member(clean["campaign_id"], user_id)  # su dueño pasa a estar en la campaña
+        Character._save_proficiencies(character_id, data)
         db.commit()
         return character_id
 
@@ -126,6 +176,7 @@ class Character:
         sets = ", ".join(f"{key} = ?" for key in clean)
         db = get_db()
         db.execute(f"UPDATE characters SET {sets} WHERE id = ?", (*clean.values(), character_id))
+        Character._save_proficiencies(character_id, data)
         if moving:
             Campaign.add_member(clean["campaign_id"], current["user_id"])
             db.execute(

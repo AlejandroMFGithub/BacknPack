@@ -58,6 +58,38 @@
     <label>PG actuales <input name="hp_current" type="number" value="{{ field(character, 'hp_current', 10) }}"></label>
     <label>Clase de armadura <input name="armor_class" type="number" min="0" value="{{ field(character, 'armor_class', 10) }}"></label>
     <label>Velocidad (m) <input name="speed" type="number" step="0.5" min="0" value="{{ field(character, 'speed', 9) }}"></label>
+    <label>Bonus extra a iniciativa
+      <input name="initiative_bonus" type="number" min="-10" max="20" value="{{ field(character, 'initiative_bonus', 0) }}">
+      <span class="field-hint">Se suma al modificador de DES (p. ej. +5 por la dote Alerta).</span></label>
+    <label>Bonificador de competencia
+      <input name="proficiency_bonus" type="number" min="0" max="10" value="{{ field(character, 'proficiency_bonus') }}" placeholder="Automático">
+      <span class="field-hint">Vacío = automático según el nivel (+2 a +6).</span></label>
+  </div>
+
+  <h3 id="competencias">Competencias</h3>
+  <p class="field-hint">Marca las tiradas de salvación y habilidades en las que el personaje es competente.
+    La <b>pericia</b> (pícaros, bardos…) suma el doble de la competencia.</p>
+  <div class="prof-form">
+    <fieldset class="prof-saves">
+      <legend>Tiradas de salvación</legend>
+      {% for key, short, name in save_list %}
+      <label class="inline prof-check"><input type="checkbox" name="save_{{ key }}" value="1" {{ 'checked' if profs.get(('save', key)) }}> {{ name }}</label>
+      {% endfor %}
+    </fieldset>
+    <fieldset class="prof-skills">
+      <legend>Habilidades</legend>
+      {% for key, name, ability in skill_list %}
+      {% set level = profs.get(('skill', key), 0) %}
+      <label class="prof-skill">
+        <span>{{ name }} <span class="check-ability">{{ ability_short[ability] }}</span></span>
+        <select name="skill_{{ key }}" aria-label="Competencia en {{ name }}">
+          <option value="0" {{ 'selected' if level == 0 }}>—</option>
+          <option value="1" {{ 'selected' if level == 1 }}>● Competencia</option>
+          <option value="2" {{ 'selected' if level == 2 }}>◉ Pericia</option>
+        </select>
+      </label>
+      {% endfor %}
+    </fieldset>
   </div>
 
   <label>Notas <textarea name="notes">{{ field(character, 'notes') }}</textarea></label>

@@ -78,17 +78,24 @@ def _seed_demo(db):
         "level": 3, "background": "Forastera", "alignment": "Caótica buena",
         "strength": 11, "dexterity": 17, "constitution": 13, "intelligence": 10,
         "wisdom": 15, "charisma": 8, "hp_max": 28, "hp_current": 24, "armor_class": 14, "speed": 10.5,
+        # Exploradora: salvaciones de FUE y DES; Sigilo con pericia (p. ej. por una dote)
+        "save_strength": 1, "save_dexterity": 1, "skill_stealth": 2, "skill_perception": 1,
+        "skill_survival": 1, "skill_animal_handling": 1, "skill_acrobatics": 1,
     }, costa)
     thorgar = Character.create(bruno, {
         "name": "Thorgar Puñohierro", "race": "Enano de las montañas", "class_name": "Guerrero",
         "level": 3, "background": "Soldado", "alignment": "Legal neutral",
         "strength": 17, "dexterity": 10, "constitution": 16, "intelligence": 9,
         "wisdom": 12, "charisma": 10, "hp_max": 34, "hp_current": 34, "armor_class": 18, "speed": 7.5,
+        # Guerrero: salvaciones de FUE y CON
+        "save_strength": 1, "save_constitution": 1, "skill_athletics": 1, "skill_intimidation": 1,
+        "skill_perception": 1,
     }, costa)
     # Ana juega también en otra campaña: al entrar tendrá que elegir personaje
     sigrid = Character.create(ana, {
         "name": "Sigrid Escarcha", "race": "Humana", "class_name": "Druida", "level": 2,
         "wisdom": 16, "constitution": 14, "hp_max": 17, "hp_current": 17, "armor_class": 12,
+        "save_intelligence": 1, "save_wisdom": 1, "skill_nature": 1, "skill_medicine": 1,
     }, helada)
 
     for char_id, item_name, qty, visible in [
@@ -121,6 +128,7 @@ def _seed_demo(db):
         Currency.set_amount(char_id, cur[code], amount)
     db.commit()
 
+    Character.change_inspiration(lyra, 1)
     Condition.create(lyra, {"name": "Bendición", "kind": "buff", "visible": 1,
                             "description": "+1d4 a tiradas de ataque y salvación", "duration": "1 minuto"})
     Condition.create(lyra, {"name": "Marca del licántropo", "kind": "curse", "visible": 0,

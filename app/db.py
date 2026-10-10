@@ -18,7 +18,7 @@ from .migrations import migrate
 
 # Tablas en orden de dependencias (padres antes que hijas)
 TABLES = [
-    "users", "campaigns", "campaign_members", "characters", "currencies", "character_currencies", "items", "inventory_items",
+    "users", "campaigns", "campaign_members", "characters", "character_proficiencies", "currencies", "character_currencies", "items", "inventory_items",
     "item_traits", "conditions", "shops", "shop_items", "loot_pools", "loot_entries",
     "trades", "trade_lines", "activity_log", "character_avatars",
 ]
