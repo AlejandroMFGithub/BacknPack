@@ -3,7 +3,7 @@
 {% block back_url %}{{ url_for('main.index') }}{% endblock %}
 {% block content %}
 {% from "_macros.html" import list_toolbar with context %}
-<h1>Tiendas <span class="muted small">· {{ g.campaign.name }}</span></h1>
+<h1>Tiendas <span class="h1-sub">{{ g.campaign.name }}</span></h1>
 {{ list_toolbar(args, 'Buscar tienda…') }}
 
 <div class="grid">

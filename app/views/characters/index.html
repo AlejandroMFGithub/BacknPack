@@ -5,7 +5,7 @@
 {% from "_macros.html" import avatar, list_toolbar, pager with context %}
 <div class="row spread">
   <h1>{{ 'Personajes' if is_dm() else 'Mis personajes' }}
-    {% if is_dm() %}<span class="muted small">· {{ g.campaign.name }}</span>{% endif %}</h1>
+    {% if is_dm() %}<span class="h1-sub">{{ g.campaign.name }}</span>{% endif %}</h1>
   <a class="btn btn-small" href="{{ url_for('characters.new') }}">+ Nuevo personaje</a>
 </div>
 

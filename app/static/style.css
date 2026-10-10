@@ -71,9 +71,14 @@ h3 { font-size: 1.05rem; }
   position: sticky; top: 0; z-index: 30;
   display: flex; align-items: center; gap: 1rem;
   min-height: var(--topbar-h); padding: .4rem 1rem;
-  background: #150f0bd9; color: #f4ecdc;
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  background: transparent; color: #f4ecdc;
   border-bottom: 1px solid #f0c86238; box-shadow: 0 6px 20px -10px #000c;
+}
+/* El desenfoque va en una capa aparte: si lo lleva la barra, el panel fijo del menú
+   del móvil se coloca respecto a la barra en vez de a la pantalla y queda aplastado. */
+.topbar::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: #150f0bd9; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
 .topbar a { color: #f4ecdc; text-decoration: none; }
 .brand { font-weight: bold; font-size: 1.15rem; white-space: nowrap; }
@@ -186,7 +191,7 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 
 .badge {
   display: inline-block; padding: .05rem .45rem; border-radius: 999px; font-size: .75rem;
-  background: var(--line); color: var(--ink); vertical-align: middle;
+  background: #e6d6b8; color: var(--ink); vertical-align: middle;
 }
 .badge-dm { background: var(--accent); color: #fff; }
 .badge-buff { background: var(--buff); color: #fff; }
@@ -795,9 +800,11 @@ body.auth-page main { max-width: none; padding: 0; }
   }
   table.stack td { border: 0; padding: .15rem 0; }
   table.stack td:empty { display: none; }
+  table.stack td[data-label] { display: grid; grid-template-columns: 7.2em 1fr; align-items: baseline; gap: .5rem; }
+  table.stack td[data-label] > * { justify-self: start; min-width: 0; }
   table.stack td[data-label]::before {
-    content: attr(data-label); display: inline-block; min-width: 5.5em; margin-right: .4rem;
-    font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em;
+    content: attr(data-label); font-size: .72rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .04em;
   }
   table.stack td.actions { padding-top: .45rem; }
 
@@ -813,7 +820,9 @@ body.auth-page main { max-width: none; padding: 0; }
   /* Barra superior: solo el icono de la mochila y un selector de contexto compacto */
   .brand-text { display: none; }
   .topbar { gap: .6rem; padding: .4rem .75rem; }
-  a.context-chip, .context-chip > summary { max-width: 190px; }
+  .context-chip { flex: 1 1 auto; }
+  a.context-chip, .context-chip > summary { max-width: none; }
+  .context-chip > summary .context-text { flex: 1; }
 
   /* Tiradas y competencias en una columna */
   .combat-strip { grid-template-columns: repeat(2, 1fr); }
@@ -835,4 +844,50 @@ body.auth-page main { max-width: none; padding: 0; }
 
   /* Intercambios: el campo de cantidad no aprieta el nombre */
   .card table:not(.stack) td:last-child input[type=number] { width: 4.5em; }
+}
+
+.badge-list { display: inline-flex; flex-wrap: wrap; gap: .25rem; }
+
+/* --- Repaso de diseño (escritorio y móvil) ------------------------------------------------ */
+
+/* Cabecera de página: título con subtítulo de campaña y acciones */
+.page-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; margin-bottom: .9rem; }
+.page-head h1 { margin: 0; }
+.h1-sub { font-size: .52em; font-weight: normal; color: var(--muted); letter-spacing: 0; text-shadow: none; }
+.h1-sub::before { content: "· "; }
+main > .row.spread { margin-bottom: .9rem; }
+
+/* Cabeceras de tienda/botín: el «⋯» arriba a la derecha, no en una línea suelta */
+main > .sheet-head { flex-wrap: nowrap; }
+main > .sheet-head > div:first-child { min-width: 0; }
+
+/* Fila de compra / recogida: cantidad, divisa y botón a la misma altura */
+.buy-form { display: flex; flex-wrap: nowrap; align-items: stretch; gap: .4rem; }
+.buy-form input[type=number] { width: 4.8em; flex: none; }
+.buy-form select { flex: none; width: auto; }
+.buy-form button { flex: 0 0 auto; padding-left: .9rem; padding-right: .9rem; }
+
+/* Botones junto a campos: misma altura */
+.list-form .btn-small, .join-form .btn-small { align-self: stretch; padding-left: .8rem; padding-right: .8rem; }
+
+/* Ficha: PG con barra de vida, CA, velocidad y carga en casillas como las de combate */
+.combat-strip.vitals { margin: .9rem 0 .5rem; }
+.combat-box small { font-size: .72rem; color: var(--muted); }
+.hp-bar { width: 80%; height: 6px; margin-top: .25rem; border-radius: 999px; background: #e9dcc4; overflow: hidden; }
+.hp-bar span { display: block; height: 100%; border-radius: inherit; background: var(--hp, #2f6b3a); }
+
+/* Cuenta: mismo estilo que la pantalla de acceso */
+.account-card { max-width: 420px; margin: 1.5rem auto; padding: 1.4rem 1.4rem 1.2rem; }
+.account-card h1 { text-align: center; }
+
+@media (max-width: 640px) {
+  .h1-sub { display: block; font-size: .58em; margin-top: .15rem; }
+  .h1-sub::before { content: "🗺 "; }
+  /* Buscadores de personaje (intercambio) a ancho completo */
+  .form-grid > .field { grid-column: 1 / -1; }
+  /* Fila de compra: el botón ocupa el resto del ancho */
+  .buy-form button { flex: 1 1 auto; }
+  .buy-form select { flex: 0 0 5em; }
+  table.stack td.actions .buy-form { margin-bottom: .2rem; }
+  .combat-strip.vitals { grid-template-columns: repeat(2, 1fr); }
 }

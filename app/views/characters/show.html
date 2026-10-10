@@ -64,12 +64,26 @@
     </div>
   </div>
 
-  <div class="stats">
-    <div class="stat">PG <b>{{ character.hp_current }}</b> / {{ character.hp_max }}</div>
-    <div class="stat">CA <b>{{ character.armor_class }}</b></div>
-    <div class="stat">Velocidad <b>{{ character.speed | feet }}</b></div>
-    <div class="stat">Carga <b>{{ '%g' % weight }}</b> kg
-      <span class="muted small">(máx. {{ character.strength * 7.5 }} kg)</span></div>
+  {# PG con barra de vida: verde > 50 %, ámbar > 25 %, rojo por debajo #}
+  {% set hp_pct = [[(character.hp_current / character.hp_max * 100) if character.hp_max else 0, 0] | max, 100] | min %}
+  {% set hp_color = '#2f6b3a' if hp_pct > 50 else ('#b7791f' if hp_pct > 25 else '#a12a22') %}
+  {% set speed_ft, speed_sq = (character.speed | feet).split(' / ') %}
+  <div class="combat-strip vitals">
+    <div class="combat-box" title="Puntos de golpe">
+      <span class="combat-label">Puntos de golpe</span>
+      <b>{{ character.hp_current }} <small>/ {{ character.hp_max }}</small></b>
+      <span class="hp-bar" aria-hidden="true"><span style="width: {{ hp_pct | round(1) }}%; --hp: {{ hp_color }}"></span></span>
+    </div>
+    <div class="combat-box">
+      <span class="combat-label">Clase de armadura</span><b>{{ character.armor_class }}</b>
+    </div>
+    <div class="combat-box">
+      <span class="combat-label">Velocidad</span><b>{{ speed_ft }}</b><small>{{ speed_sq }}</small>
+    </div>
+    <div class="combat-box" title="Máximo: FUE × 7,5 kg">
+      <span class="combat-label">Carga</span><b>{{ '%g' % weight }} <small>kg</small></b>
+      <small>máx. {{ '%g' % (character.strength * 7.5) }} kg</small>
+    </div>
   </div>
 
   <div class="combat-strip">

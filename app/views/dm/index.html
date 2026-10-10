@@ -3,7 +3,7 @@
 {% block content %}
 {% from "_macros.html" import avatar, list_toolbar, pager with context %}
 <div class="row spread">
-  <h1>Panel del DM <span class="muted small">· {{ g.campaign.name }}</span></h1>
+  <h1>Panel del DM <span class="h1-sub">{{ g.campaign.name }}</span></h1>
   <div class="row">
     <a class="btn btn-small" href="{{ url_for('characters.new') }}">+ Personaje / PNJ</a>
     <a class="btn btn-small btn-ghost" href="{{ url_for('trades.index', status='pending') }}">Intercambios pendientes: {{ pending_trades }}</a>
@@ -28,11 +28,11 @@
       <td data-label="CA">{{ c.armor_class }}</td>
       <td data-label="Iniciativa">{{ ((c.dexterity - 10) // 2 + c.initiative_bonus) | signed }}</td>
       <td data-label="Inspiración">{% if c.inspiration %}<span class="insp-badge">★ {{ c.inspiration }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
-      <td data-label="Efectos">
+      <td data-label="Efectos"><span class="badge-list">
         {% for e in effects[c.id] %}
           <span class="badge badge-{{ e.kind }}" title="{{ e.description }}">{{ e.name }}{{ ' 👁‍🗨' if not e.visible }}</span>
         {% else %}<span class="muted small">—</span>{% endfor %}
-      </td>
+      </span></td>
     </tr>
     {% else %}
     <tr><td colspan="7" class="muted">{{ 'Ningún personaje coincide.' if args.q else 'No hay personajes.' }}</td></tr>

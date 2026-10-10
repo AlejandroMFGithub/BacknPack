@@ -3,7 +3,7 @@
 {% block back_url %}{{ url_for('trades.index') }}{% endblock %}
 {% block content %}
 {% from "_macros.html" import avatar, trait_chip, picker %}
-<h1>Proponer intercambio <span class="muted small">· {{ g.campaign.name }}</span></h1>
+<h1>Proponer intercambio <span class="h1-sub">{{ g.campaign.name }}</span></h1>
 
 <form method="get" class="card">
   <div class="form-grid">

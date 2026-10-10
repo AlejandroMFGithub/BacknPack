@@ -40,7 +40,7 @@
       <td data-label="Quedan">{{ e.quantity }}</td>
       <td class="actions">
         {% if acting %}
-        <form method="post" action="{{ url_for('loot.claim', pool_id=pool.id, entry_id=e.id) }}" class="row">
+        <form method="post" action="{{ url_for('loot.claim', pool_id=pool.id, entry_id=e.id) }}" class="buy-form">
           <input type="hidden" name="character_id" value="{{ acting.id }}">
           <input type="number" name="quantity" min="1" max="{{ e.quantity }}" value="{{ e.quantity }}" aria-label="Cantidad">
           <button class="btn-small">Coger</button>

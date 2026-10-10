@@ -2,13 +2,27 @@
 {% block title %}Mi cuenta{% endblock %}
 {% block back_url %}{{ url_for('main.index') }}{% endblock %}
 {% block content %}
-<div class="card auth">
+<div class="card account-card">
   <h1>Cambiar contraseña</h1>
-  <form method="post">
-    <label>Contraseña actual <input name="current" type="password" required autofocus></label>
-    <label>Nueva contraseña <input name="new" type="password" minlength="8" required></label>
-    <label>Repite la nueva <input name="repeat" type="password" minlength="8" required></label>
-    <button>Guardar</button>
+  <p class="muted small" style="text-align:center">Cuenta: <b>{{ g.user.username }}</b></p>
+  <form method="post" class="auth-form">
+    <label class="auth-label" for="current">Contraseña actual</label>
+    <div class="auth-input icon-lock password-field">
+      <input id="current" name="current" type="password" required autofocus autocomplete="current-password">
+      <button type="button" class="toggle-password" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+    </div>
+    <label class="auth-label" for="new">Nueva contraseña</label>
+    <div class="auth-input icon-key password-field">
+      <input id="new" name="new" type="password" minlength="8" required autocomplete="new-password" placeholder="Al menos 8 caracteres">
+      <button type="button" class="toggle-password" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+    </div>
+    <label class="auth-label" for="repeat">Repite la nueva</label>
+    <div class="auth-input icon-key password-field">
+      <input id="repeat" name="repeat" type="password" minlength="8" required autocomplete="new-password">
+      <button type="button" class="toggle-password" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+    </div>
+    <p class="caps-warning" hidden>⇪ Bloq Mayús está activado</p>
+    <button class="auth-submit">Guardar</button>
   </form>
 </div>
 {% endblock %}

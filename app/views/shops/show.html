@@ -43,7 +43,7 @@
       <td data-label="Stock">{{ '∞' if l.stock is none else l.stock }}</td>
       <td class="actions">
         {% if acting and (l.stock is none or l.stock > 0) %}
-        <form method="post" action="{{ url_for('shops.buy', shop_id=shop.id, listing_id=l.id) }}" class="row">
+        <form method="post" action="{{ url_for('shops.buy', shop_id=shop.id, listing_id=l.id) }}" class="buy-form">
           <input type="hidden" name="character_id" value="{{ acting.id }}">
           <input type="number" name="quantity" min="1" {% if l.stock is not none %}max="{{ l.stock }}"{% endif %} value="1" aria-label="Cantidad">
           {% if shop.allow_exchange %}
