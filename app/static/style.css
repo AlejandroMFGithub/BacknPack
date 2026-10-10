@@ -10,9 +10,11 @@
   --buff: #2f6b3a;
   --curse: #6b2f6b;
   --condition: #8a5a12;
+  --topbar-h: 52px;
 }
 
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   background: var(--bg);
@@ -20,28 +22,48 @@ body {
   font: 15px/1.5 Georgia, "Times New Roman", serif;
 }
 a { color: var(--accent); }
-h1, h2, h3 { font-family: "Palatino Linotype", Palatino, Georgia, serif; margin: .2em 0 .5em; }
+h1, h2, h3 { font-family: "Palatino Linotype", Palatino, Georgia, serif; margin: .2em 0 .5em; line-height: 1.2; }
 h1 { font-size: 1.8rem; }
 h2 { font-size: 1.25rem; border-bottom: 1px solid var(--line); padding-bottom: .2em; }
 h3 { font-size: 1.05rem; }
 
+/* --- Barra superior y menú ------------------------------------------------------ */
+
 .topbar {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
-  padding: .6rem 1rem; background: var(--ink); color: #f4ecdc;
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 1rem;
+  min-height: var(--topbar-h); padding: .4rem 1rem;
+  background: var(--ink); color: #f4ecdc;
 }
 .topbar a { color: #f4ecdc; text-decoration: none; }
-.topbar a:hover { text-decoration: underline; }
-.brand { font-weight: bold; font-size: 1.15rem; }
-.topbar nav { display: flex; flex-wrap: wrap; gap: .9rem; flex: 1; }
-.who { display: flex; gap: .5rem; align-items: center; }
+.brand { font-weight: bold; font-size: 1.15rem; white-space: nowrap; }
+.nav-panel { display: flex; align-items: center; gap: 1rem; flex: 1; }
+.nav-links { display: flex; flex-wrap: wrap; gap: .2rem; flex: 1; }
+.nav-links a { padding: .3rem .55rem; border-radius: 5px; }
+.nav-links a:hover { background: #ffffff14; }
+.nav-links a.active { background: #ffffff22; box-shadow: inset 0 -2px 0 #e9b949; }
+.nav-sep { display: none; }
+.who { display: flex; gap: .6rem; align-items: center; white-space: nowrap; }
+.who a:hover { text-decoration: underline; }
+
+.menu-toggle {
+  display: none; margin-left: auto; background: transparent; color: #f4ecdc;
+  border: 1px solid #f4ecdc55; padding: .35rem .5rem; line-height: 0;
+}
+.menu-toggle svg { width: 24px; height: 24px; }
+.menu-toggle .icon-close { display: none; }
+.nav-open .menu-toggle .icon-open { display: none; }
+.nav-open .menu-toggle .icon-close { display: inline; }
 
 main { max-width: 1150px; margin: 0 auto; padding: 1rem; }
+
+/* --- Bloques ---------------------------------------------------------------------- */
 
 .card {
   background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
   padding: 1rem; margin-bottom: 1rem;
 }
-.grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
 .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .spread { justify-content: space-between; }
 .muted { color: var(--muted); }
@@ -54,27 +76,32 @@ main { max-width: 1150px; margin: 0 auto; padding: 1rem; }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-size: .85rem; color: var(--muted); font-weight: normal; text-transform: uppercase; letter-spacing: .03em; }
-tr.hidden-row { opacity: .55; background: repeating-linear-gradient(45deg, transparent, transparent 6px, #0000000a 6px, #0000000a 12px); }
+.hidden-row { opacity: .6; background: repeating-linear-gradient(45deg, transparent, transparent 6px, #0000000a 6px, #0000000a 12px); }
+
+/* --- Formularios y botones ---------------------------------------------------------- */
 
 input, select, textarea, button {
   font: inherit; padding: .35rem .5rem; border: 1px solid var(--line); border-radius: 5px; background: #fff;
+  color: var(--ink); max-width: 100%;
 }
 input[type=number] { width: 5.5em; }
 textarea { width: 100%; min-height: 4em; }
 label { display: block; font-size: .85rem; color: var(--muted); }
-label input:not([type=checkbox]), label select, label textarea { display: block; width: 100%; color: var(--ink); margin-top: .1rem; }
+label input:not([type=checkbox]), label select, label textarea { display: block; width: 100%; margin-top: .1rem; }
 label.inline { display: inline-flex; gap: .3rem; align-items: center; }
-.form-grid { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom: .6rem; }
+.form-grid { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); margin-bottom: .6rem; }
 form.inline { display: inline; }
 
 .btn, button {
   background: var(--accent); color: var(--accent-ink); border: 0; cursor: pointer;
   padding: .4rem .8rem; border-radius: 5px; text-decoration: none; display: inline-block;
+  text-align: center;
 }
 .btn:hover, button:hover { filter: brightness(1.15); }
 .btn-ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 .btn-small { padding: .15rem .5rem; font-size: .85rem; }
 .btn-danger { background: #5a1010; }
+button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 
 .badge {
   display: inline-block; padding: .05rem .45rem; border-radius: 999px; font-size: .75rem;
@@ -87,12 +114,43 @@ form.inline { display: inline; }
 .badge-hidden { background: #444; color: #fff; }
 .badge-off { background: #999; color: #fff; }
 
+/* --- Menú desplegable de acciones («⋯») ------------------------------------------- */
+
+.menu { position: relative; display: inline-block; }
+.menu > summary {
+  list-style: none; cursor: pointer; user-select: none;
+  padding: .15rem .6rem; border: 1px solid var(--accent); border-radius: 5px;
+  color: var(--accent); font-weight: bold; letter-spacing: .1em; line-height: 1.4;
+}
+.menu > summary::-webkit-details-marker { display: none; }
+.menu[open] > summary { background: var(--accent); color: #fff; }
+.menu-panel {
+  position: absolute; right: 0; top: calc(100% + 4px); z-index: 20;
+  min-width: 200px; max-width: min(300px, 90vw); padding: .35rem;
+  background: #fff; border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 8px 24px #2b211833;
+  display: flex; flex-direction: column; gap: .25rem;
+}
+.menu-panel form { display: flex; gap: .3rem; align-items: center; margin: 0; }
+.menu-panel button, .menu-panel .menu-item {
+  flex: 1; text-align: left; background: transparent; color: var(--ink);
+  border: 0; border-radius: 5px; padding: .45rem .6rem; font-size: .9rem; text-decoration: none;
+}
+.menu-panel button:hover, .menu-panel .menu-item:hover { background: var(--bg); filter: none; }
+.menu-panel button.danger { color: #8b1010; }
+.menu-panel input[type=number] { width: 4.5em; }
+.menu-panel hr { border: 0; border-top: 1px solid var(--line); margin: .15rem 0; width: 100%; }
+.menu-label { font-size: .75rem; color: var(--muted); padding: .2rem .6rem 0; }
+
+/* --- Ficha ------------------------------------------------------------------------------ */
+
+.sheet-head { display: flex; flex-wrap: wrap; gap: .8rem; justify-content: space-between; align-items: flex-start; }
 .abilities { display: grid; grid-template-columns: repeat(6, 1fr); gap: .5rem; text-align: center; }
 .ability { border: 1px solid var(--line); border-radius: 8px; padding: .4rem; background: #fff; }
 .ability .label { font-size: .75rem; color: var(--muted); }
 .ability .score { font-size: 1.3rem; font-weight: bold; }
 .ability .mod { font-size: .85rem; }
-.stats { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: .8rem 0; }
+.stats { display: flex; gap: .6rem 1.5rem; flex-wrap: wrap; margin: .8rem 0; }
 .stat b { font-size: 1.2rem; }
 
 .purse { display: flex; flex-wrap: wrap; gap: .6rem; }
@@ -102,6 +160,31 @@ form.inline { display: inline; }
 .effect.buff { border-color: var(--buff); }
 .effect.curse { border-color: var(--curse); }
 .effect.condition { border-color: var(--condition); }
+
+/* Inventario como tarjetas */
+.inv-list { display: flex; flex-direction: column; gap: .6rem; }
+.inv-item {
+  display: grid; grid-template-columns: 1fr auto auto; gap: .2rem 1rem; align-items: start;
+  padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+}
+.inv-item.equipped { border-left: 4px solid var(--buff); }
+/* Oculto: sin opacity en la tarjeta (crearía una capa que taparía los desplegables) */
+.inv-item.hidden-row { opacity: 1; border-style: dashed; }
+.inv-item.hidden-row .inv-main, .inv-item.hidden-row .inv-qty { opacity: .65; }
+.inv-qty { text-align: right; white-space: nowrap; }
+.inv-qty b { font-size: 1.1rem; }
+.inv-actions { display: flex; gap: .35rem; align-items: center; }
+.inv-extra { grid-column: 1 / -1; }
+.inv-add { margin-top: 1rem; }
+
+/* Filas de lista con formulario (divisas) */
+.list-row { display: flex; align-items: flex-end; gap: .4rem .8rem; padding: .6rem 0; border-bottom: 1px solid var(--line); }
+.list-row:last-child { border-bottom: 0; }
+.list-key { min-width: 3.5em; padding-bottom: .4rem; }
+.list-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .4rem; flex: 1; }
+.list-form label:first-child { flex: 1 1 160px; }
+.list-form input[type=number] { width: 7em; }
+.list-row .menu { padding-bottom: .15rem; }
 
 .back-link {
   display: inline-flex; align-items: center; gap: .25rem; margin-bottom: .8rem;
@@ -126,12 +209,85 @@ form.inline { display: inline; }
 .trait-form { margin-top: .4rem; }
 .trait-form summary { cursor: pointer; color: var(--accent); }
 .trait-form form { margin-top: .4rem; padding: .6rem; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
-button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 
-.auth { max-width: 360px; margin: 3rem auto; }
+.auth { max-width: 360px; margin: 2rem auto; }
 .auth label { margin-bottom: .6rem; }
 
+/* --- Pantallas táctiles: objetivos más grandes ------------------------------------- */
+
+@media (pointer: coarse) {
+  .btn, button { min-height: 40px; }
+  .btn-small, .menu > summary { min-height: 34px; padding: .3rem .7rem; }
+  .menu-panel button, .menu-panel .menu-item { min-height: 42px; }
+}
+
+/* --- Tablet / móvil: menú hamburguesa ---------------------------------------------- */
+
+@media (max-width: 860px) {
+  .menu-toggle { display: inline-block; }
+  .js .nav-panel {
+    display: none; position: fixed; inset: var(--topbar-h) 0 0 0; z-index: 29;
+    flex-direction: column; align-items: stretch; gap: 0; padding: .5rem 0 2rem;
+    background: var(--ink); overflow-y: auto;
+  }
+  .js .nav-open .nav-panel { display: flex; }
+  .nav-links { flex-direction: column; gap: 0; flex: none; }
+  .nav-links a { padding: .85rem 1.25rem; border-radius: 0; font-size: 1.1rem; border-bottom: 1px solid #ffffff12; }
+  .nav-links a.active { box-shadow: inset 4px 0 0 #e9b949; }
+  .nav-sep { display: block; padding: .9rem 1.25rem .3rem; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #f4ecdc88; }
+  .who { padding: 1rem 1.25rem; gap: 1rem; border-top: 1px solid #ffffff22; margin-top: .5rem; font-size: 1.05rem; }
+  .nav-open { overflow: hidden; }  /* sin scroll detrás del menú */
+}
+
+/* --- Móvil ---------------------------------------------------------------------------- */
+
 @media (max-width: 640px) {
+  body { font-size: 15px; }
+  main { padding: .75rem; }
+  .card { padding: .8rem; border-radius: 10px; }
+  h1 { font-size: 1.45rem; }
+  h2 { font-size: 1.15rem; }
+  /* 16px evita que iOS haga zoom al tocar un campo */
+  input, select, textarea { font-size: 16px; }
   .abilities { grid-template-columns: repeat(3, 1fr); }
   .hide-sm { display: none; }
+  .stats { gap: .4rem 1rem; }
+  .stat b { font-size: 1.1rem; }
+
+  /* Formularios de una línea: cada campo ocupa el ancho */
+  .row.stack-sm { flex-direction: column; align-items: stretch; }
+  .row.stack-sm > * { width: 100%; }
+  .row.stack-sm input[type=number] { width: 100%; }
+
+  /* Inventario */
+  .inv-item { grid-template-columns: 1fr auto; }
+  .inv-qty { grid-column: 2; grid-row: 1; }
+  .inv-actions { grid-column: 1 / -1; justify-content: flex-end; }
+
+  /* Tablas → tarjetas apiladas */
+  table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+  table.stack thead { display: none; }
+  table.stack tr {
+    margin-bottom: .6rem; padding: .55rem .7rem; border: 1px solid var(--line);
+    border-radius: 8px; background: #fff;
+  }
+  table.stack td { border: 0; padding: .15rem 0; }
+  table.stack td:empty { display: none; }
+  table.stack td[data-label]::before {
+    content: attr(data-label); display: inline-block; min-width: 5.5em; margin-right: .4rem;
+    font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em;
+  }
+  table.stack td.actions { padding-top: .45rem; }
+
+  .menu-panel { min-width: 220px; }
+
+  /* Divisas: código y menú arriba, campos debajo */
+  .list-row { flex-wrap: wrap; align-items: center; }
+  .list-key { flex: 1; padding: 0; }
+  .list-form { order: 3; flex-basis: 100%; }
+  .list-form label { flex: 1 1 100%; }
+  .list-form input[type=number] { width: 100%; }
+
+  /* Intercambios: el campo de cantidad no aprieta el nombre */
+  .card table:not(.stack) td:last-child input[type=number] { width: 4.5em; }
 }

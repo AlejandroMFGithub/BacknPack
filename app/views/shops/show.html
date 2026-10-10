@@ -3,20 +3,24 @@
 {% block back_url %}{{ url_for('shops.index') }}{% endblock %}
 {% block content %}
 {% from "_macros.html" import trait_chip %}
-<div class="row spread">
+<div class="sheet-head">
   <div>
     <h1>{{ shop.name }} {% if not shop.active %}<span class="badge badge-off">Cerrada</span>{% endif %}</h1>
     <p class="muted">{{ shop.description }}</p>
   </div>
   {% if is_dm() %}
-  <div class="row">
-    <form class="inline" method="post" action="{{ url_for('shops.toggle', shop_id=shop.id, column='active') }}">
-      <button class="btn-ghost">{{ 'Cerrar tienda' if shop.active else 'Abrir tienda' }}</button></form>
-    <form class="inline" method="post" action="{{ url_for('shops.toggle', shop_id=shop.id, column='allow_exchange') }}">
-      <button class="btn-ghost">{{ 'Desactivar cambio de divisa' if shop.allow_exchange else 'Permitir cambio de divisa' }}</button></form>
-    <form class="inline" method="post" action="{{ url_for('shops.delete', shop_id=shop.id) }}" onsubmit="return confirm('¿Eliminar tienda?')">
-      <button class="btn-danger">Eliminar</button></form>
-  </div>
+  <details class="menu">
+    <summary aria-label="Opciones de la tienda">⋯</summary>
+    <div class="menu-panel">
+      <form method="post" action="{{ url_for('shops.toggle', shop_id=shop.id, column='active') }}">
+        <button>{{ '🔒 Cerrar tienda' if shop.active else '🔓 Abrir tienda' }}</button></form>
+      <form method="post" action="{{ url_for('shops.toggle', shop_id=shop.id, column='allow_exchange') }}">
+        <button>{{ '💱 Desactivar cambio de divisa' if shop.allow_exchange else '💱 Permitir cambio de divisa' }}</button></form>
+      <hr>
+      <form method="post" action="{{ url_for('shops.delete', shop_id=shop.id) }}" onsubmit="return confirm('¿Eliminar tienda?')">
+        <button class="danger">🗑️ Eliminar tienda</button></form>
+    </div>
+  </details>
   {% endif %}
 </div>
 
@@ -35,26 +39,27 @@
 {% endif %}
 
 <div class="card">
-  <table>
-    <tr><th>Artículo</th><th>Precio</th><th>Stock</th><th>Comprar</th>{% if is_dm() %}<th></th>{% endif %}</tr>
+  <table class="stack">
+    <thead><tr><th>Artículo</th><th>Precio</th><th>Stock</th><th>Comprar</th>{% if is_dm() %}<th></th>{% endif %}</tr></thead>
+    <tbody>
     {% for l in listings %}
     <tr>
       <td><b>{{ l.name }}</b>
         <div class="muted small">{{ l.category }} · {{ l.rarity }}{% if l.properties %} · {{ l.properties }}{% endif %}</div>
         {% for t in traits[l.item_id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
-      <td>{{ l.price }} {{ l.currency_code }}</td>
-      <td>{{ '∞' if l.stock is none else l.stock }}</td>
-      <td>
+      <td data-label="Precio"><b>{{ l.price }} {{ l.currency_code }}</b></td>
+      <td data-label="Stock">{{ '∞' if l.stock is none else l.stock }}</td>
+      <td class="actions">
         {% if characters and (l.stock is none or l.stock > 0) %}
         <form method="post" action="{{ url_for('shops.buy', shop_id=shop.id, listing_id=l.id) }}" class="row">
           {% if characters|length == 1 %}
             <input type="hidden" name="character_id" value="{{ characters[0].id }}">
           {% else %}
-            <select name="character_id">{% for c in characters %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select>
+            <select name="character_id" aria-label="Personaje">{% for c in characters %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select>
           {% endif %}
-          <input type="number" name="quantity" min="1" {% if l.stock is not none %}max="{{ l.stock }}"{% endif %} value="1">
+          <input type="number" name="quantity" min="1" {% if l.stock is not none %}max="{{ l.stock }}"{% endif %} value="1" aria-label="Cantidad">
           {% if shop.allow_exchange %}
-            <select name="currency_id">
+            <select name="currency_id" aria-label="Pagar con">
               {% for cur in currencies if cur.id == l.currency_id or (cur.value_cp and l.value_cp) %}
                 <option value="{{ cur.id }}" {{ 'selected' if cur.id == l.currency_id }}>{{ cur.code }}</option>
               {% endfor %}
@@ -67,29 +72,34 @@
         {% elif l.stock == 0 %}<span class="muted">Agotado</span>{% endif %}
       </td>
       {% if is_dm() %}
-      <td><form class="inline" method="post" action="{{ url_for('shops.remove_listing', shop_id=shop.id, listing_id=l.id) }}">
-        <button class="btn-small btn-danger">Quitar</button></form></td>
+      <td class="actions"><form class="inline" method="post" action="{{ url_for('shops.remove_listing', shop_id=shop.id, listing_id=l.id) }}">
+        <button class="btn-small btn-ghost">Quitar de la venta</button></form></td>
       {% endif %}
     </tr>
     {% else %}
     <tr><td colspan="5" class="muted">Estanterías vacías.</td></tr>
     {% endfor %}
+    </tbody>
   </table>
 </div>
 
 {% if is_dm() %}
 <form method="post" action="{{ url_for('shops.add_listing', shop_id=shop.id) }}" class="card">
   <h2>Poner a la venta</h2>
-  <div class="row">
-    <select name="item_id" required>
-      <option value="">— Objeto —</option>
-      {% for i in catalog %}<option value="{{ i.id }}">{{ i.name }}</option>{% endfor %}
-    </select>
-    <label class="inline">Precio <input type="number" name="price" min="0" value="1"></label>
-    <select name="currency_id">{% for cur in currencies %}<option value="{{ cur.id }}" {{ 'selected' if cur.code == 'po' }}>{{ cur.code }}</option>{% endfor %}</select>
-    <label class="inline">Stock <input type="number" name="stock" min="0" placeholder="∞"></label>
-    <button class="btn-small">Añadir</button>
+  <div class="form-grid">
+    <label>Objeto
+      <select name="item_id" required>
+        <option value="">— Objeto —</option>
+        {% for i in catalog %}<option value="{{ i.id }}">{{ i.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Precio <input type="number" name="price" min="0" value="1"></label>
+    <label>Divisa
+      <select name="currency_id">{% for cur in currencies %}<option value="{{ cur.id }}" {{ 'selected' if cur.code == 'po' }}>{{ cur.code }}</option>{% endfor %}</select>
+    </label>
+    <label>Stock <input type="number" name="stock" min="0" placeholder="∞"></label>
   </div>
+  <button class="btn-small">Añadir</button>
 </form>
 {% endif %}
 {% endblock %}

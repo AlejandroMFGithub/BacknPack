@@ -6,7 +6,7 @@
 {% set dm = is_dm() %}
 
 <div class="card">
-  <div class="row spread">
+  <div class="sheet-head">
     <div>
       <h1>{{ character.name }}</h1>
       <div>{{ character.race or '¿?' }} · {{ character.class_name or '¿?' }} nivel {{ character.level }}
@@ -15,14 +15,20 @@
       {% if dm %}<div class="muted small">Jugador: {{ character.owner }}</div>{% endif %}
     </div>
     <div class="row">
-      <a class="btn btn-ghost" href="{{ url_for('characters.edit', character_id=character.id) }}">Editar ficha</a>
-      <a class="btn btn-ghost" href="{{ url_for('trades.new', from_id=character.id) }}">Intercambiar</a>
-      {% if dm %}
-      <form class="inline" method="post" action="{{ url_for('characters.delete', character_id=character.id) }}"
-            onsubmit='return confirm({{ ("¿Eliminar a " ~ character.name ~ " con todo su inventario?") | tojson }})'>
-        <button class="btn-danger">Eliminar</button>
-      </form>
-      {% endif %}
+      <a class="btn btn-ghost btn-small" href="{{ url_for('trades.new', from_id=character.id) }}">Intercambiar</a>
+      <details class="menu">
+        <summary aria-label="Más opciones">⋯</summary>
+        <div class="menu-panel">
+          <a class="menu-item" href="{{ url_for('characters.edit', character_id=character.id) }}">✏️ Editar ficha</a>
+          {% if dm %}
+          <hr>
+          <form method="post" action="{{ url_for('characters.delete', character_id=character.id) }}"
+                onsubmit='return confirm({{ ("¿Eliminar a " ~ character.name ~ " con todo su inventario?") | tojson }})'>
+            <button class="danger">🗑️ Eliminar personaje</button>
+          </form>
+          {% endif %}
+        </div>
+      </details>
     </div>
   </div>
 
@@ -84,12 +90,15 @@
             {% if not e.visible %}<span class="badge badge-hidden">Oculto al jugador</span>{% endif %}
           </div>
           {% if dm %}
-          <div class="row">
-            <form class="inline" method="post" action="{{ url_for('characters.toggle_condition_visibility', character_id=character.id, condition_id=e.id) }}">
-              <button class="btn-small btn-ghost">{{ 'Ocultar' if e.visible else 'Revelar' }}</button></form>
-            <form class="inline" method="post" action="{{ url_for('characters.delete_condition', character_id=character.id, condition_id=e.id) }}">
-              <button class="btn-small btn-danger">Quitar</button></form>
-          </div>
+          <details class="menu">
+            <summary aria-label="Opciones del efecto">⋯</summary>
+            <div class="menu-panel">
+              <form method="post" action="{{ url_for('characters.toggle_condition_visibility', character_id=character.id, condition_id=e.id) }}">
+                <button>{{ '🙈 Ocultar al jugador' if e.visible else '👁️ Revelar al jugador' }}</button></form>
+              <form method="post" action="{{ url_for('characters.delete_condition', character_id=character.id, condition_id=e.id) }}">
+                <button class="danger">✖ Quitar efecto</button></form>
+            </div>
+          </details>
           {% endif %}
         </div>
         {% if e.description %}<div class="small">{{ e.description }}</div>{% endif %}
@@ -99,8 +108,9 @@
     {% endfor %}
 
     {% if dm %}
+    <details class="trait-form">
+    <summary>+ Añadir efecto</summary>
     <form method="post" action="{{ url_for('characters.add_condition', character_id=character.id) }}">
-      <h3>Añadir efecto</h3>
       <div class="form-grid">
         <label>Nombre <input name="name" list="presets" required></label>
         <label>Tipo
@@ -113,6 +123,7 @@
       <button class="btn-small">Añadir</button>
       <datalist id="presets">{% for p in presets %}<option value="{{ p }}">{% endfor %}</datalist>
     </form>
+    </details>
     {% endif %}
   </div>
 </div>
@@ -120,16 +131,44 @@
 <!-- Inventario -->
 <div class="card">
   <h2>Inventario</h2>
-  {% if inventory %}
-  <table>
-    <tr><th>Objeto</th><th class="hide-sm">Detalles</th><th>Cant.</th><th class="hide-sm">Peso</th><th></th></tr>
+  <div class="inv-list">
     {% for it in inventory %}
-    <tr class="{{ 'hidden-row' if not it.visible }}">
-      <td>
+    <div class="inv-item {{ 'hidden-row' if not it.visible }} {{ 'equipped' if it.equipped }}">
+      <div class="inv-main">
         <b>{{ it.name }}</b>
         {% if it.equipped %}<span class="badge badge-buff">Equipado</span>{% endif %}
         {% if not it.visible %}<span class="badge badge-hidden">Oculto al jugador</span>{% endif %}
         <div class="muted small">{{ it.category }} · {{ it.rarity }}{% if it.attunement %} · requiere sintonía{% endif %}</div>
+        {% if it.properties %}<div class="small">{{ it.properties }}</div>{% endif %}
+        {% if it.description %}<div class="muted small">{{ it.description }}</div>{% endif %}
+      </div>
+      <div class="inv-qty">
+        <b>×{{ it.quantity }}</b>
+        <div class="muted small">{{ '%g' % (it.weight * it.quantity) }} kg</div>
+      </div>
+      <div class="inv-actions">
+        <form class="inline" method="post" action="{{ url_for('characters.toggle_equip', character_id=character.id, inventory_id=it.id) }}">
+          <button class="btn-small btn-ghost">{{ 'Desequipar' if it.equipped else 'Equipar' }}</button></form>
+        <details class="menu">
+          <summary aria-label="Más acciones">⋯</summary>
+          <div class="menu-panel">
+            {% if dm %}
+            <form method="post" action="{{ url_for('characters.toggle_item_visibility', character_id=character.id, inventory_id=it.id) }}">
+              <button>{{ '🙈 Ocultar al jugador' if it.visible else '👁️ Revelar al jugador' }}</button></form>
+            <hr>
+            {% endif %}
+            <div class="menu-label">{{ 'Retirar del inventario' if dm else 'Tirar' }}</div>
+            <form method="post" action="{{ url_for('characters.remove_item', character_id=character.id, inventory_id=it.id) }}"
+                  onsubmit='return confirm({{ ("¿" ~ ("Retirar " if dm else "Tirar ") ~ it.name ~ "?") | tojson }})'>
+              {% if it.quantity > 1 %}<input type="number" name="quantity" min="1" max="{{ it.quantity }}" value="1" aria-label="Cantidad">{% endif %}
+              <button class="danger">🗑️ {{ 'Retirar' if dm else 'Tirar' }}</button>
+            </form>
+          </div>
+        </details>
+      </div>
+
+      {% if traits[it.id] or dm %}
+      <div class="inv-extra">
         {% for t in traits[it.id] %}
         <div class="trait-row">
           {{ trait_chip(t, trait_kinds) }}
@@ -137,61 +176,50 @@
             {% if t.uses_max is not none %}
               <form class="inline" method="post" action="{{ url_for('characters.use_trait', character_id=character.id, trait_id=t.id) }}">
                 <button class="btn-small" {{ 'disabled' if t.uses_current == 0 }}>Usar</button></form>
-              {% if dm %}
-              <form class="inline row" method="post" action="{{ url_for('characters.set_trait_uses', character_id=character.id, trait_id=t.id) }}">
-                <input type="number" name="uses_current" min="0" max="{{ t.uses_max }}" value="{{ t.uses_current }}" style="width:4em">
-                <button class="btn-small btn-ghost">Fijar</button></form>
-              <form class="inline" method="post" action="{{ url_for('characters.set_trait_uses', character_id=character.id, trait_id=t.id) }}">
-                <button class="btn-small btn-ghost">Recargar</button></form>
-              {% endif %}
             {% endif %}
             {% if dm %}
-              <form class="inline" method="post" action="{{ url_for('characters.toggle_trait_visibility', character_id=character.id, trait_id=t.id) }}">
-                <button class="btn-small btn-ghost">{{ 'Ocultar' if t.visible else 'Revelar' }}</button></form>
-              <form class="inline" method="post" action="{{ url_for('characters.delete_trait', character_id=character.id, trait_id=t.id) }}">
-                <button class="btn-small btn-danger">Quitar</button></form>
+            <details class="menu">
+              <summary aria-label="Opciones de la cualidad">⋯</summary>
+              <div class="menu-panel">
+                {% if t.uses_max is not none %}
+                <div class="menu-label">Usos restantes (máx. {{ t.uses_max }})</div>
+                <form method="post" action="{{ url_for('characters.set_trait_uses', character_id=character.id, trait_id=t.id) }}">
+                  <input type="number" name="uses_current" min="0" max="{{ t.uses_max }}" value="{{ t.uses_current }}" aria-label="Usos">
+                  <button>Fijar</button></form>
+                <form method="post" action="{{ url_for('characters.set_trait_uses', character_id=character.id, trait_id=t.id) }}">
+                  <button>🔄 Recargar al máximo</button></form>
+                <hr>
+                {% endif %}
+                <form method="post" action="{{ url_for('characters.toggle_trait_visibility', character_id=character.id, trait_id=t.id) }}">
+                  <button>{{ '🙈 Ocultar al jugador' if t.visible else '👁️ Revelar al jugador' }}</button></form>
+                <form method="post" action="{{ url_for('characters.delete_trait', character_id=character.id, trait_id=t.id) }}">
+                  <button class="danger">✖ Quitar cualidad</button></form>
+              </div>
+            </details>
             {% endif %}
           </div>
         </div>
         {% endfor %}
         {% if dm %}{{ trait_form(url_for('characters.add_trait', character_id=character.id, inventory_id=it.id), trait_kinds) }}{% endif %}
-      </td>
-      <td class="hide-sm small">{{ it.properties }}{% if it.description %}<div class="muted">{{ it.description }}</div>{% endif %}</td>
-      <td>{{ it.quantity }}</td>
-      <td class="hide-sm">{{ '%g' % (it.weight * it.quantity) }} kg</td>
-      <td>
-        <div class="row">
-          <form class="inline" method="post" action="{{ url_for('characters.toggle_equip', character_id=character.id, inventory_id=it.id) }}">
-            <button class="btn-small btn-ghost">{{ 'Quitar' if it.equipped else 'Equipar' }}</button></form>
-          {% if dm %}
-          <form class="inline" method="post" action="{{ url_for('characters.toggle_item_visibility', character_id=character.id, inventory_id=it.id) }}">
-            <button class="btn-small btn-ghost">{{ 'Ocultar' if it.visible else 'Revelar' }}</button></form>
-          {% endif %}
-          <form class="inline row" method="post" action="{{ url_for('characters.remove_item', character_id=character.id, inventory_id=it.id) }}"
-                onsubmit='return confirm({{ ("¿" ~ ("Retirar " if dm else "Tirar ") ~ it.name ~ "?") | tojson }})'>
-            {% if it.quantity > 1 %}<input type="number" name="quantity" min="1" max="{{ it.quantity }}" value="1">{% endif %}
-            <button class="btn-small btn-danger">{{ 'Retirar' if dm else 'Tirar' }}</button>
-          </form>
-        </div>
-      </td>
-    </tr>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+      <p class="muted">La mochila está vacía.</p>
     {% endfor %}
-  </table>
-  {% else %}
-    <p class="muted">La mochila está vacía.</p>
-  {% endif %}
+  </div>
 
   {% if dm %}
-  <form method="post" action="{{ url_for('characters.add_item', character_id=character.id) }}" class="row" style="margin-top:1rem">
-    <select name="item_id" required>
+  <form method="post" action="{{ url_for('characters.add_item', character_id=character.id) }}" class="row stack-sm inv-add">
+    <select name="item_id" required aria-label="Objeto">
       <option value="">— Objeto del catálogo —</option>
       {% for i in catalog %}<option value="{{ i.id }}">{{ i.name }} ({{ i.category }})</option>{% endfor %}
     </select>
-    <input type="number" name="quantity" min="1" value="1">
+    <input type="number" name="quantity" min="1" value="1" aria-label="Cantidad">
     <label class="inline"><input type="checkbox" name="visible" value="1" checked> Visible</label>
     <button class="btn-small">Dar objeto</button>
-    <a class="small" href="{{ url_for('dm.items') }}">Crear objeto nuevo en el catálogo</a>
   </form>
+  <p class="small"><a href="{{ url_for('dm.items') }}">Crear objeto nuevo en el catálogo</a></p>
   {% endif %}
 </div>
 

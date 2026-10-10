@@ -9,6 +9,35 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <script>
+    document.documentElement.classList.add("js");
+
+    // Menú hamburguesa y desplegables «⋯»
+    document.addEventListener("click", function (e) {
+      var toggle = e.target.closest(".menu-toggle");
+      if (toggle) {
+        var open = document.body.classList.toggle("nav-open");
+        toggle.setAttribute("aria-expanded", open);
+        toggle.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+        return;
+      }
+      // Cierra los desplegables abiertos al tocar fuera de ellos
+      document.querySelectorAll("details.menu[open]").forEach(function (menu) {
+        if (!menu.contains(e.target)) menu.removeAttribute("open");
+      });
+    });
+    // Solo un desplegable abierto a la vez
+    document.addEventListener("toggle", function (e) {
+      if (!e.target.matches || !e.target.matches("details.menu") || !e.target.open) return;
+      document.querySelectorAll("details.menu[open]").forEach(function (menu) {
+        if (menu !== e.target) menu.removeAttribute("open");
+      });
+    }, true);
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      document.body.classList.remove("nav-open");
+      document.querySelectorAll("details.menu[open]").forEach(function (m) { m.removeAttribute("open"); });
+    });
+
     // Añade el token CSRF a todos los formularios POST al enviarlos.
     document.addEventListener("submit", function (e) {
       var form = e.target;
@@ -22,24 +51,39 @@
   </script>
 </head>
 <body>
+{# Enlace del menú; se marca activo si la página actual pertenece a esa sección. #}
+{% macro nav_link(endpoint, label, prefixes) -%}
+  {%- set current = request.endpoint or '' -%}
+  {%- set ns = namespace(active=false) -%}
+  {%- for p in prefixes %}{% if current == p or (p.endswith('.') and current.startswith(p)) %}{% set ns.active = true %}{% endif %}{% endfor -%}
+  <a href="{{ url_for(endpoint) }}" class="{{ 'active' if ns.active }}" {{ 'aria-current=page' if ns.active }}>{{ label }}</a>
+{%- endmacro %}
+
 <header class="topbar">
   <a class="brand" href="{{ url_for('main.index') }}">🎒 BacknPack</a>
   {% if g.user %}
-  <nav>
-    {% if is_dm() %}<a href="{{ url_for('dm.index') }}">Panel DM</a>{% endif %}
-    <a href="{{ url_for('characters.index') }}">Personajes</a>
-    <a href="{{ url_for('shops.index') }}">Tiendas</a>
-    <a href="{{ url_for('loot.index') }}">Botín</a>
-    <a href="{{ url_for('trades.index') }}">Intercambios</a>
-    {% if is_dm() %}
-      <a href="{{ url_for('dm.items') }}">Catálogo</a>
-      <a href="{{ url_for('dm.currencies') }}">Divisas</a>
-    {% endif %}
-  </nav>
-  <div class="who">
-    <a href="{{ url_for('auth.account') }}" title="Mi cuenta">{{ g.user.username }}</a>
-    <span class="badge {{ 'badge-dm' if is_dm() else '' }}">{{ 'DM' if is_dm() else 'Jugador' }}</span>
-    <a href="{{ url_for('auth.logout') }}">Salir</a>
+  <button class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-panel">
+    <svg class="icon-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+  <div class="nav-panel" id="nav-panel">
+    <nav class="nav-links" aria-label="Principal">
+      {% if is_dm() %}{{ nav_link('dm.index', 'Panel DM', ['dm.index']) }}{% endif %}
+      {{ nav_link('characters.index', 'Personajes', ['characters.']) }}
+      {{ nav_link('shops.index', 'Tiendas', ['shops.']) }}
+      {{ nav_link('loot.index', 'Botín', ['loot.']) }}
+      {{ nav_link('trades.index', 'Intercambios', ['trades.']) }}
+      {% if is_dm() %}
+        <span class="nav-sep">Herramientas del DM</span>
+        {{ nav_link('dm.items', 'Catálogo', ['dm.items', 'dm.edit_item']) }}
+        {{ nav_link('dm.currencies', 'Divisas', ['dm.currencies']) }}
+      {% endif %}
+    </nav>
+    <div class="who">
+      <a href="{{ url_for('auth.account') }}" title="Mi cuenta">👤 {{ g.user.username }}</a>
+      <span class="badge {{ 'badge-dm' if is_dm() else '' }}">{{ 'DM' if is_dm() else 'Jugador' }}</span>
+      <a href="{{ url_for('auth.logout') }}">Salir</a>
+    </div>
   </div>
   {% endif %}
 </header>

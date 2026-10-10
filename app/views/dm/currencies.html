@@ -7,26 +7,24 @@
   en tiendas con otra divisa. Pon <b>0</b> para divisas no convertibles (fichas, favores, gemas especiales…).</p>
 
 <div class="card">
-  <table>
-    <tr><th>Código</th><th>Nombre</th><th>Valor en pc</th><th></th></tr>
-    {% for c in currencies %}
-    <tr>
-      <td><b>{{ c.code }}</b></td>
-      <td colspan="2">
-        <form method="post" action="{{ url_for('dm.update_currency', currency_id=c.id) }}" class="row">
-          <input name="name" value="{{ c.name }}" required>
-          <input name="value_cp" type="number" min="0" value="{{ c.value_cp }}">
-          <button class="btn-small btn-ghost">Guardar</button>
-        </form>
-      </td>
-      <td>
-        <form class="inline" method="post" action="{{ url_for('dm.delete_currency', currency_id=c.id) }}"
+  {% for c in currencies %}
+  <div class="list-row">
+    <b class="list-key">{{ c.code }}</b>
+    <form method="post" action="{{ url_for('dm.update_currency', currency_id=c.id) }}" class="list-form">
+      <label>Nombre <input name="name" value="{{ c.name }}" required></label>
+      <label>Valor en pc <input name="value_cp" type="number" min="0" value="{{ c.value_cp }}"></label>
+      <button class="btn-small btn-ghost">Guardar</button>
+    </form>
+    <details class="menu">
+      <summary aria-label="Más acciones">⋯</summary>
+      <div class="menu-panel">
+        <form method="post" action="{{ url_for('dm.delete_currency', currency_id=c.id) }}"
               onsubmit="return confirm('Se borrará de todas las bolsas, tiendas y botines. ¿Seguro?')">
-          <button class="btn-small btn-danger">Borrar</button></form>
-      </td>
-    </tr>
-    {% endfor %}
-  </table>
+          <button class="danger">🗑️ Borrar divisa</button></form>
+      </div>
+    </details>
+  </div>
+  {% endfor %}
 </div>
 
 <form method="post" class="card">

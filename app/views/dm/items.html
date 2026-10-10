@@ -14,23 +14,32 @@
 </details>
 
 <div class="card">
-  <table>
-    <tr><th>Objeto</th><th class="hide-sm">Propiedades</th><th>Peso</th><th></th></tr>
+  <table class="stack">
+    <thead><tr><th>Objeto</th><th>Propiedades</th><th>Peso</th><th></th></tr></thead>
+    <tbody>
     {% for i in items %}
     <tr>
       <td><b>{{ i.name }}</b>
         <div class="muted small">{{ i.category }} · {{ i.rarity }}{% if i.attunement %} · sintonía{% endif %}</div>
         {% for t in traits[i.id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
-      <td class="hide-sm small">{{ i.properties }}</td>
-      <td>{{ '%g' % i.weight }} kg</td>
-      <td class="row">
-        <a class="btn btn-small btn-ghost" href="{{ url_for('dm.edit_item', item_id=i.id) }}">Editar</a>
-        <form class="inline" method="post" action="{{ url_for('dm.delete_item', item_id=i.id) }}"
-              onsubmit="return confirm('Se eliminará también de inventarios, tiendas y botines. ¿Seguro?')">
-          <button class="btn-small btn-danger">Borrar</button></form>
+      <td class="small" data-label="Propiedades">{{ i.properties }}</td>
+      <td data-label="Peso">{{ '%g' % i.weight }} kg</td>
+      <td class="actions">
+        <div class="row">
+          <a class="btn btn-small btn-ghost" href="{{ url_for('dm.edit_item', item_id=i.id) }}">Editar</a>
+          <details class="menu">
+            <summary aria-label="Más acciones">⋯</summary>
+            <div class="menu-panel">
+              <form method="post" action="{{ url_for('dm.delete_item', item_id=i.id) }}"
+                    onsubmit="return confirm('Se eliminará también de inventarios, tiendas y botines. ¿Seguro?')">
+                <button class="danger">🗑️ Borrar del catálogo</button></form>
+            </div>
+          </details>
+        </div>
       </td>
     </tr>
     {% endfor %}
+    </tbody>
   </table>
 </div>
 {% endblock %}

@@ -4,23 +4,24 @@
 <div class="row spread">
   <h1>Panel del DM</h1>
   <div class="row">
-    <a class="btn" href="{{ url_for('characters.new') }}">+ Personaje / PNJ</a>
-    <a class="btn btn-ghost" href="{{ url_for('trades.index') }}">Intercambios pendientes: {{ pending_trades }}</a>
+    <a class="btn btn-small" href="{{ url_for('characters.new') }}">+ Personaje / PNJ</a>
+    <a class="btn btn-small btn-ghost" href="{{ url_for('trades.index') }}">Intercambios pendientes: {{ pending_trades }}</a>
   </div>
 </div>
 
 <div class="card">
   <h2>Grupo</h2>
-  <table>
-    <tr><th>Personaje</th><th>Jugador</th><th>PG</th><th>CA</th><th>Efectos</th></tr>
+  <table class="stack">
+    <thead><tr><th>Personaje</th><th>Jugador</th><th>PG</th><th>CA</th><th>Efectos</th></tr></thead>
+    <tbody>
     {% for c in characters %}
     <tr>
       <td><a href="{{ url_for('characters.show', character_id=c.id) }}"><b>{{ c.name }}</b></a>
         <div class="muted small">{{ c.race }} · {{ c.class_name }} {{ c.level }}</div></td>
-      <td>{{ c.owner }}</td>
-      <td>{{ c.hp_current }}/{{ c.hp_max }}</td>
-      <td>{{ c.armor_class }}</td>
-      <td>
+      <td data-label="Jugador">{{ c.owner }}</td>
+      <td data-label="PG">{{ c.hp_current }}/{{ c.hp_max }}</td>
+      <td data-label="CA">{{ c.armor_class }}</td>
+      <td data-label="Efectos">
         {% for e in effects[c.id] %}
           <span class="badge badge-{{ e.kind }}" title="{{ e.description }}">{{ e.name }}{{ ' 👁‍🗨' if not e.visible }}</span>
         {% else %}<span class="muted small">—</span>{% endfor %}
@@ -29,6 +30,7 @@
     {% else %}
     <tr><td colspan="5" class="muted">No hay personajes.</td></tr>
     {% endfor %}
+    </tbody>
   </table>
 </div>
 
