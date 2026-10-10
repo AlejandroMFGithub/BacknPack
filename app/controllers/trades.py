@@ -11,6 +11,8 @@ bp = Blueprint("trades", __name__, url_prefix="/trades")
 @bp.route("/")
 @campaign_required
 def index():
+    if g.character is not None:
+        Trade.mark_seen(g.character["id"])
     args = ListArgs(Trade.SORTS, "pending", filters=["status"])
     trades = Trade.search(
         g.campaign["id"], None if is_dm() else g.user["id"],

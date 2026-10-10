@@ -92,6 +92,8 @@ MIGRATIONS = [
     """,
     # 10: distancias en pies y casillas (velocidad y textos que hablaban de metros)
     lambda db: _distances_to_feet(db),
+    # 11: cuándo vio el destinatario la propuesta (para avisarle solo una vez)
+    "ALTER TABLE trades ADD COLUMN seen_at TEXT;",
 ]
 
 # Columnas de texto libre donde puede haber distancias

@@ -13,7 +13,9 @@
 {{ list_toolbar(args, search=false, filters=[('status', 'Estado', status.items() | list)]) }}
 
 {% for t in trades %}
-<div class="card">
+{% set for_me = t.status == 'pending' and g.character and t.to_character_id == g.character.id %}
+<div class="card {{ 'trade-for-me' if for_me }}">
+  {% if for_me %}<div class="trade-for-me-label">🔔 Te lo proponen a ti: ¿aceptas?</div>{% endif %}
   <div class="row spread">
     <div class="trade-title"><b>#{{ t.id }}</b>
       <span class="name-with-avatar">{{ avatar(t.from_character_id, t.from_name, t.from_avatar, 'sm') }}<b>{{ t.from_name }}</b></span> →

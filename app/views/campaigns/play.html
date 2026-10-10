@@ -19,6 +19,7 @@
           <b>{{ c.name }}</b>
           <span class="small">{{ c.race or '¿?' }} · {{ c.class_name or '¿?' }} {{ c.level }}</span>
           {% if g.character and g.character.id == c.id %}<span class="badge badge-buff">Jugando</span>{% endif %}
+          {% if pending[c.id] %}<span class="badge badge-alert">🔔 {{ pending[c.id] }} intercambio{{ 's' if pending[c.id] != 1 }} pendiente{{ 's' if pending[c.id] != 1 }}</span>{% endif %}
         </span>
       </button>
     </form>

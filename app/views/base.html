@@ -8,6 +8,8 @@
   {%- if false %}{% block back_url %}{% endblock %}{% endif %}
   <link rel="stylesheet" href="{{ asset('style.css') }}">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  {% if g.user %}<meta name="notify-url" content="{{ url_for('notifications.state') }}">
+  <meta name="notify-seen-url" content="{{ url_for('notifications.seen') }}">{% endif %}
   <script>
     document.documentElement.classList.add("js");
 
@@ -26,11 +28,12 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
 {# Enlace del menú; se marca activo si la página actual pertenece a esa sección. #}
-{% macro nav_link(endpoint, label, prefixes) -%}
+{% macro nav_link(endpoint, label, prefixes, badge=none) -%}
   {%- set current = request.endpoint or '' -%}
   {%- set ns = namespace(active=false) -%}
   {%- for p in prefixes %}{% if current == p or (p.endswith('.') and current.startswith(p)) %}{% set ns.active = true %}{% endif %}{% endfor -%}
-  <a href="{{ url_for(endpoint) }}" class="{{ 'active' if ns.active }}" {{ 'aria-current=page' if ns.active }}>{{ label }}</a>
+  <a href="{{ url_for(endpoint) }}" class="{{ 'active' if ns.active }}" {{ 'aria-current=page' if ns.active }}>{{ label }}
+    {%- if badge is not none %} <span class="nav-badge" data-trade-badge {{ 'hidden' if not badge }}>{{ badge }}</span>{% endif %}</a>
 {%- endmacro %}
 
 {% block topbar %}
@@ -72,6 +75,17 @@
       <span class="context-caret" aria-hidden="true">⇄</span>
     </a>
   {% endif %}
+  {% set alerts = trade_alerts() %}
+  {% if alerts and alerts.incoming is defined %}
+  <details class="bell popover">
+    <summary class="bell-btn" aria-label="Intercambios pendientes: {{ alerts.incoming | length }} te proponen">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"
+           fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="bell-count" {{ 'hidden' if not alerts.incoming }}>{{ alerts.incoming | length }}</span>
+    </summary>
+    <div class="bell-panel">{% include "notifications/_panel.html" %}</div>
+  </details>
+  {% endif %}
   <button class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-panel">
     <svg class="icon-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -82,7 +96,10 @@
       {{ nav_link('characters.index', 'Personajes', ['characters.']) }}
       {{ nav_link('shops.index', 'Tiendas', ['shops.']) }}
       {{ nav_link('loot.index', 'Botín', ['loot.']) }}
-      {{ nav_link('trades.index', 'Intercambios', ['trades.']) }}
+      {% set alerts = trade_alerts() %}
+      {{ nav_link('trades.index', 'Intercambios', ['trades.'],
+                  badge=(alerts.incoming | length) if alerts and alerts.incoming is defined
+                        else (alerts.dm_pending if alerts and alerts.dm_pending is defined else none)) }}
       {% if is_dm() %}
         {% set tools_active = request.endpoint in ['campaigns.index', 'dm.items', 'dm.edit_item', 'dm.currencies'] %}
         {# Escritorio: desplegable «Herramientas» (no cabe todo en una línea) #}
@@ -140,5 +157,20 @@
   {% endblock %}
   {% block content %}{% endblock %}
 </main>
+
+{% set alerts = trade_alerts() if g.user else none %}
+<div class="toast-root" aria-live="polite">
+  {% if alerts and alerts.unseen and request.endpoint != 'trades.index' %}
+  {% from "_macros.html" import avatar %}
+  {% set first = alerts.unseen[0] %}
+  <div class="toast" role="status" data-trade-ids="{{ alerts.unseen | map(attribute='id') | join(',') }}">
+    {{ avatar(first.from_character_id, first.from_name, first.from_avatar, 'sm') }}
+    <div class="toast-text">🔔 <b>{{ first.from_name }}</b> te propone un intercambio
+      {%- if alerts.unseen | length > 1 %} <span class="toast-more">(y {{ alerts.unseen | length - 1 }} más)</span>{% endif %}</div>
+    <a class="btn btn-small" href="{{ url_for('trades.index') }}">Ver</a>
+    <button type="button" class="toast-close" aria-label="Cerrar aviso">✕</button>
+  </div>
+  {% endif %}
+</div>
 </body>
 </html>

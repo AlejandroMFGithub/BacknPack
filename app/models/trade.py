@@ -60,6 +60,44 @@ class Trade:
     def get(trade_id):
         return get_db().execute(_SELECT + " WHERE t.id = ?", (trade_id,)).fetchone()
 
+    # --- Avisos -----------------------------------------------------------------------------
+
+    @staticmethod
+    def pending_for(character_id):
+        """Intercambios pendientes de un personaje: (le proponen, propone él)."""
+        rows = get_db().execute(
+            _SELECT + """ WHERE t.status = 'pending' AND (t.from_character_id = ? OR t.to_character_id = ?)
+                          ORDER BY t.id DESC""",
+            (character_id, character_id),
+        ).fetchall()
+        incoming = [t for t in rows if t["to_character_id"] == character_id]
+        outgoing = [t for t in rows if t["from_character_id"] == character_id]
+        return incoming, outgoing
+
+    @staticmethod
+    def mark_seen(character_id, trade_id=None):
+        """Marca como vistas las propuestas que ha recibido (todas o una)."""
+        sql = """UPDATE trades SET seen_at = ?
+                 WHERE to_character_id = ? AND status = 'pending' AND seen_at IS NULL"""
+        params = [now_text(), character_id]
+        if trade_id is not None:
+            sql += " AND id = ?"
+            params.append(trade_id)
+        db = get_db()
+        db.execute(sql, tuple(params))
+        db.commit()
+
+    @staticmethod
+    def incoming_counts(user_id):
+        """{personaje: nº de propuestas pendientes que ha recibido}, de todos los del jugador."""
+        rows = get_db().execute(
+            """SELECT t.to_character_id, COUNT(*) FROM trades t
+               JOIN characters c ON c.id = t.to_character_id
+               WHERE c.user_id = ? AND t.status = 'pending' GROUP BY t.to_character_id""",
+            (user_id,),
+        ).fetchall()
+        return {r[0]: r[1] for r in rows}
+
     @staticmethod
     def lines_for(trade_ids):
         """{trade_id: {'give': [...], 'take': [...]}}"""

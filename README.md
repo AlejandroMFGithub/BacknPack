@@ -116,6 +116,14 @@ controlador los muestra como mensaje.
   en un ejemplar concreto desde la ficha. Viajan con el objeto al intercambiarlo, ocultas incluidas.
   Los objetos solo se apilan si tienen las mismas cualidades y ninguna tiene usos.
 
+**Avisos de intercambios**
+- Campana 🔔 en la barra con el número de propuestas que ha recibido el personaje con el que
+  juegas; su panel permite aceptar, rechazar o cancelar sin salir de la página.
+- Aviso emergente la primera vez que llega una propuesta (queda marcada como vista en la base de
+  datos). La página consulta `/notifications/state` cada 30 s, solo con la pestaña visible, así
+  que el aviso llega sin recargar.
+- Contadores en «Intercambios» (el DM ve los pendientes de su campaña) y en «¿Con quién juegas?».
+
 **Ficha de 5e**
 - Iniciativa (modificador de DES + bonus extra opcional), bonificador de competencia (automático
   según el nivel o fijado a mano), percepción pasiva y puntos de inspiración (el DM los da,

@@ -7,7 +7,7 @@ Tiendas, botines e intercambios solo muestran lo de g.campaign.
 """
 from flask import Blueprint, abort, flash, g, redirect, render_template, request, session, url_for
 
-from ..models import Campaign, Character, RuleError
+from ..models import Campaign, Character, RuleError, Trade
 from .helpers import dm_required, is_dm, login_required, redirect_back
 
 bp = Blueprint("campaigns", __name__)
@@ -58,7 +58,7 @@ def play():
     if is_dm():
         return redirect(url_for("campaigns.index"))
     return render_template("campaigns/play.html", characters=Character.for_user(g.user["id"]),
-                           next=request.args.get("next", ""))
+                           pending=Trade.incoming_counts(g.user["id"]), next=request.args.get("next", ""))
 
 
 @bp.route("/play/<int:character_id>", methods=["POST"])

@@ -1,0 +1,54 @@
+{# Contenido del panel de la campana. Se pinta en base.html y también lo devuelve
+   /notifications/state para refrescarlo sin recargar la página. #}
+{% from "_macros.html" import avatar %}
+{% macro summary(lines) -%}
+  {%- for l in lines[:3] %}{{ l.quantity }}× {{ l.label }}{{ ', ' if not loop.last }}{% endfor -%}
+  {%- if lines | length > 3 %} y {{ lines | length - 3 }} más{% endif -%}
+  {%- if not lines %}nada{% endif -%}
+{%- endmacro %}
+
+<div class="bell-head">Intercambios de <b>{{ g.character.name }}</b></div>
+
+{% if alerts.incoming %}
+<div class="menu-label">Te proponen ({{ alerts.incoming | length }})</div>
+{% for t in alerts.incoming %}
+<div class="bell-item {{ 'is-new' if not t.seen_at }}">
+  {{ avatar(t.from_character_id, t.from_name, t.from_avatar, 'sm') }}
+  <div class="bell-text">
+    <span><b>{{ t.from_name }}</b> te propone un intercambio</span>
+    <span class="bell-detail">Te da: {{ summary(alerts.lines[t.id].give) }}</span>
+    <span class="bell-detail">Te pide: {{ summary(alerts.lines[t.id].take) }}</span>
+    {% if t.message %}<span class="bell-detail">«{{ t.message }}»</span>{% endif %}
+    <div class="bell-actions">
+      <form method="post" action="{{ url_for('trades.resolve', trade_id=t.id, action='accept') }}">
+        <button class="btn-small">Aceptar</button></form>
+      <form method="post" action="{{ url_for('trades.resolve', trade_id=t.id, action='reject') }}">
+        <button class="btn-small btn-ghost">Rechazar</button></form>
+      <a class="small" href="{{ url_for('trades.index') }}">Ver</a>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if alerts.outgoing %}
+<div class="menu-label">Esperando respuesta ({{ alerts.outgoing | length }})</div>
+{% for t in alerts.outgoing %}
+<div class="bell-item">
+  {{ avatar(t.to_character_id, t.to_name, t.to_avatar, 'sm') }}
+  <div class="bell-text">
+    <span>Propuesta a <b>{{ t.to_name }}</b></span>
+    <span class="bell-detail">Das: {{ summary(alerts.lines[t.id].give) }} · Pides: {{ summary(alerts.lines[t.id].take) }}</span>
+    <div class="bell-actions">
+      <form method="post" action="{{ url_for('trades.resolve', trade_id=t.id, action='cancel') }}">
+        <button class="btn-small btn-ghost">Cancelar</button></form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if not alerts.incoming and not alerts.outgoing %}
+<p class="bell-empty">No tienes intercambios pendientes.</p>
+{% endif %}
+<a class="menu-item bell-footer" href="{{ url_for('trades.index') }}">Ver todos los intercambios →</a>

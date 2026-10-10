@@ -848,6 +848,88 @@ body.auth-page main { max-width: none; padding: 0; }
 
 .badge-list { display: inline-flex; flex-wrap: wrap; gap: .25rem; }
 
+/* --- Avisos de intercambios ---------------------------------------------------------------- */
+
+.nav-badge, .bell-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 1.35em; height: 1.35em;
+  padding: 0 .35em; border-radius: 999px; font-size: .72rem; font-weight: bold; line-height: 1;
+  background: #d8342b; color: #fff; box-shadow: 0 0 0 2px #150f0b; vertical-align: middle;
+}
+.nav-badge[hidden], .bell-count[hidden] { display: none; }
+.badge-alert { background: #d8342b; color: #fff; }
+
+/* Campana */
+.bell { position: relative; flex: none; }
+.bell-btn {
+  list-style: none; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 10px; color: #f4ecdc; border: 1px solid #f4ecdc33;
+}
+.bell-btn::-webkit-details-marker { display: none; }
+.bell-btn:hover, .bell[open] > .bell-btn { background: #ffffff18; }
+.bell-btn svg { width: 22px; height: 22px; }
+.bell-count { position: absolute; top: -5px; right: -6px; }
+.bell-btn:has(.bell-count:not([hidden])) svg { animation: bell-ring 2.4s ease-in-out 1s 2; transform-origin: 50% 10%; }
+@keyframes bell-ring { 0%, 60%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(14deg); } 20%, 40% { transform: rotate(-12deg); } }
+.bell-panel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 40;
+  width: min(380px, calc(100vw - 1.5rem)); max-height: min(70vh, 560px); overflow-y: auto;
+  padding: .4rem; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: var(--shadow-pop);
+}
+.bell-panel { --muted: #7a6a58; --link: var(--accent); --ghost: var(--accent); --ghost-ink: #fff; --line: #dccbb0; }
+.bell-head { padding: .45rem .6rem .35rem; font-size: .9rem; border-bottom: 1px solid var(--line); margin-bottom: .2rem; }
+.bell-item { display: flex; gap: .6rem; align-items: flex-start; padding: .55rem .6rem; border-radius: 8px; }
+.bell-item + .bell-item { border-top: 1px dashed var(--line); border-radius: 0; }
+.bell-item.is-new { background: #fdf3dc; box-shadow: inset 3px 0 0 var(--gold); border-radius: 8px; }
+.bell-text { display: flex; flex-direction: column; gap: .1rem; min-width: 0; font-size: .92rem; }
+.bell-detail { font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+.bell-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .6rem; margin-top: .35rem; }
+.bell-actions form { margin: 0; }
+.bell-empty { margin: .6rem; color: var(--muted); font-style: italic; }
+.bell-footer { display: block; margin-top: .2rem; padding: .55rem .6rem; border-top: 1px solid var(--line);
+  color: var(--accent); text-decoration: none; text-align: center; font-size: .9rem; }
+.bell-footer:hover { background: var(--paper-hover); }
+/* El panel vive dentro de la barra (enlaces crema): aquí van en granate, legibles */
+.topbar .bell-panel a { color: var(--accent); }
+.topbar .bell-panel a:hover { text-decoration: underline; }
+
+/* Aviso emergente */
+.toast-root {
+  position: fixed; right: 1rem; bottom: 1rem; z-index: 60; display: flex; flex-direction: column; gap: .5rem;
+  pointer-events: none; max-width: min(420px, calc(100vw - 2rem));
+}
+.toast {
+  pointer-events: auto; display: flex; align-items: center; gap: .6rem;
+  padding: .65rem .7rem .65rem .8rem; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--gold); border-radius: 12px;
+  box-shadow: 0 18px 40px -12px #000d, 0 0 0 4px #f0c86226;
+  transform: translateY(16px); opacity: 0; transition: transform .25s ease, opacity .25s ease;
+}
+.toast.show { transform: none; opacity: 1; }
+.toast-text { flex: 1; min-width: 0; font-size: .93rem; }
+.toast-more { color: #7a6a58; }
+.toast-close {
+  flex: none; min-height: 0; width: 30px; height: 30px; padding: 0; border-radius: 8px;
+  background: transparent; color: #7a6a58; border: 1px solid #dccbb0;
+}
+.toast-close:hover { filter: none; background: var(--paper-hover); color: var(--ink); }
+
+/* Intercambios que te han propuesto a ti */
+.card.trade-for-me { border-color: var(--gold); box-shadow: 0 18px 40px -22px #000d, 0 0 0 2px #f0c86255, inset 4px 0 0 var(--gold); }
+.trade-for-me-label { margin: -.2rem 0 .5rem; font-size: .85rem; font-weight: 600; color: #8a6416; }
+
+@media (min-width: 1081px) {
+  .bell { order: 10; margin-left: .2rem; }
+}
+@media (max-width: 640px) {
+  .toast-root { left: .75rem; right: .75rem; bottom: .75rem; max-width: none; }
+  .bell-panel { position: fixed; left: .75rem; right: .75rem; top: calc(var(--topbar-h) + 6px); width: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bell-btn svg { animation: none !important; }
+  .toast { transition: none; }
+}
+
 /* --- Repaso de diseño (escritorio y móvil) ------------------------------------------------ */
 
 /* Cabecera de página: título con subtítulo de campaña y acciones */

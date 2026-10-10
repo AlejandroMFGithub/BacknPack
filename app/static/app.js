@@ -131,6 +131,97 @@
     if (die) die.classList.add("rolling");
   });
 
+  // --- Avisos de intercambios --------------------------------------------------------------
+  // Campana con contador, aviso emergente para propuestas nuevas y consulta cada 30 s
+  // (solo con la pestaña visible) para enterarse sin recargar la página.
+
+  var notifyUrl = document.querySelector("meta[name=notify-url]");
+  var seenUrl = document.querySelector("meta[name=notify-seen-url]");
+  var toastRoot = document.querySelector(".toast-root");
+  var shownTrades = {};  // propuestas que ya han tenido su aviso en esta página
+
+  function csrfHeaders() {
+    return { "X-CSRF-Token": document.querySelector("meta[name=csrf-token]").content };
+  }
+
+  function markSeen() {
+    if (seenUrl) fetch(seenUrl.content, { method: "POST", headers: csrfHeaders(), credentials: "same-origin" });
+  }
+
+  function showToast(toast) {
+    requestAnimationFrame(function () { toast.classList.add("show"); });
+    toast.querySelector(".toast-close").addEventListener("click", function () {
+      toast.classList.remove("show");
+      setTimeout(function () { toast.remove(); }, 250);
+      markSeen();
+    });
+  }
+
+  function buildToast(unseen) {
+    var toast = el("div", "toast");
+    toast.setAttribute("role", "status");
+    var text = el("div", "toast-text");
+    text.appendChild(document.createTextNode("🔔 "));
+    text.appendChild(el("b", "", unseen[0].from));
+    text.appendChild(document.createTextNode(" te propone un intercambio"));
+    if (unseen.length > 1) text.appendChild(el("span", "toast-more", " (y " + (unseen.length - 1) + " más)"));
+    var link = el("a", "btn btn-small", "Ver");
+    link.href = (document.querySelector(".bell-footer") || {}).href || "/trades/";
+    var close = el("button", "toast-close", "✕");
+    close.type = "button";
+    close.setAttribute("aria-label", "Cerrar aviso");
+    toast.appendChild(text);
+    toast.appendChild(link);
+    toast.appendChild(close);
+    return toast;
+  }
+
+  function setCount(node, count) {
+    if (!node) return;
+    node.textContent = count;
+    node.hidden = !count;
+  }
+
+  if (toastRoot) {
+    var initial = toastRoot.querySelector(".toast");
+    if (initial) {
+      initial.getAttribute("data-trade-ids").split(",").forEach(function (id) { shownTrades[id] = true; });
+      showToast(initial);
+    }
+  }
+
+  function poll() {
+    if (!notifyUrl || document.visibilityState !== "visible") return;
+    fetch(notifyUrl.content, { headers: { Accept: "application/json" }, credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+        var bell = document.querySelector(".bell");
+        var badge = bell ? data.incoming : data.dm_pending;
+        setCount(document.querySelector(".bell-count"), data.incoming);
+        setCount(document.querySelector("[data-trade-badge]"), badge);
+        // Refresca el panel salvo si está abierto (no cambiarlo mientras se usa)
+        if (bell && data.panel && !bell.open) bell.querySelector(".bell-panel").innerHTML = data.panel;
+        var fresh = (data.unseen || []).filter(function (t) { return !shownTrades[t.id]; });
+        if (fresh.length && toastRoot && !location.pathname.startsWith("/trades/")) {
+          (data.unseen || []).forEach(function (t) { shownTrades[t.id] = true; });
+          var old = toastRoot.querySelector(".toast");
+          if (old) old.remove();
+          var toast = buildToast(data.unseen);
+          toastRoot.appendChild(toast);
+          showToast(toast);
+        }
+      })
+      .catch(function () { /* sin conexión: se reintenta en la próxima consulta */ });
+  }
+
+  if (notifyUrl) {
+    setInterval(poll, 30000);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") poll();
+    });
+  }
+
   // --- Copiar al portapapeles: <button data-copy="texto"> -------------------------------
 
   document.addEventListener("click", function (e) {
