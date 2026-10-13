@@ -265,29 +265,67 @@ def set_currencies(character_id):
     return _back(character_id)
 
 
+def _back_to_effects(character_id):
+    return redirect(url_for("characters.show", character_id=character_id, _anchor="efectos"))
+
+
 @bp.route("/<int:character_id>/conditions/add", methods=["POST"])
-@dm_required
+@login_required
 def add_condition(character_id):
+    """El DM o el dueño añaden un efecto (el jugador, siempre visible y no fijo)."""
     get_character_or_404(character_id)
     try:
-        Condition.create(character_id, request.form)
+        Condition.create(character_id, request.form, by_dm=is_dm())
     except RuleError as e:
         flash(str(e), "error")
-    return _back(character_id)
+    return _back_to_effects(character_id)
 
 
-def _own_condition(character_id, condition_id):
+def _own_condition(character_id, condition_id, player_allowed=True):
+    """El efecto, si es de ese personaje y quien actúa puede tocarlo.
+    El jugador solo maneja los de su personaje que ve y no son fijos."""
+    get_character_or_404(character_id)
     condition = Condition.get(condition_id)
     if condition is None or condition["character_id"] != character_id:
         abort(404)
+    if not is_dm():
+        if not player_allowed or not condition["visible"]:
+            abort(404 if not condition["visible"] else 403)
+        if condition["locked"]:
+            flash(f"«{condition['name']}» es un efecto fijo: solo el DM puede cambiarlo.", "error")
+            return None
+    return condition
+
+
+@bp.route("/<int:character_id>/conditions/<int:condition_id>/edit", methods=["POST"])
+@login_required
+def edit_condition(character_id, condition_id):
+    if _own_condition(character_id, condition_id):
+        try:
+            Condition.update(condition_id, request.form, by_dm=is_dm())
+        except RuleError as e:
+            flash(str(e), "error")
+        else:
+            flash("Efecto actualizado.", "ok")
+    return _back_to_effects(character_id)
+
+
+@bp.route("/<int:character_id>/conditions/<int:condition_id>/toggle", methods=["POST"])
+@login_required
+def toggle_condition(character_id, condition_id):
+    if _own_condition(character_id, condition_id):
+        Condition.toggle_active(condition_id)
+    return _back_to_effects(character_id)
 
 
 @bp.route("/<int:character_id>/conditions/<int:condition_id>/delete", methods=["POST"])
-@dm_required
+@login_required
 def delete_condition(character_id, condition_id):
-    _own_condition(character_id, condition_id)
-    Condition.delete(condition_id)
-    return _back(character_id)
+    condition = _own_condition(character_id, condition_id)
+    if condition:
+        Condition.delete(condition_id)
+        flash(f"«{condition['name']}» quitado.", "ok")
+    return _back_to_effects(character_id)
 
 
 @bp.route("/<int:character_id>/conditions/<int:condition_id>/visibility", methods=["POST"])
@@ -295,7 +333,15 @@ def delete_condition(character_id, condition_id):
 def toggle_condition_visibility(character_id, condition_id):
     _own_condition(character_id, condition_id)
     Condition.toggle_visible(condition_id)
-    return _back(character_id)
+    return _back_to_effects(character_id)
+
+
+@bp.route("/<int:character_id>/conditions/<int:condition_id>/lock", methods=["POST"])
+@dm_required
+def toggle_condition_lock(character_id, condition_id):
+    _own_condition(character_id, condition_id)
+    Condition.toggle_locked(condition_id)
+    return _back_to_effects(character_id)
 
 
 # --- Cualidades de los objetos del inventario --------------------------------------

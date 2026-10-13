@@ -112,7 +112,8 @@ controlador los muestra como mensaje.
 - Panel con todo el grupo, efectos activos y actividad reciente.
 - Ve y edita cualquier ficha; da y retira objetos; ajusta la bolsa.
 - **Visibilidad**: objetos y efectos pueden estar ocultos al jugador (p. ej. un objeto maldito sin identificar).
-- Bufos, maldiciones y estados con duración y descripción.
+- Bufos, maldiciones y estados con duración y descripción. El DM los crea, edita, activa/desactiva,
+  oculta y **fija** (🔒: el jugador los ve pero no puede desactivarlos, editarlos ni quitarlos).
 - Catálogo de objetos y divisas propias (con valor en pc o no convertibles).
 - Tiendas: abrir/cerrar, stock limitado o infinito, permitir o no pagar con otras divisas.
 - Botines (tras combate o de entorno), que se pueden revelar u ocultar.
@@ -175,6 +176,9 @@ controlador los muestra como mensaje.
 **Jugador**
 - Crea y edita sus personajes; ve solo lo que el DM le deja ver.
 - Equipa y tira objetos; gasta usos de sus objetos (cargas de una varita, una bendición diaria…).
+- Crea sus propios efectos (furia, concentración, un conjuro…) con sus modificadores, y los
+  **activa y desactiva** con un interruptor en la ficha: solo los activos cambian las estadísticas
+  y cada cambio queda en el historial. Puede editar o quitar cualquier efecto que vea y no sea fijo.
 - Compra en tiendas abiertas con cualquier divisa convertible (conversión por valor en pc, redondeo hacia arriba).
 - Recoge botín (el primero que llega se lo lleva).
 - Propone intercambios de objetos y dinero; el otro jugador acepta o rechaza.

@@ -146,7 +146,7 @@ HIDDEN_SOURCE = "??? (efecto oculto)"
 def active(character_id, show_hidden=False):
     """Efectos que pesan ahora sobre un personaje, cada uno con su origen ("source").
 
-    Cuentan los estados (siempre), los objetos equipados y las cualidades de esos objetos.
+    Cuentan los estados activos, los objetos equipados y las cualidades de esos objetos.
     Lo oculto también se aplica: el jugador ve «???» como origen y el DM el nombre real.
     """
     return active_many([character_id], show_hidden)[character_id]
@@ -163,7 +163,7 @@ def active_many(character_ids, show_hidden=False):
     db = get_db()
     queries = [
         f"""SELECT character_id, name, visible, effects, 0 AS kind, id FROM conditions
-            WHERE character_id IN ({marks}) AND effects IS NOT NULL""",
+            WHERE character_id IN ({marks}) AND active = 1 AND effects IS NOT NULL""",
         f"""SELECT ii.character_id, i.name, ii.visible, i.effects, 1 AS kind, ii.id
             FROM inventory_items ii JOIN items i ON i.id = ii.item_id
             WHERE ii.character_id IN ({marks}) AND ii.equipped = 1 AND i.effects IS NOT NULL""",

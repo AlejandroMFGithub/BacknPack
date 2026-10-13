@@ -1050,3 +1050,28 @@ main > .sheet-head > div:first-child { min-width: 0; }
   /* En la ficha los botones bajan a la izquierda: el menú se abre hacia la derecha */
   .sheet-head > .row .menu-panel { left: 0; right: auto; }
 }
+
+/* Efectos activables (interruptor) y fijos */
+.effect-head { display: flex; align-items: flex-start; gap: .55rem; }
+.effect-title { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; }
+.effect.is-off { background: #f6f1e7; border-left-style: dashed; }
+.effect.is-off .effect-title b, .effect.is-off .effects-line { opacity: .6; }
+.switch {
+  flex: none; position: relative; display: inline-block; width: 40px; height: 22px; margin-top: .05rem; padding: 0;
+  border-radius: 999px; border: 1px solid var(--line-strong); background: #e3d7c1; cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.switch span {
+  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px #0004; transition: transform .15s;
+}
+.switch.on { background: var(--ok); border-color: var(--ok); }
+.switch.on span { transform: translateX(18px); }
+.switch:hover { filter: brightness(1.05); }
+.switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.switch.is-locked { cursor: not-allowed; opacity: .75; }
+.switch.is-locked span::after { content: "🔒"; position: absolute; inset: 0; font-size: 9px; line-height: 16px; text-align: center; }
+.badge-locked { background: #5a4630; color: #fff; }
+.effect-edit { margin-top: .3rem; }
+.effect-edit > summary { color: var(--muted); }
+.badge.is-off { opacity: .5; text-decoration: line-through; }

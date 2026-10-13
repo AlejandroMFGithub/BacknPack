@@ -205,55 +205,89 @@
   </div>
 
   <!-- Efectos -->
-  <div class="card">
+  {# Formulario de alta / edición de un efecto. Visible y fijo solo los decide el DM. #}
+  {% macro condition_form(action, e=none, submit='Añadir') -%}
+  <form method="post" action="{{ action }}">
+    <div class="form-grid">
+      <label>Nombre <input name="name" list="presets" required value="{{ field(e, 'name') }}" placeholder="Furia, Concentración…"></label>
+      <label>Tipo
+        <select name="kind">{% for k, label in condition_kinds.items() %}<option value="{{ k }}" {{ 'selected' if field(e, 'kind') == k }}>{{ label }}</option>{% endfor %}</select>
+      </label>
+      <label>Duración <input name="duration" value="{{ field(e, 'duration') }}" placeholder="1 minuto, hasta descanso largo…"></label>
+    </div>
+    <label>Descripción <textarea name="description">{{ field(e, 'description') }}</textarea></label>
+    {{ effects_editor(effect_rows(e) if e else [], "Solo cuentan mientras el efecto está activo." ~ ("" if e else " Si lo dejas vacío, los estados del reglamento (Agarrado, Prisa, Paso largo…) ponen el suyo.")) }}
+    {% if dm %}
+    <div class="row">
+      <label class="inline"><input type="checkbox" name="visible" value="1" {{ 'checked' if field(e, 'visible', 1) }}> Visible para el jugador</label>
+      <label class="inline" title="El jugador lo ve pero no puede desactivarlo, editarlo ni quitarlo"><input type="checkbox" name="locked" value="1" {{ 'checked' if field(e, 'locked', 0) }}> 🔒 Fijo</label>
+    </div>
+    {% endif %}
+    <button class="btn-small">{{ submit }}</button>
+  </form>
+  {%- endmacro %}
+
+  <div class="card" id="efectos">
     <h2>Bufos, maldiciones y estados</h2>
     {% for e in conditions %}
-      <div class="effect {{ e.kind }}">
-        <div class="row spread">
-          <div>
+      {% set can_change = dm or (e.visible and not e.locked) %}
+      <div class="effect {{ e.kind }} {{ 'is-off' if not e.active }}" id="cond-{{ e.id }}">
+        <div class="effect-head">
+          {% if can_change %}
+          <form class="inline" method="post" action="{{ url_for('characters.toggle_condition', character_id=character.id, condition_id=e.id) }}">
+            <button class="switch {{ 'on' if e.active }}" role="switch" aria-checked="{{ 'true' if e.active else 'false' }}"
+                    title="{{ 'Desactivar' if e.active else 'Activar' }} {{ e.name }}" aria-label="{{ e.name }}: {{ 'activo' if e.active else 'inactivo' }}"><span></span></button>
+          </form>
+          {% else %}
+          <span class="switch {{ 'on' if e.active }} is-locked" role="img" aria-label="{{ e.name }}: {{ 'activo' if e.active else 'inactivo' }}, fijo"
+                title="Efecto fijo: solo el DM puede cambiarlo"><span></span></span>
+          {% endif %}
+          <div class="effect-title">
             <span class="badge badge-{{ e.kind }}">{{ condition_kinds[e.kind] }}</span>
             <b>{{ e.name }}</b>
             {% if e.duration %}<span class="muted small">· {{ e.duration }}</span>{% endif %}
+            {% if not e.active %}<span class="badge badge-off">Inactivo</span>{% endif %}
+            {% if e.locked %}<span class="badge badge-locked" title="El jugador no puede desactivarlo, editarlo ni quitarlo">🔒 Fijo</span>{% endif %}
             {% if not e.visible %}<span class="badge badge-hidden">Oculto al jugador</span>{% endif %}
           </div>
-          {% if dm %}
+          {% if can_change %}
           <details class="menu">
             <summary aria-label="Opciones del efecto">⋯</summary>
             <div class="menu-panel">
+              {% if dm %}
+              <form method="post" action="{{ url_for('characters.toggle_condition_lock', character_id=character.id, condition_id=e.id) }}">
+                <button>{{ '🔓 Dejar que el jugador lo cambie' if e.locked else '🔒 Hacer fijo' }}</button></form>
               <form method="post" action="{{ url_for('characters.toggle_condition_visibility', character_id=character.id, condition_id=e.id) }}">
                 <button>{{ '🙈 Ocultar al jugador' if e.visible else '👁️ Revelar al jugador' }}</button></form>
-              <form method="post" action="{{ url_for('characters.delete_condition', character_id=character.id, condition_id=e.id) }}">
+              <hr>
+              {% endif %}
+              <form method="post" action="{{ url_for('characters.delete_condition', character_id=character.id, condition_id=e.id) }}"
+                    onsubmit='return confirm({{ ("¿Quitar «" ~ e.name ~ "»?") | tojson }})'>
                 <button class="danger">✖ Quitar efecto</button></form>
             </div>
           </details>
           {% endif %}
         </div>
-        {% if e.effects %}<div class="effects-line small">⚙ {{ e.effects | effects_summary }}</div>{% endif %}
+        {% if e.effects %}<div class="effects-line small">⚙ {{ e.effects | effects_summary }}{% if not e.active %} <span class="muted">(desactivado)</span>{% endif %}</div>{% endif %}
         {% if e.description %}<div class="small">{{ e.description }}</div>{% endif %}
+        {% if can_change %}
+        <details class="trait-form effect-edit">
+          <summary class="small">✎ Editar</summary>
+          {{ condition_form(url_for('characters.edit_condition', character_id=character.id, condition_id=e.id), e, 'Guardar cambios') }}
+        </details>
+        {% endif %}
       </div>
     {% else %}
-      <p class="muted">Sin efectos activos.</p>
+      <p class="muted">Sin efectos todavía.</p>
     {% endfor %}
 
-    {% if dm %}
     <details class="trait-form">
-    <summary>+ Añadir efecto</summary>
-    <form method="post" action="{{ url_for('characters.add_condition', character_id=character.id) }}">
-      <div class="form-grid">
-        <label>Nombre <input name="name" list="presets" required></label>
-        <label>Tipo
-          <select name="kind">{% for k, label in condition_kinds.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select>
-        </label>
-        <label>Duración <input name="duration" placeholder="1 minuto, hasta descanso largo…"></label>
-      </div>
-      <label>Descripción <textarea name="description"></textarea></label>
-      {{ effects_editor([], "Activos mientras dure. Si lo dejas vacío, los estados del reglamento (Agarrado, Prisa, Paso largo…) ponen el suyo.") }}
-      <label class="inline"><input type="checkbox" name="visible" value="1" checked> Visible para el jugador</label>
-      <button class="btn-small">Añadir</button>
-      <datalist id="presets">{% for p in presets %}<option value="{{ p }}">{% endfor %}</datalist>
-    </form>
+      <summary>+ Añadir efecto</summary>
+      {{ condition_form(url_for('characters.add_condition', character_id=character.id)) }}
     </details>
-    {% endif %}
+    <datalist id="presets">{% for p in presets %}<option value="{{ p }}">{% endfor %}</datalist>
+    {% if not dm %}<p class="field-hint">Actívalos y desactívalos con el interruptor (furia, concentración…): solo los activos cambian la ficha.
+      Los marcados con 🔒 los ha fijado el DM.</p>{% endif %}
   </div>
 </div>
 

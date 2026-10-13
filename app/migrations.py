@@ -100,6 +100,11 @@ MIGRATIONS = [
        ALTER TABLE conditions ADD COLUMN effects TEXT;""",
     # 13: personajes ocultos al resto de jugadores (NULL visible, 'player' o 'dm' según quién lo ocultó)
     "ALTER TABLE characters ADD COLUMN hidden_by TEXT;",
+    # 14: efectos que se activan y desactivan, y fijos (el jugador no puede quitarlos). Los que
+    #     ya existían los puso el DM y el jugador no podía quitarlos: quedan fijos.
+    """ALTER TABLE conditions ADD COLUMN active INTEGER NOT NULL DEFAULT 1;
+       ALTER TABLE conditions ADD COLUMN locked INTEGER NOT NULL DEFAULT 0;
+       UPDATE conditions SET locked = 1;""",
 ]
 
 # Columnas de texto libre donde puede haber distancias

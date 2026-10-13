@@ -139,13 +139,20 @@ def _seed_demo(db):
     db.commit()
 
     Character.change_inspiration(lyra, 1)
-    Condition.create(lyra, {"name": "Bendición", "kind": "buff", "visible": 1,
+    Condition.create(lyra, {"name": "Bendición", "kind": "buff", "visible": 1, "locked": 1,  # fijo: lo puso el DM
                             "description": "+1d4 a tiradas de ataque y salvación", "duration": "1 minuto"})
     Condition.create(lyra, {"name": "Marca del licántropo", "kind": "curse", "visible": 0,
                             "description": "Mordida por un hombre lobo. Aún no lo sabe.", "duration": "Hasta luna llena",
                             "effects": [{"t": "speed", "op": "add", "v": -5}]})
     Condition.create(lyra, {"name": "Paso largo", "kind": "buff", "visible": 1,  # efecto del reglamento: +10 ft
                             "description": "Conjuro de su compañero druida.", "duration": "1 hora"})
+    # Efecto que crea el propio jugador y activa en combate
+    Condition.create(thorgar, {"name": "Postura defensiva", "kind": "buff", "duration": "hasta su siguiente turno",
+                               "description": "Se cubre con el escudo: −10 ft de velocidad a cambio de +1 a la CA.",
+                               "effects": [{"t": "armor_class", "op": "add", "v": 1}, {"t": "speed", "op": "add", "v": -10}]},
+                     by_dm=False)
+    db.execute("UPDATE conditions SET active = 0 WHERE name = 'Postura defensiva'")
+    db.commit()
 
     forja = Shop.create("Forja de Brunhilda", "Armas y armaduras de calidad en Puerto Niebla.", costa)
     for name, price, code, stock in [

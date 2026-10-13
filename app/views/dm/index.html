@@ -31,7 +31,7 @@
       <td data-label="Inspiración">{% if c.inspiration %}<span class="insp-badge">★ {{ c.inspiration }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
       <td data-label="Efectos"><span class="badge-list">
         {% for e in effects[c.id] %}
-          <span class="badge badge-{{ e.kind }}" title="{{ e.description }}">{{ e.name }}{{ ' 👁‍🗨' if not e.visible }}</span>
+          <span class="badge badge-{{ e.kind }} {{ 'is-off' if not e.active }}" title="{{ e.description }}{{ ' (inactivo)' if not e.active }}">{{ '🔒 ' if e.locked }}{{ e.name }}{{ ' 👁‍🗨' if not e.visible }}</span>
         {% else %}<span class="muted small">—</span>{% endfor %}
       </span></td>
     </tr>
