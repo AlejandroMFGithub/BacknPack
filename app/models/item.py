@@ -1,8 +1,25 @@
 from ..db import get_db
 from ..text import LIKE_ESCAPE, distances, like_prefix, like_terms, normalize
-from . import effects
+from . import effects, weapons
 from .errors import RuleError
 from .listing import PER_PAGE, paginate, sort_sql
+
+# Pestañas del inventario: (clave, etiqueta, categorías). Lo que tiene datos de arma va siempre a «Armas».
+INVENTORY_GROUPS = [
+    ("weapons", "⚔ Armas", ["Arma", "Munición"]),
+    ("armor", "🛡 Armaduras", ["Armadura", "Escudo"]),
+    ("consumables", "🧪 Consumibles", ["Consumible", "Pergamino"]),
+    ("magic", "✨ Mágicos", ["Objeto maravilloso", "Anillo", "Varita", "Bastón", "Vara"]),
+    ("gear", "🎒 Equipo", ["Equipo de aventurero", "Herramienta", "Montura y vehículo"]),
+    ("other", "📦 Otros", ["Tesoro", "Misceláneo"]),
+]
+
+
+def inventory_group(row):
+    if row["weapon"]:
+        return "weapons"
+    return next((key for key, _, cats in INVENTORY_GROUPS if row["category"] in cats), "other")
+
 
 CATEGORIES = [
     "Arma", "Armadura", "Escudo", "Munición", "Consumible", "Objeto maravilloso", "Anillo", "Varita",
@@ -105,6 +122,7 @@ class Item:
             "attunement": 1 if data.get("attunement") else 0,
             "effects": effects.dumps(effects.from_form(data)),
             "cost_cp": parse_cost(data.get("cost")) if "cost" in data else data.get("cost_cp"),
+            "weapon": weapons.dumps(weapons.from_form(data) if "w_form" in data else data.get("weapon")),
         }
 
     @staticmethod

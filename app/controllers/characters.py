@@ -11,7 +11,8 @@ from ..models.class_data import CASTER_TYPES, HIT_DICE, SPELL_PREP
 from ..models import effects, rules
 from ..models.character import ABILITIES
 from ..models.condition import KINDS as CONDITION_KINDS, PRESETS
-from ..models.item import CATEGORIES, RARITIES
+from ..models import weapons
+from ..models.item import CATEGORIES, INVENTORY_GROUPS, RARITIES, inventory_group
 from ..models.item_trait import KINDS as TRAIT_KINDS
 from .helpers import ListArgs, dm_required, redirect_back, form_int, get_character_or_404, is_dm, login_required
 
@@ -88,6 +89,20 @@ def show(character_id):
     inventory = Inventory.for_character(
         character_id, include_hidden=dm, q=args.q, category=args.category, sort=args.sort,
     )
+    stats = rules.sheet(character, Character.proficiencies(character_id), effects.active(character_id, show_hidden=dm))
+    # Ataques: cada arma (con su cálculo) y, en la tarjeta, las equipadas más el golpe sin armas
+    def attack_for(row):
+        weapon = weapons.loads(row["weapon"])
+        auto = weapons.auto_proficient(character, weapon, row["name"])
+        proficient = auto if row["proficient"] is None else bool(row["proficient"])
+        return {"row": row, "name": row["name"], "weapon": weapon, "auto": auto,
+                "calc": rules.weapon_attack(stats, weapon, proficient)}
+    weapon_attacks = {row["id"]: attack_for(row) for row in inventory if row["weapon"]}
+    equipped = [attack_for(row) for row in Inventory.for_character(character_id, include_hidden=dm)
+                if row["weapon"] and row["equipped"]]
+    unarmed = {"row": None, "name": "Golpe sin armas", "weapon": weapons.UNARMED, "auto": True,
+               "calc": rules.weapon_attack(stats, weapons.UNARMED, True)}
+    groups = {row["id"]: inventory_group(row) for row in inventory}
     return render_template(
         "characters/show.html",
         character=character,
@@ -105,8 +120,14 @@ def show(character_id):
         condition_kinds=CONDITION_KINDS,
         presets=PRESETS,
         log=ActivityLog.for_character(character_id),
-        stats=rules.sheet(character, Character.proficiencies(character_id), effects.active(character_id, show_hidden=dm)),
+        stats=stats,
         has_magic=Magic.has_magic(character, include_hidden=dm),
+        attacks=equipped + [unarmed],
+        weapon_attacks=weapon_attacks,
+        weapon_props=weapons.PROPS,
+        weapon_desc=weapons.describe,
+        groups=groups,
+        inventory_groups=[(key, label, sum(1 for g in groups.values() if g == key)) for key, label, _ in INVENTORY_GROUPS],
     )
 
 
@@ -219,6 +240,17 @@ def toggle_equip(character_id, inventory_id):
     _own_inventory_row(character_id, inventory_id)
     Inventory.toggle(inventory_id, "equipped")
     return _back(character_id)
+
+
+@bp.route("/<int:character_id>/inventory/<int:inventory_id>/proficient", methods=["POST"])
+@login_required
+def set_weapon_proficiency(character_id, inventory_id):
+    """Competencia con un arma concreta: «1», «0» o «auto» (la que da su clase)."""
+    get_character_or_404(character_id)
+    _own_inventory_row(character_id, inventory_id)
+    value = request.form.get("value")
+    Inventory.set_proficient(inventory_id, None if value == "auto" else value == "1")
+    return redirect(url_for("characters.show", character_id=character_id, _anchor="ataques"))
 
 
 @bp.route("/<int:character_id>/inventory/<int:inventory_id>/remove", methods=["POST"])

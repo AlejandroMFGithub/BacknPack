@@ -32,6 +32,8 @@ TARGETS = (
         ("initiative", "Iniciativa"),
         ("hp_max", "PG máximos"),
         ("passive_perception", "Percepción pasiva"),
+        ("weapon_attack", "Ataques con arma"),
+        ("weapon_damage", "Daño con arma"),
         ("spell_dc", "CD de conjuros"),
         ("spell_attack", "Ataque de conjuro"),
         ("saves", "Todas las salvaciones"),

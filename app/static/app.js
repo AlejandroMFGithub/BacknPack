@@ -826,4 +826,33 @@
     var open = button.getAttribute("data-fold-all") === "open";
     document.querySelectorAll("details.fold").forEach(function (fold) { fold.open = open; });
   });
+
+  // --- Catálogo: el bloque «Arma» solo se ve si el objeto es un arma ---------------------------
+
+  document.addEventListener("change", function (e) {
+    if (!e.target.matches(".js-weapon-toggle")) return;
+    e.target.closest(".weapon-editor").querySelector(".weapon-fields").hidden = !e.target.checked;
+  });
+
+  // --- Inventario: pestañas por tipo de objeto (recuerda la última) -------------------------------
+
+  document.querySelectorAll(".inv-tabs").forEach(function (bar) {
+    var list = bar.parentElement.querySelector(".inv-list");
+    function show(key) {
+      var tab = bar.querySelector('[data-tab="' + key + '"]') || bar.querySelector('[data-tab="all"]');
+      key = tab.getAttribute("data-tab");
+      bar.querySelectorAll(".inv-tab").forEach(function (b) { b.setAttribute("aria-selected", String(b === tab)); });
+      list.querySelectorAll(".inv-item").forEach(function (item) {
+        item.hidden = key !== "all" && item.getAttribute("data-group") !== key;
+      });
+      try { localStorage.setItem("invtab", key); } catch (e) { /* nada */ }
+    }
+    bar.addEventListener("click", function (e) {
+      var tab = e.target.closest(".inv-tab");
+      if (tab) show(tab.getAttribute("data-tab"));
+    });
+    var saved = "all";
+    try { saved = localStorage.getItem("invtab") || "all"; } catch (e) { /* nada */ }
+    show(saved);
+  });
 })();

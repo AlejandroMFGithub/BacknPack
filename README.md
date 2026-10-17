@@ -202,6 +202,19 @@ controlador los muestra como mensaje.
   origen; el DM ve su nombre. Lo que viene del nivel o de lo escrito en la ficha no colorea.
 - El motor está en `rules.sheet()` y los efectos en `app/models/effects.py` (JSON en la columna `effects`).
 
+**Ataques e inventario por pestañas**
+- Tarjeta **⚔ Ataques** en la ficha (como la CD de conjuros para un lanzador): cada arma equipada y el golpe sin
+  armas con su **bonificador de ataque** y su **daño** calculados, alcance y propiedades, con el desglose al
+  pulsar. FUE cuerpo a cuerpo, DES a distancia, la mejor de las dos con armas sutiles; + competencia; + el
+  bonificador de las armas mágicas; + los efectos «Ataques con arma» y «Daño con arma» (estilos de combate,
+  bendiciones…). Las armas versátiles muestran también el daño a dos manos.
+- **Competencia automática** según las competencias de su clase (armas sencillas/marciales, armas de druida o
+  armas concretas como la espada larga del bardo). Se puede fijar a mano por arma desde su menú ⋯ del inventario.
+- Las armas del catálogo guardan sus datos de ataque (dado, tipo, sencilla/marcial, propiedades, alcance,
+  bonificador mágico); el DM los edita en el bloque «Es un arma» del catálogo.
+- El **inventario** se separa en pestañas: Armas (con su línea de ataque), Armaduras, Consumibles, Mágicos,
+  Equipo y Otros, con el número de objetos de cada una; la página recuerda la última pestaña elegida.
+
 **Secciones plegables**
 - En la ficha (Tiradas, Bolsa, Efectos, Inventario, Historial), en la pestaña de conjuros (cada nivel, los de
   objetos y «Añadir conjuro») y en la actividad del panel del DM, cada sección se pliega con su flecha. La

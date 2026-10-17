@@ -15,4 +15,33 @@
 <label>Propiedades <input name="properties" value="{{ field(item, 'properties') }}" placeholder="1d8 cortante · versátil (1d10) / CA 14 + Des (máx. 2)…"></label>
 <label>Descripción <textarea name="description">{{ field(item, 'description') }}</textarea></label>
 <label class="inline"><input type="checkbox" name="attunement" value="1" {{ 'checked' if field(item, 'attunement', 0) }}> Requiere sintonía</label>
+{% set w = weapon_of(item if item is defined else none) %}
+<fieldset class="weapon-editor">
+  <legend><label class="inline"><input type="checkbox" name="w_enabled" value="1" class="js-weapon-toggle" {{ 'checked' if w }}>
+    Es un arma <span class="muted small">(sale en la tarjeta de Ataques con su bonificador y su daño)</span></label></legend>
+  <input type="hidden" name="w_form" value="1">
+  <div class="weapon-fields" {{ 'hidden' if not w }}>
+    <div class="form-grid">
+      <label>Daño <input name="w_dice" value="{{ w.dice or '' }}" placeholder="1d8"></label>
+      <label>Tipo de daño
+        <select name="w_type"><option value="">—</option>
+          {% for t in DAMAGE_TYPES %}<option {{ 'selected' if w.type == t }}>{{ t }}</option>{% endfor %}</select></label>
+      <label>Categoría
+        <select name="w_cat"><option value="">— (cualquiera la puede usar)</option>
+          {% for k, label in WEAPON_CATS.items() %}<option value="{{ k }}" {{ 'selected' if w.cat == k }}>{{ label }}</option>{% endfor %}</select></label>
+      <label>Bonificador mágico <input name="w_bonus" type="number" min="0" max="5" value="{{ w.bonus or 0 }}"></label>
+      <label>Daño a dos manos <input name="w_two" value="{{ w.two or '' }}" placeholder="1d10 (si es versátil)"></label>
+      <label>Alcance (ft) <span class="range-pair"><input name="w_range_normal" type="number" min="0" value="{{ w.range[0] if w.range else '' }}" placeholder="normal">
+        / <input name="w_range_long" type="number" min="0" value="{{ w.range[1] if w.range else '' }}" placeholder="largo"></span></label>
+      <label>Arma base <input name="w_base" value="{{ w.base or '' }}" placeholder="Espada larga">
+        <span class="field-hint">Para la competencia por nombre (p. ej. la «espada larga» del bardo).</span></label>
+    </div>
+    <div class="row inline-checks">
+      <label class="inline"><input type="checkbox" name="w_ranged" value="1" {{ 'checked' if w.ranged }}> A distancia (usa DES)</label>
+      {% for k, label in WEAPON_PROPS.items() %}
+      <label class="inline"><input type="checkbox" name="w_props" value="{{ k }}" {{ 'checked' if k in (w.props or []) }}> {{ label }}</label>
+      {% endfor %}
+    </div>
+  </div>
+</fieldset>
 {{ effects_editor(effect_rows(item if item is defined else none), "Se aplican a la ficha mientras el objeto esté equipado.") }}

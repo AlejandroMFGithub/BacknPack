@@ -23,6 +23,16 @@ def import_srd(db):
     _import_items(db, data["items"], spell_ids)
 
 
+def fill_weapons(db):
+    """Pone los datos de ataque (items.weapon) a las armas del SRD que aún no los tienen."""
+    data = load()
+    by_name = {normalize(i["name"]): i["weapon"] for i in data["items"] if i.get("weapon")}
+    rows = db.execute("SELECT id, search_name FROM items WHERE weapon IS NULL").fetchall()
+    db.many("UPDATE items SET weapon = ? WHERE id = ?",
+            [(json.dumps(by_name[r["search_name"]], ensure_ascii=False, separators=(",", ":")), r["id"])
+             for r in rows if r["search_name"] in by_name])
+
+
 def _import_spells(db, spells):
     existing = {r["search_name"]: r for r in db.execute("SELECT * FROM spells").fetchall()}
     new_rows, updates = [], []

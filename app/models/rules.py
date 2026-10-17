@@ -233,4 +233,53 @@ def sheet(character, proficiencies, effects=()):
         "spell_attack": spell_attack,
         "saves": saves,
         "skills": skills,
+        "effects_by_target": by_target,
     }
+
+
+def weapon_attack(stats, weapon, proficient):
+    """Bonificador de ataque y daño de un arma, paso a paso (con los efectos de la ficha).
+
+    FUE para cuerpo a cuerpo, DES a distancia y la mejor de las dos con las armas sutiles.
+    El bonificador mágico del arma suma a ambos; los efectos «weapon_attack» / «weapon_damage» también.
+    """
+    props = set(weapon.get("props") or [])
+    mods, abilities = stats["mods"], stats["abilities"]
+    if weapon.get("ranged"):
+        key = "dexterity"
+    elif "finesse" in props:
+        key = "dexterity" if mods["dexterity"] > mods["strength"] else "strength"
+    else:
+        key = "strength"
+    st = abilities[key]
+    label = f"Mod. {ABILITY_SHORT[key]}" + (f" ({ABILITY_SHORT[key]} {st.total} modificada)" if st.modified else "")
+    if "finesse" in props and not weapon.get("ranged"):
+        label += " · sutil: la mejor de FUE y DES"
+    bonus = weapon.get("bonus") or 0
+    get = lambda target: stats["effects_by_target"].get(target, [])  # noqa: E731
+
+    attack = Stat(mods[key], label, st.signs)
+    if proficient:
+        attack.step(f"+{stats['proficiency']} competencia", attack.total + stats["proficiency"], counts=False)
+    else:
+        attack.lines.append(("Sin competencia con esta arma", attack.total))
+    if bonus:
+        attack.step(f"+{bonus} arma mágica", attack.total + bonus)
+    _apply(attack, get("weapon_attack"))
+
+    damage = Stat(mods[key], label, st.signs)
+    if bonus:
+        damage.step(f"+{bonus} arma mágica", damage.total + bonus)
+    _apply(damage, get("weapon_damage"))
+
+    def roll(dice):
+        if not dice:
+            return None
+        if dice.isdigit():  # golpe sin armas: 1 + mod (mínimo 1)
+            return str(max(1, int(dice) + damage.total))
+        if not damage.total:
+            return dice
+        return f"{dice} {'+' if damage.total > 0 else '−'} {abs(damage.total)}"
+
+    return {"ability": key, "attack": attack, "damage": damage, "roll": roll(weapon.get("dice")),
+            "roll_two": roll(weapon.get("two")), "type": weapon.get("type") or "", "proficient": proficient}

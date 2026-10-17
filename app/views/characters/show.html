@@ -173,6 +173,44 @@
   {% if character.notes %}<p class="small" style="white-space:pre-line">{{ character.notes }}</p>{% endif %}
 </div>
 
+{# Ataques: como la CD de conjuros para un lanzador, aquí el bonificador y el daño de cada arma #}
+{% macro weapon_reach(w) -%}
+{%- if w.range %}{{ w.range[0] }}/{{ w.range[1] }} ft{% elif 'reach' in (w.props or []) %}10 ft{% else %}5 ft{% endif -%}
+{%- endmacro %}
+<details class="card fold" id="ataques" data-fold="sheet-attacks" open>
+  <summary class="fold-head"><h2>⚔ Ataques</h2>
+    {%- set n_weapons = attacks | length - 1 %}
+    <span class="fold-count">{{ n_weapons }} arma{{ 's' if n_weapons != 1 }} equipada{{ 's' if n_weapons != 1 }}</span></summary>
+  <table class="stack attacks">
+    <thead><tr><th>Arma</th><th>Ataque</th><th>Daño</th><th>Alcance</th><th>Propiedades</th></tr></thead>
+    <tbody>
+    {% for a in attacks %}
+    {% set w = a.weapon %}
+    <tr class="{{ 'no-prof' if not a.calc.proficient }} {{ 'unarmed' if not a.row }}">
+      <td><b>{{ a.name }}</b>
+        {% if w.bonus %}<span class="badge badge-buff" title="Arma mágica">+{{ w.bonus }}</span>{% endif %}
+        {% if not a.calc.proficient %}<span class="badge badge-curse" title="No suma la competencia al ataque">sin competencia</span>{% endif %}
+        <div class="muted small">{{ weapon_desc(w) if a.row else 'Puñetazo, patada, cabezazo…' }}</div></td>
+      <td data-label="Ataque">
+        <span class="attack-roll {{ calc_class(a.calc.attack) }}" {{ calc_attrs(a.calc.attack, 'Ataque con ' ~ a.name) }}>
+          <b class="calc-value">{{ a.calc.attack.total | signed }}</b>{{ calc_pop(a.calc.attack, 'Ataque con ' ~ a.name, 'signed') }}</span></td>
+      <td data-label="Daño">
+        <span class="damage-roll {{ calc_class(a.calc.damage) }}" {{ calc_attrs(a.calc.damage, 'Daño de ' ~ a.name) }}>
+          <b class="calc-value">{{ a.calc.roll or '—' }}</b> {{ a.calc.type }}
+          {%- if a.calc.roll_two %}<span class="muted small two-hands">{{ a.calc.roll_two }} a dos manos</span>{% endif %}
+          {{ calc_pop(a.calc.damage, 'Modificador al daño de ' ~ a.name, 'signed') }}</span></td>
+      <td data-label="Alcance">{{ weapon_reach(w) }}</td>
+      <td data-label="Propiedades" class="small">
+        {%- for p in w.props or [] %}{{ weapon_props[p] }}{{ ', ' if not loop.last }}{% else %}<span class="muted">—</span>{% endfor %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="field-hint">Pulsa el ataque o el daño para ver el cálculo: FUE cuerpo a cuerpo, DES a distancia y la mejor de las dos con
+    armas sutiles; + competencia si la tiene (según su clase, o la que fijes en el inventario) y + el bonificador mágico.
+    {% if attacks | length == 1 %}<b>Equipa un arma</b> en el inventario para verla aquí.{% endif %}</p>
+</details>
+
 {# Salvaciones y habilidades: ○ sin competencia · ● competencia · ◉ pericia (competencia doble) #}
 {% macro prof_dot(level) -%}
   <span class="prof-dot prof-{{ level }}" title="{{ ['Sin competencia', 'Competencia', 'Pericia (competencia doble)'][level] }}"></span>
@@ -328,17 +366,30 @@
       · {{ '%g' % weight }} kg</span>
   </summary>
   {% if inventory_total > 0 %}
-    {{ list_toolbar(args, 'Buscar en la mochila…', filters=[('category', 'Categoría', categories)]) }}
+    {{ list_toolbar(args, 'Buscar en la mochila…') }}
+  {% endif %}
+  {% if inventory %}
+  <div class="inv-tabs" role="tablist" aria-label="Tipo de objeto">
+    <button type="button" role="tab" class="inv-tab" data-tab="all" aria-selected="true">Todo <span>{{ inventory | length }}</span></button>
+    {% for key, label, n in inventory_groups if n %}
+    <button type="button" role="tab" class="inv-tab" data-tab="{{ key }}" aria-selected="false">{{ label }} <span>{{ n }}</span></button>
+    {% endfor %}
+  </div>
   {% endif %}
   <div class="inv-list">
     {% for it in inventory %}
-    <div class="inv-item {{ 'hidden-row' if not it.visible }} {{ 'equipped' if it.equipped }}">
+    {% set wa = weapon_attacks.get(it.id) %}
+    <div class="inv-item {{ 'hidden-row' if not it.visible }} {{ 'equipped' if it.equipped }}" data-group="{{ groups[it.id] }}">
       <div class="inv-main">
         <b>{{ it.name }}</b>
         {% if it.equipped %}<span class="badge badge-buff">Equipado</span>{% endif %}
         {% if not it.visible %}<span class="badge badge-hidden">Oculto al jugador</span>{% endif %}
         <div class="muted small">{{ it.category }} · {{ it.rarity }}{% if it.attunement %} · requiere sintonía{% endif %}</div>
         {% if it.properties %}<div class="small">{{ it.properties }}</div>{% endif %}
+        {% if wa %}<div class="attack-line small">⚔ <b>{{ wa.calc.attack.total | signed }}</b> al ataque ·
+          <b>{{ wa.calc.roll or '—' }}</b> {{ wa.calc.type }}{% if wa.calc.roll_two %} ({{ wa.calc.roll_two }} a dos manos){% endif %}
+          {% if not wa.calc.proficient %}<span class="badge badge-curse">sin competencia</span>{% endif %}
+          {% if it.proficient is not none %}<span class="muted">(fijado a mano)</span>{% endif %}</div>{% endif %}
         {% if it.effects %}<div class="effects-line small {{ 'effects-off' if not it.equipped }}">⚙ {{ it.effects | effects_summary }}{% if not it.equipped %} <span class="muted">(al equiparlo)</span>{% endif %}</div>{% endif %}
         {% if it.description %}<div class="muted small">{{ it.description }}</div>{% endif %}
       </div>
@@ -352,6 +403,16 @@
         <details class="menu">
           <summary aria-label="Más acciones">⋯</summary>
           <div class="menu-panel">
+            {% if wa %}
+            <div class="menu-label">Competencia con esta arma{{ ' (su clase: ' ~ ('sí' if wa.auto else 'no') ~ ')' }}</div>
+            {% for value, label in [('1', '✓ Competente'), ('0', '✗ Sin competencia'), ('auto', '↺ Según su clase')] %}
+              {% set current = ('auto' if it.proficient is none else (it.proficient | string)) == value %}
+              <form method="post" action="{{ url_for('characters.set_weapon_proficiency', character_id=character.id, inventory_id=it.id) }}">
+                <input type="hidden" name="value" value="{{ value }}">
+                <button {{ 'disabled' if current }}>{{ label }}{{ ' ·' if current }}{% if current %} <span class="muted">actual</span>{% endif %}</button></form>
+            {% endfor %}
+            <hr>
+            {% endif %}
             {% if dm %}
             <form method="post" action="{{ url_for('characters.toggle_item_visibility', character_id=character.id, inventory_id=it.id) }}">
               <button>{{ '🙈 Ocultar al jugador' if it.visible else '👁️ Revelar al jugador' }}</button></form>

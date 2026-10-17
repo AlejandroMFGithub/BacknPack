@@ -1219,3 +1219,36 @@ main > .sheet-head > div:first-child { min-width: 0; }
 @media (max-width: 640px) {
   .fold-count { flex-basis: 100%; margin-left: 1.3rem; text-align: left; }
 }
+
+/* --- Ataques ------------------------------------------------------------------------------- */
+table.attacks td { vertical-align: middle; }
+.attack-roll, .damage-roll { display: inline-block; padding: .1rem .35rem; border-radius: 6px; }
+.attack-roll b { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.damage-roll b { font-size: 1.05rem; }
+.attack-roll:hover, .damage-roll:hover { background: var(--paper-hover); }
+.two-hands { display: block; }
+table.attacks tr.unarmed td { color: var(--muted); }
+table.attacks tr.unarmed b { color: var(--ink); }
+table.attacks tr.no-prof .attack-roll b { color: var(--mod-down); }
+.attack-line { margin-top: .15rem; color: #6b2a17; }
+.attack-line b { color: var(--ink); }
+
+/* --- Inventario en pestañas ------------------------------------------------------------------ */
+.inv-tabs { display: flex; gap: .3rem; flex-wrap: wrap; margin: .2rem 0 .7rem; border-bottom: 1px solid var(--line); padding-bottom: .5rem; }
+.inv-tab {
+  padding: .3rem .75rem; border-radius: 999px; font-size: .85rem; background: transparent; color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+.inv-tab span { display: inline-block; min-width: 1.4em; margin-left: .15rem; padding: 0 .3rem; border-radius: 999px;
+  background: var(--paper-active); font-size: .75rem; text-align: center; }
+.inv-tab:hover { background: var(--paper-hover); filter: none; }
+.inv-tab[aria-selected="true"] { background: var(--ink); color: #f6ead2; border-color: var(--ink); }
+.inv-tab[aria-selected="true"] span { background: var(--gold); color: var(--ink); }
+.weapon-editor { border: 1px dashed var(--line-strong); border-radius: 8px; padding: .4rem .7rem .6rem; margin: .4rem 0 .7rem; }
+.weapon-editor legend { font-size: .9rem; font-weight: 600; padding: 0 .3rem; }
+.range-pair { display: flex; align-items: center; gap: .3rem; }
+.range-pair input { min-width: 0; }
+@media (max-width: 640px) {
+  .inv-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+  .inv-tab { flex: none; }
+}

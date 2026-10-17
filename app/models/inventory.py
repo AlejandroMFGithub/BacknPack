@@ -7,7 +7,7 @@ from .listing import sort_sql
 
 _SELECT = """
     SELECT ii.*, i.name, i.category, i.rarity, i.weight, i.properties,
-           i.description, i.attunement, i.effects
+           i.description, i.attunement, i.effects, i.weapon
     FROM inventory_items ii JOIN items i ON i.id = ii.item_id
 """
 
@@ -166,6 +166,14 @@ class Inventory:
         return row
 
     # --- Operaciones simples con commit ---------------------------------------
+
+    @staticmethod
+    def set_proficient(inventory_id, value):
+        """Competencia con esta arma: True / False fijada a mano, None = la de su clase."""
+        db = get_db()
+        db.execute("UPDATE inventory_items SET proficient = ? WHERE id = ?",
+                   (None if value is None else int(bool(value)), inventory_id))
+        db.commit()
 
     @staticmethod
     def toggle(inventory_id, column):

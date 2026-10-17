@@ -186,6 +186,11 @@ MIGRATIONS = [
     "ALTER TABLE items ADD COLUMN cost_cp INTEGER;",
     # 19: catálogo del SRD 5.1 en castellano: conjuros, equipo y objetos mágicos con sus efectos
     lambda db: _import_srd(db),
+    # 20: datos de ataque de las armas y competencia fijada a mano con un arma concreta del inventario
+    """ALTER TABLE items ADD COLUMN weapon TEXT;
+       ALTER TABLE inventory_items ADD COLUMN proficient INTEGER;""",
+    # 21: rellena los datos de ataque de las armas del SRD que ya están en el catálogo
+    lambda db: _srd_weapons(db),
 ]
 
 # Columnas de texto libre donde puede haber distancias
@@ -218,6 +223,11 @@ def _distances_to_feet(db):
             db.execute(f"UPDATE {table} SET {sets} WHERE id = ?", (*changed.values(), row["id"]))
 
 CAMPAIGN_TABLES = ("characters", "shops", "loot_pools")
+
+
+def _srd_weapons(db):
+    from .models.srd_import import fill_weapons
+    fill_weapons(db)
 
 
 def _import_srd(db):

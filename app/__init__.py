@@ -93,6 +93,19 @@ def create_app(test_config=None):
     app.add_template_filter(effects.summary, "effects_summary")
     from .models.item import format_cost
     app.add_template_filter(format_cost, "coins")
+    from .models import weapons
+    app.jinja_env.globals.update(WEAPON_PROPS=weapons.PROPS, DAMAGE_TYPES=weapons.DAMAGE_TYPES,
+                                 WEAPON_CATS=weapons.CATEGORIES)
+
+    @app.template_global()
+    def weapon_of(obj):
+        """Datos de arma de un objeto (o los del formulario si volvió con un error)."""
+        if request.method == "POST" and "w_form" in request.form:
+            try:
+                return weapons.from_form(request.form) or {}
+            except Exception:  # noqa: BLE001 — el error ya se ha mostrado
+                return {}
+        return weapons.loads(field(obj, "weapon", None)) or {}
 
     @app.template_global()
     def effect_rows(obj=None):

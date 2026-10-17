@@ -142,6 +142,42 @@ def weapon_text(e):
     return " · ".join(parts)
 
 
+# Armas mágicas: arma base del SRD (o None si vale cualquiera) y bonificador mágico
+MAGIC_WEAPONS = {
+    "berserker-axe": ("battleaxe", 1), "dagger-of-venom": ("dagger", 1), "dancing-sword": ("longsword", 0),
+    "defender": ("longsword", 3), "dragon-slayer": ("longsword", 1), "dwarven-thrower": ("warhammer", 3),
+    "flame-tongue": ("longsword", 0), "frost-brand": ("longsword", 0), "giant-slayer": ("longsword", 1),
+    "hammer-of-thunderbolts": ("maul", 1), "holy-avenger": ("longsword", 3), "javelin-of-lightning": ("javelin", 0),
+    "luck-blade": ("longsword", 1), "mace-of-disruption": ("mace", 0), "mace-of-smiting": ("mace", 1),
+    "mace-of-terror": ("mace", 0), "nine-lives-stealer": ("longsword", 2), "oathbow": ("longbow", 0),
+    "scimitar-of-speed": ("scimitar", 2), "sun-blade": ("longsword", 2), "sword-of-life-stealing": ("longsword", 0),
+    "sword-of-sharpness": ("longsword", 0), "sword-of-wounding": ("longsword", 0), "trident-of-fish-command": ("trident", 0),
+    "vicious-weapon": (None, 0), "vorpal-sword": ("longsword", 3), "weapon-1": (None, 1), "weapon-2": (None, 2),
+    "weapon-3": (None, 3), "staff-of-power": ("quarterstaff", 2), "staff-of-the-magi": ("quarterstaff", 2),
+    "staff-of-striking": ("quarterstaff", 3), "staff-of-the-woodlands": ("quarterstaff", 2),
+    "staff-of-thunder-and-lightning": ("quarterstaff", 2), "staff-of-withering": ("quarterstaff", 0),
+    "staff-of-charming": ("quarterstaff", 0), "staff-of-fire": ("quarterstaff", 0), "staff-of-frost": ("quarterstaff", 0),
+    "staff-of-healing": ("quarterstaff", 0), "staff-of-swarming-insects": ("quarterstaff", 0),
+    "rod-of-lordly-might": ("mace", 3),
+}
+WEAPON_PROPS = ["finesse", "light", "heavy", "two-handed", "reach", "thrown", "ammunition", "loading", "versatile", "special"]
+
+
+def weapon_data(e, bonus=0):
+    """Datos de ataque de un arma del SRD (los usa la tarjeta de Ataques de la ficha)."""
+    dmg = e.get("damage") or {}
+    reach = e.get("throw_range") or (e.get("range") if e["weapon_range"] == "Ranged" else None)
+    return {
+        "dice": dmg.get("damage_dice"), "type": DAMAGE.get(dmg.get("damage_type", {}).get("name"), ""),
+        "cat": "martial" if e["weapon_category"] == "Martial" else "simple",
+        "ranged": e["weapon_range"] == "Ranged",
+        "props": [p["index"] for p in e.get("properties", []) if p["index"] in WEAPON_PROPS],
+        "two": (e.get("two_handed_damage") or {}).get("damage_dice"),
+        "range": [reach["normal"], reach["long"]] if reach and reach.get("long") else None,
+        "bonus": bonus, "base": EQUIPMENT[e["index"]],
+    }
+
+
 def equipment_category(e):
     cat = e["equipment_category"]["name"]
     if cat == "Weapon":
@@ -184,15 +220,15 @@ def build(src):
         if e["index"] not in EQUIPMENT:
             missing.append(("equipment", e["index"]))
             continue
-        props, effects = "", None
+        props, effects, weapon = "", None, None
         if e["equipment_category"]["name"] == "Armor":
             props, effects = armor_text(e)
         elif e["equipment_category"]["name"] == "Weapon":
-            props = weapon_text(e)
+            props, weapon = weapon_text(e), weapon_data(e)
         items.append({
             "srd": e["index"], "name": EQUIPMENT[e["index"]], "category": equipment_category(e), "rarity": "Común",
             "weight": kg(e.get("weight")), "properties": props, "description": DESCRIPTIONS.get(e["index"], ""),
-            "attunement": 0, "effects": effects, "cost_cp": cost_cp(e.get("cost")), "spells": [],
+            "attunement": 0, "effects": effects, "cost_cp": cost_cp(e.get("cost")), "spells": [], "weapon": weapon,
         })
 
     for m in magic_raw:
@@ -214,7 +250,7 @@ def build(src):
                     "srd": f"{key}-{akey}", "name": f"{EQUIPMENT[akey]} +{bonus}", "category": "Armadura",
                     "rarity": rarity, "weight": kg(a.get("weight")), "properties": f"{text} · +{bonus} a la CA",
                     "description": f"Armadura mágica: +{bonus} a la CA.", "attunement": 0, "effects": eff,
-                    "cost_cp": None, "spells": [],
+                    "cost_cp": None, "spells": [], "weapon": None,
                 })
             continue
         if key in VARIANTS:
@@ -230,11 +266,21 @@ def build(src):
             missing.append(("magic", key))
             continue
         weight_key = next((k for k in MAGIC_BASE_WEIGHT if key.startswith(k)), None)
+        weapon = None
+        if key in MAGIC_WEAPONS:
+            base_key, bonus = MAGIC_WEAPONS[key]
+            if base_key:
+                weapon = weapon_data(base[base_key], bonus)
+                if key == "sun-blade":  # hoja de luz: daño radiante
+                    weapon["type"] = "radiante"
+            else:
+                weapon = {"dice": None, "type": "", "cat": None, "ranged": False, "props": [], "two": None,
+                          "range": None, "bonus": bonus, "base": None}
         items.append({
             "srd": key, "name": name, "category": category, "rarity": rarity,
             "weight": kg(MAGIC_BASE_WEIGHT[weight_key]) if weight_key else 0,
             "properties": "", "description": summary, "attunement": attune,
-            "effects": EFFECTS.get(key), "cost_cp": None, "spells": GRANTS.get(key, []),
+            "effects": EFFECTS.get(key), "cost_cp": None, "spells": GRANTS.get(key, []), "weapon": weapon,
         })
 
     if missing:
