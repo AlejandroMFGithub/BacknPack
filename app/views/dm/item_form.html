@@ -2,7 +2,7 @@
 {% block title %}Editar {{ item.name }}{% endblock %}
 {% block back_url %}{{ url_for('dm.items') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import trait_chip, trait_form %}
+{% from "_macros.html" import trait_chip, trait_form, picker with context %}
 <h1>Editar {{ item.name }}</h1>
 <form method="post" class="card">
   {% include "dm/_item_fields.html" %}
@@ -27,5 +27,24 @@
     <p class="muted">Sin cualidades.</p>
   {% endfor %}
   {{ trait_form(url_for('dm.add_item_trait', item_id=item.id), trait_kinds) }}
+</div>
+
+<div class="card" id="conjuros">
+  <h2>Conjuros que concede</h2>
+  <p class="muted small">Quien lleve equipado este objeto verá estos conjuros en su pestaña de conjuros (se lanzan con el
+    objeto, sin gastar espacios). Para las cargas, añade una cualidad de «Usos limitados».</p>
+  {% for s in item_spells %}
+  <div class="trait-row">
+    <span><b>{{ s.name }}</b> <span class="muted small">· {{ 'Truco' if s.level == 0 else 'Nivel ' ~ s.level }} · {{ s.school or '—' }}</span></span>
+    <form class="inline" method="post" action="{{ url_for('library.remove_item_spell', item_id=item.id, spell_id=s.id) }}">
+      <button class="btn-small btn-danger">Quitar</button></form>
+  </div>
+  {% else %}
+  <p class="muted">No concede conjuros.</p>
+  {% endfor %}
+  <form method="post" action="{{ url_for('library.add_item_spell', item_id=item.id) }}" class="row">
+    {{ picker('spell_id', url_for('api.spells'), 'Buscar conjuro…') }}
+    <button class="btn-small">Añadir conjuro</button>
+  </form>
 </div>
 {% endblock %}

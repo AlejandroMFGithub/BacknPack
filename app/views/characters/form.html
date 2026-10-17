@@ -14,7 +14,6 @@
   <div class="form-grid">
     <label>Nombre <input name="name" value="{{ field(character, 'name') }}" required></label>
     <label>Raza <input name="race" value="{{ field(character, 'race') }}"></label>
-    <label>Clase <input name="class_name" value="{{ field(character, 'class_name') }}"></label>
     <label>Nivel <input name="level" type="number" min="1" max="20" value="{{ field(character, 'level', 1) }}"></label>
     <label>Trasfondo <input name="background" value="{{ field(character, 'background') }}"></label>
     <label>Alineamiento <input name="alignment" value="{{ field(character, 'alignment') }}"></label>
@@ -45,6 +44,73 @@
     {% endif %}
   </div>
 
+  {# --- Clase y subclase: al elegirlas, app.js rellena los valores por defecto (editables) --- #}
+  {% set cur_class = field(character, 'class_id') | string %}
+  {% if cur_class in ('', 'None') and field(character, 'class_name') %}{% set cur_class = 'custom' %}{% endif %}
+  {% set cur_sub = field(character, 'subclass_id') | string %}
+  {% if cur_sub in ('', 'None') and field(character, 'subclass_name') %}{% set cur_sub = 'custom' %}{% endif %}
+  <h3 id="clase">Clase</h3>
+  <div class="class-picker" data-catalog='{{ class_catalog | tojson }}' data-creating="{{ '0' if editing else '1' }}">
+    <div class="form-grid">
+      <label>Clase
+        <select name="class_id" class="js-class">
+          <option value="">— Sin clase —</option>
+          <optgroup label="Oficiales">
+            {% for c in class_catalog if c.official %}<option value="{{ c.id }}" {{ 'selected' if cur_class == c.id | string }}>{{ c.name }}</option>{% endfor %}
+          </optgroup>
+          {% if class_catalog | rejectattr('official') | list %}
+          <optgroup label="Homebrew">
+            {% for c in class_catalog if not c.official %}<option value="{{ c.id }}" {{ 'selected' if cur_class == c.id | string }}>{{ c.name }}</option>{% endfor %}
+          </optgroup>
+          {% endif %}
+          <option value="custom" {{ 'selected' if cur_class == 'custom' }}>✎ Personalizada (escribe el nombre)</option>
+        </select>
+      </label>
+      <label class="js-class-name" {{ 'hidden' if cur_class != 'custom' }}>Nombre de la clase
+        <input name="class_name" value="{{ field(character, 'class_name') if cur_class == 'custom' }}" placeholder="Cazador de brujas…"></label>
+      <label>Subclase
+        <select name="subclass_id" class="js-subclass">
+          <option value="">— Sin subclase —</option>
+          {% for c in class_catalog %}{% for s in c.subclasses %}
+            <option value="{{ s.id }}" data-class="{{ c.id }}" {{ 'selected' if cur_sub == s.id | string }}>{{ s.name }}</option>
+          {% endfor %}{% endfor %}
+          <option value="custom" {{ 'selected' if cur_sub == 'custom' }}>✎ Personalizada (escribe el nombre)</option>
+        </select>
+        <span class="field-hint js-subclass-hint"></span>
+      </label>
+      <label class="js-subclass-name" {{ 'hidden' if cur_sub != 'custom' }}>Nombre de la subclase
+        <input name="subclass_name" value="{{ field(character, 'subclass_name') if cur_sub == 'custom' }}"></label>
+    </div>
+    <p class="field-hint js-class-profs"></p>
+
+    <h3>Dado de golpe y magia</h3>
+    <p class="field-hint">Al elegir clase o subclase se ponen sus valores por defecto (también las salvaciones
+      {%- if not editing %} y los PG{% endif %}). Puedes cambiarlos a mano: son los que cuentan.</p>
+    <div class="form-grid">
+      <label>Dado de golpe
+        <select name="hit_die" class="js-hit-die">
+          <option value="">—</option>
+          {% for d in hit_dice %}<option value="{{ d }}" {{ 'selected' if field(character, 'hit_die') | string == d | string }}>d{{ d }}</option>{% endfor %}
+        </select></label>
+      <label>Lanzador de conjuros
+        <select name="caster" class="js-caster">
+          {% for k, label in caster_types.items() %}<option value="{{ k }}" {{ 'selected' if field(character, 'caster', 'none') == k }}>{{ label }}</option>{% endfor %}
+        </select>
+        <span class="field-hint">Decide sus espacios de conjuro según el nivel.</span></label>
+      <label>Característica mágica
+        <select name="spell_ability" class="js-spell-ability">
+          <option value="">— Ninguna —</option>
+          {% for key, short, name in save_list %}<option value="{{ key }}" {{ 'selected' if field(character, 'spell_ability') == key }}>{{ name }}</option>{% endfor %}
+        </select>
+        <span class="field-hint">Para la CD y el ataque de conjuro (también para conjuros de raza u objeto).</span></label>
+      <label>Conjuros
+        <select name="spell_prep" class="js-spell-prep">
+          <option value="">—</option>
+          {% for k, label in spell_prep.items() %}<option value="{{ k }}" {{ 'selected' if field(character, 'spell_prep') == k }}>{{ label }}</option>{% endfor %}
+        </select></label>
+    </div>
+  </div>
+
   <h3>Características</h3>
   <div class="form-grid">
     {% for key, label in abilities %}
@@ -54,8 +120,8 @@
 
   <h3>Combate</h3>
   <div class="form-grid">
-    <label>PG máximos <input name="hp_max" type="number" min="0" value="{{ field(character, 'hp_max', 10) }}"></label>
-    <label>PG actuales <input name="hp_current" type="number" value="{{ field(character, 'hp_current', 10) }}"></label>
+    <label>PG máximos <input name="hp_max" class="js-hp-max" type="number" min="0" value="{{ field(character, 'hp_max', 10) }}"></label>
+    <label>PG actuales <input name="hp_current" class="js-hp-current" type="number" value="{{ field(character, 'hp_current', 10) }}"></label>
     <label>CA sin armadura <input name="armor_class" type="number" min="0" value="{{ field(character, 'armor_class', 10) }}">
       <span class="field-hint">10 + mod. DES, o tu armadura natural. La armadura y el escudo equipados la cambian solos.</span></label>
     <label>Velocidad (ft) <input name="speed" type="number" step="5" min="0" value="{{ field(character, 'speed', 30) | int }}">
@@ -71,6 +137,7 @@
   <h3 id="competencias">Competencias</h3>
   <p class="field-hint">Marca las tiradas de salvación y habilidades en las que el personaje es competente.
     La <b>pericia</b> (pícaros, bardos…) suma el doble de la competencia.</p>
+  <input type="hidden" name="profs_form" value="1">
   <div class="prof-form">
     <fieldset class="prof-saves">
       <legend>Tiradas de salvación</legend>

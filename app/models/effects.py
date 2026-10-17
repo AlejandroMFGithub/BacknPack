@@ -32,6 +32,8 @@ TARGETS = (
         ("initiative", "Iniciativa"),
         ("hp_max", "PG máximos"),
         ("passive_perception", "Percepción pasiva"),
+        ("spell_dc", "CD de conjuros"),
+        ("spell_attack", "Ataque de conjuro"),
         ("saves", "Todas las salvaciones"),
         ("skills", "Todas las habilidades"),
     ]
@@ -41,10 +43,10 @@ TARGETS = (
 TARGET_LABELS = dict(TARGETS)
 # Para el desplegable del editor: (grupo, [(clave, etiqueta)])
 TARGET_GROUPS = [
-    ("Características", TARGETS[:6]),
-    ("Combate", TARGETS[6:13]),
-    ("Una salvación", TARGETS[13:19]),
-    ("Una habilidad", TARGETS[19:]),
+    ("Características", [t for t in TARGETS if t[0] in {k for k, _, _ in ABILITIES}]),
+    ("Combate y magia", [t for t in TARGETS if ":" not in t[0] and t[0] not in {k for k, _, _ in ABILITIES}]),
+    ("Una salvación", [t for t in TARGETS if t[0].startswith("save:")]),
+    ("Una habilidad", [t for t in TARGETS if t[0].startswith("skill:")]),
 ]
 # Límite del modificador de DES en armaduras: ligera sin límite, intermedia máx. 2, pesada sin DES
 CAP_OPTIONS = [("none", "+ DES (sin límite)"), ("2", "+ DES (máx. 2)"), ("3", "+ DES (máx. 3)"), ("0", "sin DES")]

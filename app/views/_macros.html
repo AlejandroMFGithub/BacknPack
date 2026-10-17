@@ -238,3 +238,21 @@ tabindex="0" role="button" aria-expanded="false" aria-label="{{ label }}: ver c�
 </form>
 {% endif %}
 {%- endmacro %}
+
+{# Pestañas de la ficha: Ficha y, si tiene magia (o lo mira el DM), Conjuros. #}
+{% macro sheet_tabs(character, active, has_magic) -%}
+{% if has_magic or is_dm() %}
+<nav class="sheet-tabs" aria-label="Secciones de la ficha">
+  <a href="{{ url_for('characters.show', character_id=character.id) }}" class="{{ 'active' if active == 'sheet' }}"
+     {{ 'aria-current=page' if active == 'sheet' }}>📜 Ficha</a>
+  <a href="{{ url_for('spells.show', character_id=character.id) }}" class="{{ 'active' if active == 'spells' }}"
+     {{ 'aria-current=page' if active == 'spells' }}>✨ Conjuros{% if not has_magic %} <span class="muted small">(sin magia)</span>{% endif %}</a>
+</nav>
+{% endif %}
+{%- endmacro %}
+
+{# «Explorador (Cazador) · nivel 3 · DG d10» #}
+{% macro class_line(c) -%}
+{{ c.class_name or '¿?' }}{% if c.subclass_name %} ({{ c.subclass_name }}){% endif %} nivel {{ c.level }}
+{%- if c.hit_die %} · <span title="Dados de golpe">DG {{ c.level }}d{{ c.hit_die }}</span>{% endif %}
+{%- endmacro %}

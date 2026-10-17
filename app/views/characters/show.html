@@ -2,11 +2,12 @@
 {% block title %}{{ character.name }}{% endblock %}
 {% block back_url %}{{ url_for('characters.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import avatar, trait_chip, trait_form, list_toolbar, picker, calc_class, calc_attrs, calc_pop, effects_editor, hidden_badge, hide_toggle with context %}
+{% from "_macros.html" import avatar, trait_chip, trait_form, list_toolbar, picker, calc_class, calc_attrs, calc_pop, effects_editor, hidden_badge, hide_toggle, sheet_tabs, class_line with context %}
 {% set dm = is_dm() %}
 {% set item_filters = [{'name': 'category', 'label': 'Categoría', 'options': categories},
                        {'name': 'rarity', 'label': 'Rareza', 'options': rarities}] %}
 
+{{ sheet_tabs(character, 'sheet', has_magic) }}
 <div class="card">
   <div class="sheet-head">
     <div class="sheet-id">
@@ -37,7 +38,7 @@
       <div>
         <h1>{{ character.name }}</h1>
         {% if character.hidden_by %}<div>{{ hidden_badge(character) }}</div>{% endif %}
-        <div>{{ character.race or '¿?' }} · {{ character.class_name or '¿?' }} nivel {{ character.level }}
+        <div>{{ character.race or '¿?' }} · {{ class_line(character) }}
           {% if character.background %} · {{ character.background }}{% endif %}
           {% if character.alignment %} · {{ character.alignment }}{% endif %}</div>
         <div class="muted small">🗺 {{ character.campaign_name }}{% if dm %} · jugador: {{ character.owner }}{% endif %}</div>

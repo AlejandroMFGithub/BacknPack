@@ -1,6 +1,10 @@
 -- Esquema base de BacknPack, versión 0. Escrito para SQLite; db.py lo traduce a PostgreSQL.
 -- Los cambios posteriores están en migrations.py.
 
+-- Tablas creadas por migraciones posteriores (dependen de las de abajo)
+DROP TABLE IF EXISTS character_spell_slots;
+DROP TABLE IF EXISTS character_spells;
+DROP TABLE IF EXISTS item_spells;
 DROP TABLE IF EXISTS character_proficiencies;
 DROP TABLE IF EXISTS character_avatars;
 DROP TABLE IF EXISTS item_traits;
@@ -17,6 +21,9 @@ DROP TABLE IF EXISTS items;
 DROP TABLE IF EXISTS character_currencies;
 DROP TABLE IF EXISTS currencies;
 DROP TABLE IF EXISTS characters;
+DROP TABLE IF EXISTS subclasses;
+DROP TABLE IF EXISTS classes;
+DROP TABLE IF EXISTS spells;
 DROP TABLE IF EXISTS campaign_members;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS campaigns;

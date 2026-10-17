@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}Conjuros · {{ character.name }}{% endblock %}
+{% block back_url %}{{ url_for('characters.index') }}{% endblock %}
+{% block content %}
+{% from "_macros.html" import avatar, picker, sheet_tabs, class_line, calc_class, calc_attrs, calc_pop with context %}
+{% set dm = is_dm() %}
+{% set prepares = character.spell_prep in ('prepared', 'prepared_half') %}
+
+{{ sheet_tabs(character, 'spells', has_magic) }}
+<div class="card">
+  <div class="sheet-id">
+    {{ avatar(character.id, character.name, character.avatar_version, 'md') }}
+    <div>
+      <h1>Conjuros de {{ character.name }}</h1>
+      <div class="muted">{{ class_line(character) }}{% if character.caster != 'none' %} · {{ caster_types[character.caster].split(' (')[0] }}{% endif %}</div>
+    </div>
+  </div>
+
+  {% if info.ability %}
+  <div class="combat-strip spell-strip">
+    <div class="combat-box calc" tabindex="0" role="button" aria-expanded="false" aria-label="Característica mágica">
+      <span class="combat-label">Aptitud mágica</span><b>{{ info.ability_name }}</b>
+      <small>mod. {{ stats.mods[info.ability] | signed }}</small>
+      <span class="calc-pop" role="tooltip"><span class="calc-title">Característica mágica</span>
+        <span class="calc-line calc-base"><span>La decide su clase; se cambia en «Editar ficha».</span><b></b></span></span>
+    </div>
+    <div class="combat-box {{ calc_class(stats.spell_dc) }}" {{ calc_attrs(stats.spell_dc, 'CD de salvación de conjuros') }}>
+      <span class="combat-label">CD de salvación</span><b class="calc-value">{{ stats.spell_dc.total }}</b>
+      {{ calc_pop(stats.spell_dc, 'CD de salvación de conjuros') }}
+    </div>
+    <div class="combat-box {{ calc_class(stats.spell_attack) }}" {{ calc_attrs(stats.spell_attack, 'Ataque de conjuro') }}>
+      <span class="combat-label">Ataque de conjuro</span><b class="calc-value">{{ stats.spell_attack.total | signed }}</b>
+      {{ calc_pop(stats.spell_attack, 'Ataque de conjuro', 'signed') }}
+    </div>
+    <div class="combat-box">
+      <span class="combat-label">{{ info.count_label }}</span>
+      <b class="{{ 'over-limit' if info.count_max is not none and info.count > info.count_max }}">{{ info.count }}{% if info.count_max is not none %} <small>/ {{ info.count_max }}</small>{% endif %}</b>
+      <small>trucos {{ info.cantrips }}{% if info.cantrips_max is not none %} / {{ info.cantrips_max }}{% endif %}</small>
+    </div>
+  </div>
+  {% if info.count_max is not none and info.count > info.count_max %}
+    <p class="field-hint warn">Tiene más conjuros {{ info.count_label | lower }} de los que le corresponden a su nivel ({{ info.count_max }}).</p>
+  {% endif %}
+  {% else %}
+  <p class="field-hint">Sin característica mágica: elige una en <a href="{{ url_for('characters.edit', character_id=character.id) }}#clase">Editar ficha</a>
+    para calcular la CD y el ataque de conjuro (también sirve para conjuros de raza, dotes u objetos).</p>
+  {% endif %}
+</div>
+
+<!-- Espacios de conjuro -->
+<div class="card" id="espacios">
+  <div class="row spread">
+    <h2>Espacios de conjuro</h2>
+    <div class="row">
+      {% if slots | selectattr('key', 'equalto', 'pact') | list %}
+      <form class="inline" method="post" action="{{ url_for('spells.rest', character_id=character.id) }}">
+        <input type="hidden" name="kind" value="short"><button class="btn-small btn-ghost" title="Recupera los espacios de pacto">☕ Descanso corto</button></form>
+      {% endif %}
+      {% if slots %}
+      <form class="inline" method="post" action="{{ url_for('spells.rest', character_id=character.id) }}">
+        <input type="hidden" name="kind" value="long"><button class="btn-small" title="Recupera todos los espacios">🌙 Descanso largo</button></form>
+      {% endif %}
+    </div>
+  </div>
+  {% for s in slots %}
+  <div class="slot-row">
+    <span class="slot-label">{{ s.label }}{% if s.overridden %} <span class="badge" title="Ajustado a mano (la tabla de su clase da {{ s.base }})">✎</span>{% endif %}</span>
+    <span class="slot-pips">
+      {% for i in range(s.max) %}
+        {% set spent = i >= s.max - s.used %}
+        <form class="inline" method="post" action="{{ url_for('spells.slot', character_id=character.id, slot=s.key, action='restore' if spent else 'use') }}">
+          <button class="pip {{ 'spent' if spent }}" title="{{ 'Recuperar un espacio' if spent else 'Gastar un espacio' }}"
+                  aria-label="{{ s.label }}: {{ 'recuperar' if spent else 'gastar' }} un espacio"></button></form>
+      {% endfor %}
+    </span>
+    <span class="muted small">{{ s.max - s.used }} / {{ s.max }} libres</span>
+  </div>
+  {% else %}
+  <p class="muted">Sin espacios de conjuro{% if character.caster != 'none' %} a este nivel{% endif %}.
+    {% if info.cantrips or item_spells %}Los trucos y los conjuros de objetos no los necesitan.{% endif %}</p>
+  {% endfor %}
+  <details class="trait-form">
+    <summary class="small">✎ Ajustar espacios</summary>
+    <form method="post" action="{{ url_for('spells.set_slots', character_id=character.id) }}">
+      <p class="field-hint">Vacío = lo que da la tabla de su clase y nivel. Útil para homebrew, dotes u objetos.</p>
+      <div class="slot-edit">
+        {% set by_key = {} %}{% for s in slots %}{% set _ = by_key.update({s.key: s}) %}{% endfor %}
+        {% for n in range(1, 10) %}
+        <label>Nv. {{ n }} <input type="number" name="max_{{ n }}" min="0" max="9" inputmode="numeric"
+               value="{{ by_key[n | string].max if n | string in by_key and by_key[n | string].overridden }}"
+               placeholder="{{ by_key[n | string].base if n | string in by_key else 0 }}"></label>
+        {% endfor %}
+        <label>Pacto <input type="number" name="max_pact" min="0" max="9" inputmode="numeric"
+               value="{{ by_key['pact'].max if 'pact' in by_key and by_key['pact'].overridden }}"
+               placeholder="{{ by_key['pact'].base if 'pact' in by_key else 0 }}"></label>
+      </div>
+      <button class="btn-small">Guardar espacios</button>
+    </form>
+  </details>
+</div>
+
+{# Una fila de conjuro: nombre y detalles desplegables, preparar, lanzar y menú #}
+{% macro spell_row(s, entry=true) -%}
+{% set unprepared = entry and prepares and s.level > 0 and not s.prepared %}
+<div class="spell-row {{ 'is-unprepared' if unprepared }}">
+  {% if entry and prepares and s.level > 0 %}
+    {% if s.always_prepared %}
+    <span class="prep-dot always" title="Siempre preparado (no cuenta para el máximo)">★</span>
+    {% else %}
+    <form class="inline" method="post" action="{{ url_for('spells.prepare', character_id=character.id, entry_id=s.entry_id) }}">
+      <button class="prep-dot {{ 'on' if s.prepared }}" aria-pressed="{{ 'true' if s.prepared else 'false' }}"
+              title="{{ 'Quitar de preparados' if s.prepared else 'Preparar' }}" aria-label="{{ 'Quitar de preparados' if s.prepared else 'Preparar' }} {{ s.name }}"></button></form>
+    {% endif %}
+  {% endif %}
+  <details class="spell-detail">
+    <summary>
+      <b>{{ s.name }}</b>
+      {% if s.concentration %}<span class="badge badge-tiny" title="Concentración">C</span>{% endif %}
+      {% if s.ritual %}<span class="badge badge-tiny" title="Ritual">R</span>{% endif %}
+      {% if not s.official %}<span class="badge badge-tiny badge-homebrew" title="Homebrew">HB</span>{% endif %}
+      <span class="muted small spell-meta">{{ s.school or '—' }} · {{ s.casting_time }}{% if s.spell_range %} · {{ s.spell_range }}{% endif %}</span>
+    </summary>
+    <div class="spell-body small">
+      <div class="muted">Componentes: {{ s.components or '—' }} · Duración: {{ s.duration }}
+        {% if entry %} · Origen: {{ sources.get(s.source, s.source) }}{% else %} · Del objeto: <b>{{ s.item_name }}</b>{% endif %}</div>
+      {% if s.description %}<p>{{ s.description }}</p>{% endif %}
+    </div>
+  </details>
+  {% if entry %}
+  <div class="spell-actions">
+    {% if s.level == 0 %}
+      <form class="inline" method="post" action="{{ url_for('spells.cast', character_id=character.id, entry_id=s.entry_id) }}">
+        <button class="btn-small btn-ghost">Lanzar</button></form>
+    {% else %}
+      {% set usable = slots | selectattr('level', 'ge', s.level) | list %}
+      {% set ns = namespace(free=0) %}{% for sl in usable if sl.used < sl.max %}{% set ns.free = ns.free + 1 %}{% endfor %}
+      <form class="inline cast-form" method="post" action="{{ url_for('spells.cast', character_id=character.id, entry_id=s.entry_id) }}">
+        {% if usable %}
+        <select name="slot" aria-label="Espacio para lanzar {{ s.name }}">
+          {% for sl in usable %}<option value="{{ sl.key }}" {{ 'disabled' if sl.used >= sl.max }}>{{ sl.label }} ({{ sl.max - sl.used }})</option>{% endfor %}
+        </select>
+        {% endif %}
+        <button class="btn-small btn-ghost" {{ 'disabled' if unprepared or not ns.free }}
+                title="{{ 'Prepáralo antes de lanzarlo' if unprepared else ('Sin espacios libres de su nivel' if not ns.free else 'Gasta un espacio') }}">Lanzar</button>
+      </form>
+      {% if s.ritual %}
+      <form class="inline" method="post" action="{{ url_for('spells.cast', character_id=character.id, entry_id=s.entry_id) }}">
+        <input type="hidden" name="ritual" value="1">
+        <button class="btn-small btn-ghost" title="Como ritual: +10 minutos, sin gastar espacio">Ritual</button></form>
+      {% endif %}
+    {% endif %}
+    <details class="menu">
+      <summary aria-label="Opciones de {{ s.name }}">⋯</summary>
+      <div class="menu-panel">
+        {% if prepares and s.level > 0 %}
+        <form method="post" action="{{ url_for('spells.always', character_id=character.id, entry_id=s.entry_id) }}">
+          <button>{{ '☆ Quitar «siempre preparado»' if s.always_prepared else '★ Siempre preparado (dominio, juramento…)' }}</button></form>
+        {% endif %}
+        <form method="post" action="{{ url_for('spells.remove', character_id=character.id, entry_id=s.entry_id) }}"
+              onsubmit='return confirm({{ ("¿Quitar «" ~ s.name ~ "» de su lista?") | tojson }})'>
+          <button class="danger">✖ Quitar de su lista</button></form>
+      </div>
+    </details>
+  </div>
+  {% else %}
+  <span class="badge" title="Se lanza con el objeto (gasta sus cargas o usos)">🪄 Objeto</span>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+<!-- Conjuros por nivel -->
+{% for level in range(0, 10) if by_level.get(level) %}
+<div class="card" id="nivel-{{ level }}">
+  <h2>{{ level_names[level] }} <span class="muted small">· {{ by_level[level] | length }}</span></h2>
+  {% for s in by_level[level] %}{{ spell_row(s) }}{% endfor %}
+</div>
+{% endfor %}
+{% if not by_level %}
+<div class="card"><p class="muted">Aún no tiene conjuros en su lista. Añádelos abajo desde el catálogo.</p></div>
+{% endif %}
+
+{% if item_spells %}
+<div class="card" id="objetos">
+  <h2>De objetos equipados</h2>
+  <p class="field-hint">Mientras lleve el objeto equipado. Se lanzan con el objeto, sin gastar espacios de conjuro.</p>
+  {% for s in item_spells %}{{ spell_row(s, entry=false) }}{% endfor %}
+</div>
+{% endif %}
+
+<!-- Añadir -->
+<div class="card">
+  <h2>Añadir conjuro</h2>
+  <form method="post" action="{{ url_for('spells.add', character_id=character.id) }}">
+    {{ picker('spell_id', url_for('api.spells'), 'Buscar conjuro…', filters=[
+         {'name': 'level', 'label': 'Nivel', 'options': level_names.items() | list},
+         {'name': 'school', 'label': 'Escuela', 'options': schools},
+         {'name': 'cls', 'label': 'Lista de clase', 'options': class_lists, 'value': default_list},
+       ]) }}
+    <div class="row">
+      <label class="inline">Origen
+        <select name="source">{% for k, label in sources.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select></label>
+      {% if prepares %}<label class="inline"><input type="checkbox" name="always_prepared" value="1"> Siempre preparado</label>{% endif %}
+      <button class="btn-small">Añadir</button>
+    </div>
+    <p class="field-hint">El buscador empieza filtrado por la lista de su clase; quita el filtro para ver todos.
+      {% if dm %}Los conjuros homebrew se crean en <a href="{{ url_for('library.spells') }}">Herramientas → Conjuros</a>.{% endif %}</p>
+  </form>
+</div>
+{% endblock %}

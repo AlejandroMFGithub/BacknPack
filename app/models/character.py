@@ -2,6 +2,7 @@ from ..db import get_db, now_text
 from ..text import LIKE_ESCAPE, distances, like_prefix, like_terms, normalize
 from . import rules
 from .campaign import Campaign
+from .dnd_class import DndClass
 from .errors import RuleError
 from .listing import PER_PAGE, paginate, sort_sql
 
@@ -14,7 +15,7 @@ ABILITIES = [
     ("charisma", "CAR"),
 ]
 
-TEXT_FIELDS = ["race", "class_name", "background", "alignment", "notes"]
+TEXT_FIELDS = ["race", "background", "alignment", "notes"]  # la clase la resuelve DndClass.resolve
 INT_FIELDS = {
     "level": 1,
     **{key: 10 for key, _ in ABILITIES},
@@ -27,11 +28,15 @@ FLOAT_FIELDS = {"speed": 30.0}  # velocidad en pies (30 ft = 6 casillas)
 
 _SELECT = """
     SELECT c.*, u.username AS owner, av.version AS avatar_version,
-           cp.name AS campaign_name, cp.archived AS campaign_archived
+           cp.name AS campaign_name, cp.archived AS campaign_archived,
+           cl.code AS class_code, cl.subclass_level, cl.proficiencies AS class_proficiencies,
+           sc.progress AS subclass_progress
     FROM characters c
     JOIN users u ON u.id = c.user_id
     LEFT JOIN character_avatars av ON av.character_id = c.id
     LEFT JOIN campaigns cp ON cp.id = c.campaign_id
+    LEFT JOIN classes cl ON cl.id = c.class_id
+    LEFT JOIN subclasses sc ON sc.id = c.subclass_id
 """
 
 SORTS = {
@@ -91,6 +96,8 @@ class Character:
         if not name:
             raise RuleError("El personaje necesita un nombre.")
         clean = {"name": name, "search_name": normalize(name)}
+        class_cols, default_saves = DndClass.resolve(data)
+        clean.update(class_cols)
         for key in TEXT_FIELDS:
             clean[key] = (data.get(key) or "").strip()
         clean["notes"] = distances(clean["notes"])
@@ -109,7 +116,7 @@ class Character:
             clean["proficiency_bonus"] = max(0, min(int(data.get("proficiency_bonus")), 10))
         except (TypeError, ValueError):
             clean["proficiency_bonus"] = None
-        return clean
+        return clean, default_saves
 
     # --- Competencias en salvaciones y habilidades -------------------------------------------
 
@@ -122,9 +129,13 @@ class Character:
         return {(r["kind"], r["name"]): r["level"] for r in rows}
 
     @staticmethod
-    def _save_proficiencies(character_id, data):
-        """Sustituye las competencias con las del formulario (save_<car>=1, skill_<hab>=0/1/2). Sin commit."""
-        rows = [("save", key, rules.PROFICIENT) for key in rules.SAVE_KEYS if data.get(f"save_{key}")]
+    def _save_proficiencies(character_id, data, default_saves=()):
+        """Sustituye las competencias con las del formulario (save_<car>=1, skill_<hab>=0/1/2). Sin commit.
+        Si el formulario no trae el bloque de competencias, las salvaciones son las de su clase."""
+        saves = [key for key in rules.SAVE_KEYS if data.get(f"save_{key}")]
+        if not data.get("profs_form") and not saves:
+            saves = list(default_saves)
+        rows = [("save", key, rules.PROFICIENT) for key in saves]
         for key in rules.SKILL_KEYS:
             try:
                 level = int(data.get(f"skill_{key}") or 0)
@@ -156,7 +167,7 @@ class Character:
     @staticmethod
     def create(user_id, data, campaign_id, for_player=False):
         """Crea el personaje en una campaña (los jugadores, solo en campañas abiertas)."""
-        clean = Character._clean(data)
+        clean, default_saves = Character._clean(data)
         clean["campaign_id"] = Campaign.require(campaign_id, player_id=user_id if for_player else None)["id"]
         cols = ", ".join(clean)
         marks = ", ".join("?" for _ in clean)
@@ -166,7 +177,7 @@ class Character:
             (user_id, *clean.values()),
         )
         Campaign.add_member(clean["campaign_id"], user_id)  # su dueño pasa a estar en la campaña
-        Character._save_proficiencies(character_id, data)
+        Character._save_proficiencies(character_id, data, default_saves)
         db.commit()
         return character_id
 
@@ -174,7 +185,7 @@ class Character:
     def update(character_id, data, campaign_id=None):
         """Actualiza la ficha. Con campaign_id (solo el DM) mueve el personaje de campaña:
         sus intercambios pendientes se cancelan, porque el otro personaje ya no está en su mundo."""
-        clean = Character._clean(data)
+        clean, default_saves = Character._clean(data)
         current = Character.get(character_id)
         moving = campaign_id is not None and current is not None and campaign_id != current["campaign_id"]
         if moving:
@@ -182,7 +193,7 @@ class Character:
         sets = ", ".join(f"{key} = ?" for key in clean)
         db = get_db()
         db.execute(f"UPDATE characters SET {sets} WHERE id = ?", (*clean.values(), character_id))
-        Character._save_proficiencies(character_id, data)
+        Character._save_proficiencies(character_id, data, default_saves)
         if moving:
             Campaign.add_member(clean["campaign_id"], current["user_id"])
             db.execute(

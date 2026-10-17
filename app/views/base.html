@@ -101,13 +101,15 @@
                   badge=(alerts.incoming | length) if alerts and alerts.incoming is defined
                         else (alerts.dm_pending if alerts and alerts.dm_pending is defined else none)) }}
       {% if is_dm() %}
-        {% set tools_active = request.endpoint in ['campaigns.index', 'dm.items', 'dm.edit_item', 'dm.currencies'] %}
+        {% set tools_active = request.endpoint in ['campaigns.index', 'dm.items', 'dm.edit_item', 'dm.currencies'] or (request.endpoint or '').startswith('library.') %}
         {# Escritorio: desplegable «Herramientas» (no cabe todo en una línea) #}
         <details class="nav-tools popover">
           <summary class="{{ 'active' if tools_active }}">Herramientas <span aria-hidden="true">▾</span></summary>
           <div class="nav-tools-panel">
             {{ nav_link('campaigns.index', '🗺 Campañas', ['campaigns.index']) }}
             {{ nav_link('dm.items', '📦 Catálogo', ['dm.items', 'dm.edit_item']) }}
+            {{ nav_link('library.spells', '✨ Conjuros', ['library.spells', 'library.edit_spell']) }}
+            {{ nav_link('library.classes', '🛡 Clases', ['library.classes', 'library.edit_class']) }}
             {{ nav_link('dm.currencies', '🪙 Divisas', ['dm.currencies']) }}
           </div>
         </details>
@@ -116,6 +118,8 @@
         <span class="nav-tools-list">
           {{ nav_link('campaigns.index', 'Campañas', ['campaigns.index']) }}
           {{ nav_link('dm.items', 'Catálogo', ['dm.items', 'dm.edit_item']) }}
+          {{ nav_link('library.spells', 'Conjuros', ['library.spells', 'library.edit_spell']) }}
+          {{ nav_link('library.classes', 'Clases', ['library.classes', 'library.edit_class']) }}
           {{ nav_link('dm.currencies', 'Divisas', ['dm.currencies']) }}
         </span>
       {% endif %}

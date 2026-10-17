@@ -321,6 +321,7 @@
           var pair = Array.isArray(opt) ? opt : [opt, opt];
           select.appendChild(new Option(pair[1], pair[0]));
         });
+        if (f.value) select.value = f.value;  // filtro preseleccionado (p. ej. la clase del personaje)
         select.addEventListener("change", function () {
           var count = self.filterSelects.filter(function (s) { return s.value; }).length;
           badge.textContent = count;
@@ -339,6 +340,12 @@
         toggle.setAttribute("aria-expanded", String(!box.hidden));
       });
       root.appendChild(box);
+      var preset = this.filterSelects.filter(function (s) { return s.value; }).length;
+      if (preset) {
+        badge.textContent = preset;
+        badge.hidden = false;
+        toggle.classList.add("is-active");
+      }
     }
 
     this.list = el("ul", "picker-list");
@@ -672,5 +679,85 @@
     }
     var remove = e.target.closest(".eff-remove");
     if (remove) remove.closest(".eff-row").remove();
+  });
+
+  // --- Formulario de personaje: clase y subclase rellenan sus valores por defecto ---------
+
+  document.querySelectorAll(".class-picker").forEach(function (box) {
+    var form = box.closest("form");
+    var catalog = JSON.parse(box.getAttribute("data-catalog") || "[]");
+    var creating = box.getAttribute("data-creating") === "1";
+    var classSel = box.querySelector(".js-class");
+    var subSel = box.querySelector(".js-subclass");
+    var hpMax = form.querySelector(".js-hp-max");
+    var hpCur = form.querySelector(".js-hp-current");
+    var hpTouched = false;
+    if (hpMax) hpMax.addEventListener("input", function () { hpTouched = true; });
+
+    function current() {
+      return catalog.filter(function (c) { return String(c.id) === classSel.value; })[0] || null;
+    }
+    function currentSub(cls) {
+      if (!cls) return null;
+      return cls.subclasses.filter(function (s) { return String(s.id) === subSel.value; })[0] || null;
+    }
+    function setValue(selector, value) {
+      var input = box.querySelector(selector);
+      if (input) input.value = value == null ? "" : String(value);
+    }
+    function applyMagic(d) {
+      setValue(".js-caster", d.caster || "none");
+      setValue(".js-spell-ability", d.spell_ability);
+      setValue(".js-spell-prep", d.spell_prep);
+    }
+    function suggestHp() {
+      // Solo al crear y si no ha escrito los PG a mano: dado entero a nivel 1 y la media después
+      var die = parseInt(box.querySelector(".js-hit-die").value, 10);
+      if (!creating || hpTouched || !die || !hpMax) return;
+      var level = Math.max(1, parseInt((form.querySelector("[name=level]") || {}).value, 10) || 1);
+      var con = parseInt((form.querySelector("[name=constitution]") || {}).value, 10) || 10;
+      var mod = Math.floor((con - 10) / 2);
+      var hp = Math.max(1, die + mod + (level - 1) * (Math.floor(die / 2) + 1 + mod));
+      hpMax.value = hp;
+      if (hpCur) hpCur.value = hp;
+    }
+    function refreshVisibility() {
+      var cls = current();
+      box.querySelector(".js-class-name").hidden = classSel.value !== "custom";
+      Array.prototype.forEach.call(subSel.options, function (opt) {
+        var owner = opt.getAttribute("data-class");
+        if (owner) opt.hidden = opt.disabled = !cls || owner !== String(cls.id);
+      });
+      if (subSel.selectedOptions[0] && subSel.selectedOptions[0].disabled) subSel.value = "";
+      box.querySelector(".js-subclass-name").hidden = subSel.value !== "custom";
+      box.querySelector(".js-subclass-hint").textContent =
+        cls && cls.subclasses.length ? "La consigue a nivel " + cls.subclass_level + "." : "";
+      box.querySelector(".js-class-profs").textContent = cls && cls.proficiencies ? "Competencias de clase: " + cls.proficiencies : "";
+    }
+
+    classSel.addEventListener("change", function () {
+      subSel.value = "";
+      refreshVisibility();
+      var cls = current();
+      if (!cls) return;
+      var d = cls.defaults;
+      setValue(".js-hit-die", d.hit_die);
+      applyMagic(d);
+      form.querySelectorAll("input[name^=save_]").forEach(function (cb) {
+        cb.checked = d.saves.indexOf(cb.name.slice(5)) !== -1;
+      });
+      suggestHp();
+    });
+    subSel.addEventListener("change", function () {
+      refreshVisibility();
+      var cls = current(), sub = currentSub(cls);
+      if (cls) applyMagic(sub ? sub.defaults : cls.defaults);
+    });
+    box.querySelector(".js-hit-die").addEventListener("change", suggestHp);
+    ["level", "constitution"].forEach(function (name) {
+      var input = form.querySelector("[name=" + name + "]");
+      if (input) input.addEventListener("input", suggestHp);
+    });
+    refreshVisibility();
   });
 })();

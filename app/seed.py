@@ -1,6 +1,8 @@
 """Datos iniciales: cuenta de DM, divisas de 5e, catálogo básico y (opcional) una partida de ejemplo."""
 from .db import get_db
-from .models import Campaign, Character, Condition, Currency, Inventory, Item, ItemTrait, Loot, Shop, User
+from .models import (
+    Campaign, Character, Condition, Currency, DndClass, Inventory, Item, ItemTrait, Loot, Magic, Shop, Spell, User,
+)
 
 CURRENCIES = [
     ("pc", "Pieza de cobre", 1),
@@ -64,6 +66,9 @@ def seed(demo=True, dm_password="dm"):
     item_ids = {row["name"]: row["id"] for row in Item.all()}
     for item_name, data in ITEM_TRAITS:
         ItemTrait.create(data, item_id=item_ids[item_name])
+    # Objetos que conceden conjuros mientras se llevan equipados
+    spell_ids = {row["name"]: row["id"] for row in db.execute("SELECT id, name FROM spells").fetchall()}
+    Spell.add_to_item(item_ids["Varita de proyectiles mágicos"], spell_ids["Proyectil mágico"])
     if demo:
         _seed_demo(db)
     db.commit()
@@ -82,9 +87,10 @@ def _seed_demo(db):
     helada = Campaign.create({"name": "Las Tierras Heladas", "is_open": 1,
                               "description": "Una campaña aparte, en el norte: aquí no llegan las tiendas de la Costa."})
 
+    sub = {row["name"]: row["id"] for row in DndClass.subclasses()}
     lyra = Character.create(ana, {
         "name": "Lyra Vientoalto", "race": "Elfa del bosque", "class_name": "Exploradora",
-        "level": 3, "background": "Forastera", "alignment": "Caótica buena",
+        "level": 3, "background": "Forastera", "alignment": "Caótica buena", "subclass_id": sub["Cazador"],
         "strength": 11, "dexterity": 17, "constitution": 13, "intelligence": 10,
         "wisdom": 15, "charisma": 8, "hp_max": 28, "hp_current": 24, "armor_class": 13, "speed": 35,
         # Exploradora: salvaciones de FUE y DES; Sigilo con pericia (p. ej. por una dote)
@@ -93,7 +99,7 @@ def _seed_demo(db):
     }, costa)
     thorgar = Character.create(bruno, {
         "name": "Thorgar Puñohierro", "race": "Enano de las montañas", "class_name": "Guerrero",
-        "level": 3, "background": "Soldado", "alignment": "Legal neutral",
+        "level": 3, "background": "Soldado", "alignment": "Legal neutral", "subclass_id": sub["Campeón"],
         "strength": 17, "dexterity": 10, "constitution": 16, "intelligence": 9,
         "wisdom": 12, "charisma": 10, "hp_max": 34, "hp_current": 34, "armor_class": 10, "speed": 25,
         # Guerrero: salvaciones de FUE y CON
@@ -103,6 +109,7 @@ def _seed_demo(db):
     # Ana juega también en otra campaña: al entrar tendrá que elegir personaje
     sigrid = Character.create(ana, {
         "name": "Sigrid Escarcha", "race": "Humana", "class_name": "Druida", "level": 2,
+        "subclass_id": sub["Círculo de la Tierra"],
         "wisdom": 16, "constitution": 14, "hp_max": 17, "hp_current": 17, "armor_class": 12,
         "save_intelligence": 1, "save_wisdom": 1, "skill_nature": 1, "skill_medicine": 1,
     }, helada)
@@ -118,7 +125,8 @@ def _seed_demo(db):
     ]:
         Inventory.add(char_id, item[item_name], qty, visible)
     for row in Inventory.for_character(lyra) + Inventory.for_character(thorgar):
-        if row["category"] in ("Armadura", "Escudo") or row["name"] in ("Arco corto", "Hacha de batalla"):
+        if row["category"] in ("Armadura", "Escudo") or row["name"] in (
+                "Arco corto", "Hacha de batalla", "Varita de proyectiles mágicos"):
             db.execute("UPDATE inventory_items SET equipped = 1 WHERE id = ?", (row["id"],))
         if row["name"] == "Hacha de batalla":
             ItemTrait.create({"name": "Runa de Moradin", "kind": "blessing", "visible": 1,
@@ -139,6 +147,19 @@ def _seed_demo(db):
     db.commit()
 
     Character.change_inspiration(lyra, 1)
+
+    # Conjuros: Lyra (exploradora 3, los conoce) y Sigrid (druida 2, los prepara)
+    spell = {row["name"]: row["id"] for row in db.execute("SELECT id, name FROM spells").fetchall()}
+    for name in ("Marca del cazador", "Curar heridas", "Buenas bayas"):
+        Magic.add(lyra, spell[name])
+    Magic.change_slot(Character.get(lyra), "1", +1)  # ya ha gastado un espacio hoy
+    for name in ("Guía", "Producir llama", "Buenas bayas", "Curar heridas", "Palabra de curación",
+                 "Enmarañar", "Onda atronadora", "Hablar con los animales"):
+        Magic.add(sigrid, spell[name])
+    db.execute("""UPDATE character_spells SET prepared = 1 WHERE character_id = ? AND spell_id IN
+                  (SELECT id FROM spells WHERE name IN ('Buenas bayas', 'Curar heridas', 'Palabra de curación', 'Enmarañar'))""",
+               (sigrid,))
+    db.commit()
     Condition.create(lyra, {"name": "Bendición", "kind": "buff", "visible": 1, "locked": 1,  # fijo: lo puso el DM
                             "description": "+1d4 a tiradas de ataque y salvación", "duration": "1 minuto"})
     Condition.create(lyra, {"name": "Marca del licántropo", "kind": "curse", "visible": 0,

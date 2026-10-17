@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
-from ..models import ActivityLog, Character, Condition, Currency, Item, ItemTrait, RuleError, Trade
+from ..models import ActivityLog, Character, Condition, Currency, Item, ItemTrait, RuleError, Spell, Trade
 from ..models.effects import sheets_for
 from ..models.item import CATEGORIES, RARITIES
 from ..models.item_trait import KINDS as TRAIT_KINDS
@@ -63,6 +63,7 @@ def edit_item(item_id):
     return render_template(
         "dm/item_form.html", item=item, categories=CATEGORIES, rarities=RARITIES,
         traits=ItemTrait.for_items([item_id])[item_id], trait_kinds=TRAIT_KINDS,
+        item_spells=Spell.for_item(item_id),
     )
 
 

@@ -4,8 +4,10 @@ from flask import (
 
 from ..db import transaction
 from ..models import (
-    ActivityLog, Avatar, Campaign, Character, Condition, Currency, Inventory, Item, ItemTrait, RuleError, User,
+    ActivityLog, Avatar, Campaign, Character, Condition, Currency, DndClass, Inventory, Item, ItemTrait, Magic,
+    RuleError, User,
 )
+from ..models.class_data import CASTER_TYPES, HIT_DICE, SPELL_PREP
 from ..models import effects, rules
 from ..models.character import ABILITIES
 from ..models.condition import KINDS as CONDITION_KINDS, PRESETS
@@ -104,6 +106,7 @@ def show(character_id):
         presets=PRESETS,
         log=ActivityLog.for_character(character_id),
         stats=rules.sheet(character, Character.proficiencies(character_id), effects.active(character_id, show_hidden=dm)),
+        has_magic=Magic.has_magic(character, include_hidden=dm),
     )
 
 
@@ -137,7 +140,10 @@ def _proficiency_form_context(character_id):
     else:
         profs = Character.proficiencies(character_id) if character_id else {}
     return {"save_list": rules.ABILITIES, "skill_list": rules.SKILLS, "profs": profs,
-            "ability_short": rules.ABILITY_SHORT}
+            "ability_short": rules.ABILITY_SHORT,
+            # Clase y magia: el formulario rellena los valores por defecto de la clase elegida
+            "class_catalog": DndClass.catalog(), "caster_types": CASTER_TYPES, "spell_prep": SPELL_PREP,
+            "hit_dice": HIT_DICE}
 
 
 @bp.route("/<int:character_id>/inspiration", methods=["POST"])

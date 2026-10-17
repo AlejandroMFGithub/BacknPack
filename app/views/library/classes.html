@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Clases{% endblock %}
+{% block back_url %}{{ url_for('dm.index') }}{% endblock %}
+{% block content %}
+<h1>Clases <span class="muted small">· {{ classes | length }}</span></h1>
+
+<details class="card">
+  <summary><b>+ Nueva clase homebrew</b></summary>
+  <form method="post" style="margin-top:.8rem">
+    {% include "library/_class_fields.html" %}
+    <p><button>Crear clase</button></p>
+  </form>
+</details>
+
+<div class="card">
+  <table class="stack">
+    <thead><tr><th>Clase</th><th>Dado</th><th>Conjuros</th><th>Subclases</th><th></th></tr></thead>
+    <tbody>
+    {% for c in classes %}
+    <tr>
+      <td><b>{{ c.name }}</b> {% if not c.official %}<span class="badge badge-homebrew">Homebrew</span>{% endif %}
+        <div class="muted small">Salvaciones:
+          {% for k in (c.saves or '').split(',') if k %}{{ ability_short[k] }}{{ ', ' if not loop.last }}{% else %}—{% endfor %}</div></td>
+      <td data-label="Dado">d{{ c.hit_die }}</td>
+      <td data-label="Conjuros" class="small">{% if c.caster == 'none' %}<span class="muted">—</span>{% else %}{{ caster_types[c.caster].split(' (')[0] }}
+        <div class="muted">{{ spell_prep.get(c.spell_prep, '') }}</div>{% endif %}</td>
+      <td data-label="Subclases" class="small">{{ subs.get(c.id, []) | map(attribute='name') | join(' · ') or '—' }}</td>
+      <td class="actions"><a class="btn btn-small btn-ghost" href="{{ url_for('library.edit_class', class_id=c.id) }}">{{ 'Ver / editar' }}</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="field-hint">Al elegir una clase para un personaje se copian sus valores por defecto; cambiar aquí una clase
+    no modifica a los personajes que ya la tienen.</p>
+</div>
+{% endblock %}

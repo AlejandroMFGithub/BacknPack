@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ cls.name }}{% endblock %}
+{% block back_url %}{{ url_for('library.classes') }}{% endblock %}
+{% block content %}
+<div class="row spread">
+  <h1>{{ cls.name }} {% if not cls.official %}<span class="badge badge-homebrew">Homebrew</span>{% endif %}</h1>
+  {% if not cls.official %}
+  <form class="inline" method="post" action="{{ url_for('library.delete_class', class_id=cls.id) }}"
+        onsubmit='return confirm({{ ("¿Borrar la clase " ~ cls.name ~ "? Los personajes que la tengan conservarán el nombre.") | tojson }})'>
+    <button class="btn-small btn-danger">🗑️ Borrar clase</button></form>
+  {% endif %}
+</div>
+
+<form method="post" class="card">
+  {% if cls.official %}<p class="field-hint">Clase oficial: puedes ajustarla para tu mesa (no se puede borrar).</p>{% endif %}
+  {% include "library/_class_fields.html" %}
+  <p><button>Guardar</button> <a class="btn btn-ghost" href="{{ url_for('library.classes') }}">Volver</a></p>
+</form>
+
+<div class="card">
+  <h2>Subclases</h2>
+  {% for s in subclasses %}
+  <div class="trait-row">
+    <span><b>{{ s.name }}</b>
+      {% if not s.official %}<span class="badge badge-homebrew">Homebrew</span>{% endif %}
+      {% if s.caster %}<span class="muted small">· {{ caster_types[s.caster].split(' (')[0] }}{% if s.spell_ability %} ({{ ability_short[s.spell_ability] }}){% endif %}</span>{% endif %}
+      {% if s.description %}<span class="trait-desc small">{{ s.description }}</span>{% endif %}</span>
+    {% if not s.official %}
+    <form class="inline" method="post" action="{{ url_for('library.delete_subclass', subclass_id=s.id) }}"
+          onsubmit='return confirm({{ ("¿Borrar la subclase " ~ s.name ~ "?") | tojson }})'>
+      <button class="btn-small btn-danger">Quitar</button></form>
+    {% endif %}
+  </div>
+  {% else %}
+  <p class="muted">Sin subclases.</p>
+  {% endfor %}
+  <details class="trait-form">
+    <summary>+ Subclase homebrew</summary>
+    <form method="post" action="{{ url_for('library.add_subclass', class_id=cls.id) }}">
+      <div class="form-grid">
+        <label>Nombre <input name="name" required></label>
+        <label>Lanzador
+          <select name="caster"><option value="">Como la clase</option>
+            {% for k, label in caster_types.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select>
+          <span class="field-hint">P. ej. «Un tercio» para una subclase de guerrero que lanza conjuros.</span></label>
+        <label>Característica mágica
+          <select name="spell_ability"><option value="">Como la clase</option>
+            {% for key, short, name in abilities %}<option value="{{ key }}">{{ name }}</option>{% endfor %}</select></label>
+        <label>Conjuros
+          <select name="spell_prep"><option value="">Como la clase</option>
+            {% for k, label in spell_prep.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select></label>
+      </div>
+      <label>Descripción <textarea name="description"></textarea></label>
+      <button class="btn-small">Añadir subclase</button>
+    </form>
+  </details>
+</div>
+{% endblock %}

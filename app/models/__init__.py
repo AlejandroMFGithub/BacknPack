@@ -13,6 +13,8 @@ from .activity_log import ActivityLog
 from .shop import Shop
 from .loot import Loot
 from .trade import Trade
+from .dnd_class import DndClass
+from .spell import Magic, Spell
 
 __all__ = [
     "RuleError", "User", "Campaign", "Character", "Avatar", "Currency", "Item", "ItemTrait", "Inventory",

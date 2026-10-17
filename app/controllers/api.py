@@ -5,7 +5,7 @@ el catálogo entero: {"results": [{id, label, sub}], "has_more": bool, "total": 
 """
 from flask import Blueprint, g, jsonify, request, url_for
 
-from ..models import Character, Item, User
+from ..models import Character, Item, Spell, User
 from ..models.avatar import color_for, initial
 from .helpers import dm_required, is_dm, login_required
 
@@ -62,6 +62,22 @@ def characters():
             "initial": initial(r["name"]),
             "color": color_for(r["id"]),
         },
+    })
+
+
+@bp.route("/spells")
+@login_required
+def spells():
+    q, page, sort = _args()
+    found = Spell.search(
+        q, request.args.get("level", ""), request.args.get("school", ""), request.args.get("cls", ""),
+        sort=sort, page=page, per_page=PAGE_SIZE,
+    )
+    return _respond(found, lambda r: {
+        "id": r["id"], "label": r["name"],
+        "sub": ("Truco" if r["level"] == 0 else f"Nivel {r['level']}") + f" · {r['school'] or '—'}"
+               + (" · concentración" if r["concentration"] else "") + (" · ritual" if r["ritual"] else "")
+               + ("" if r["official"] else " · homebrew"),
     })
 
 

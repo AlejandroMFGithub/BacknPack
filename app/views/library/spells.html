@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Conjuros{% endblock %}
+{% block back_url %}{{ url_for('dm.index') }}{% endblock %}
+{% block content %}
+{% from "_macros.html" import list_toolbar, pager with context %}
+<h1>Conjuros <span class="muted small">· {{ spells.total }}</span></h1>
+
+<details class="card">
+  <summary><b>+ Nuevo conjuro (homebrew)</b></summary>
+  <form method="post" style="margin-top:.8rem">
+    {% include "library/_spell_fields.html" %}
+    <p><button>Crear</button></p>
+  </form>
+</details>
+
+<div class="card">
+  {{ list_toolbar(args, 'Buscar conjuro…', filters=[
+       ('level', 'Nivel', level_names.items() | list),
+       ('school', 'Escuela', schools),
+       ('cls', 'Clase', class_names.items() | list)]) }}
+  <table class="stack">
+    <thead><tr><th>Conjuro</th><th>Nivel</th><th>Lanzamiento</th><th>Clases</th><th></th></tr></thead>
+    <tbody>
+    {% for s in spells %}
+    <tr>
+      <td><b>{{ s.name }}</b>
+        {% if s.concentration %}<span class="badge badge-tiny" title="Concentración">C</span>{% endif %}
+        {% if s.ritual %}<span class="badge badge-tiny" title="Ritual">R</span>{% endif %}
+        {% if not s.official %}<span class="badge badge-homebrew">Homebrew</span>{% endif %}
+        <div class="muted small">{{ s.school or '—' }}</div></td>
+      <td data-label="Nivel">{{ 'Truco' if s.level == 0 else s.level }}</td>
+      <td data-label="Lanzamiento" class="small">{{ s.casting_time }}{% if s.spell_range %} · {{ s.spell_range }}{% endif %}<div class="muted">{{ s.duration }}</div></td>
+      <td data-label="Clases" class="small">
+        {% for code in (s.classes or '').split() %}{{ class_names.get(code, code) }}{{ ', ' if not loop.last }}{% else %}—{% endfor %}</td>
+      <td class="actions">
+        <div class="row">
+          <a class="btn btn-small btn-ghost" href="{{ url_for('library.edit_spell', spell_id=s.id) }}">Editar</a>
+          <details class="menu">
+            <summary aria-label="Más acciones">⋯</summary>
+            <div class="menu-panel">
+              <form method="post" action="{{ url_for('library.delete_spell', spell_id=s.id) }}"
+                    onsubmit="return confirm('Se quitará también de las listas de los personajes y de los objetos. ¿Seguro?')">
+                <button class="danger">🗑️ Borrar del catálogo</button></form>
+            </div>
+          </details>
+        </div>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="muted">Ningún conjuro coincide.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {{ pager(spells) }}
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{# Campos de una clase homebrew (o de una oficial, al editarla) #}
+<div class="form-grid">
+  <label>Nombre <input name="name" value="{{ field(cls, 'name') }}" required placeholder="Cazador de sangre…"></label>
+  <label>Dado de golpe
+    <select name="hit_die">{% for d in hit_dice %}<option value="{{ d }}" {{ 'selected' if field(cls, 'hit_die', 8) == d }}>d{{ d }}</option>{% endfor %}</select></label>
+  <label>Subclase a nivel <input name="subclass_level" type="number" min="1" max="20" value="{{ field(cls, 'subclass_level', 3) }}"></label>
+  <label>Lanzador de conjuros
+    <select name="caster">{% for k, label in caster_types.items() %}<option value="{{ k }}" {{ 'selected' if field(cls, 'caster', 'none') == k }}>{{ label }}</option>{% endfor %}</select></label>
+  <label>Característica mágica
+    <select name="spell_ability"><option value="">—</option>
+      {% for key, short, name in abilities %}<option value="{{ key }}" {{ 'selected' if field(cls, 'spell_ability') == key }}>{{ name }}</option>{% endfor %}</select></label>
+  <label>Conjuros
+    <select name="spell_prep">{% for k, label in spell_prep.items() %}<option value="{{ k }}" {{ 'selected' if field(cls, 'spell_prep') == k }}>{{ label }}</option>{% endfor %}</select></label>
+</div>
+<fieldset class="prof-saves inline-checks">
+  <legend>Salvaciones con competencia</legend>
+  {% set saves = (field(cls, 'saves') or '').split(',') %}
+  {% for key, short, name in abilities %}
+  <label class="inline"><input type="checkbox" name="save_{{ key }}" value="1" {{ 'checked' if key in saves }}> {{ name }}</label>
+  {% endfor %}
+</fieldset>
+<label>Competencias <input name="proficiencies" value="{{ field(cls, 'proficiencies') }}" placeholder="Armaduras ligeras · armas sencillas…"></label>
+<label>Descripción y rasgos <textarea name="description" placeholder="Rasgos por nivel, recursos…">{{ field(cls, 'description') }}</textarea></label>

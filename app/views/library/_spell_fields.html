@@ -1,0 +1,25 @@
+{# Campos de un conjuro del catálogo #}
+<div class="form-grid">
+  <label>Nombre <input name="name" value="{{ field(spell, 'name') }}" required></label>
+  <label>Nivel
+    <select name="level">{% for n, label in level_names.items() %}<option value="{{ n }}" {{ 'selected' if field(spell, 'level', 0) == n }}>{{ label if n else 'Truco (nivel 0)' }}</option>{% endfor %}</select></label>
+  <label>Escuela
+    <select name="school"><option value="">—</option>
+      {% for s in schools %}<option {{ 'selected' if field(spell, 'school') == s }}>{{ s }}</option>{% endfor %}</select></label>
+  <label>Tiempo de lanzamiento <input name="casting_time" value="{{ field(spell, 'casting_time', '1 acción') }}"></label>
+  <label>Alcance <input name="spell_range" value="{{ field(spell, 'spell_range') }}" placeholder="60 ft, Toque, Personal…"></label>
+  <label>Componentes <input name="components" value="{{ field(spell, 'components') }}" placeholder="V, S, M (…)"></label>
+  <label>Duración <input name="duration" value="{{ field(spell, 'duration', 'Instantánea') }}"></label>
+</div>
+<div class="row">
+  <label class="inline"><input type="checkbox" name="concentration" value="1" {{ 'checked' if field(spell, 'concentration', 0) }}> Concentración</label>
+  <label class="inline"><input type="checkbox" name="ritual" value="1" {{ 'checked' if field(spell, 'ritual', 0) }}> Ritual</label>
+</div>
+<fieldset class="inline-checks">
+  <legend>Listas de clase</legend>
+  {% set have = (field(spell, 'classes') or '').split() %}
+  {% for c in class_options %}
+  <label class="inline"><input type="checkbox" name="classes" value="{{ c.code }}" {{ 'checked' if c.code in have }}> {{ c.name }}</label>
+  {% endfor %}
+</fieldset>
+<label>Descripción <textarea name="description" rows="4">{{ field(spell, 'description') }}</textarea></label>

@@ -18,9 +18,11 @@ from .migrations import migrate
 
 # Tablas en orden de dependencias (padres antes que hijas)
 TABLES = [
-    "users", "campaigns", "campaign_members", "characters", "character_proficiencies", "currencies", "character_currencies", "items", "inventory_items",
+    "users", "campaigns", "campaign_members", "classes", "subclasses", "spells",
+    "characters", "character_proficiencies", "currencies", "character_currencies", "items", "inventory_items",
     "item_traits", "conditions", "shops", "shop_items", "loot_pools", "loot_entries",
     "trades", "trade_lines", "activity_log", "character_avatars",
+    "item_spells", "character_spells", "character_spell_slots",
 ]
 
 
@@ -218,6 +220,8 @@ def copy_to_postgres_command(source, exclude_users):
     migrate(src)
     dst = get_db()  # la app ya apunta a DATABASE_URL
     dst.create_schema()
+    for table in reversed(TABLES):  # las migraciones cargan datos (clases, conjuros): se sustituyen por los de origen
+        dst.execute(f"DELETE FROM {table}")
 
     for table in TABLES:
         rows = src.execute(f"SELECT * FROM {table}").fetchall()

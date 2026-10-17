@@ -138,6 +138,26 @@ controlador los muestra como mensaje.
   (● competencia, ◉ pericia = el doble). Ej.: DES 20, competencia +2 y Acrobacias → +7.
   Las reglas están en `app/models/rules.py` (funciones puras).
 
+**Clases y conjuros**
+- Las 13 clases oficiales (con el artífice) y sus subclases vienen cargadas, con dado de golpe, salvaciones,
+  tipo de lanzador, característica mágica y forma de preparar conjuros. También un catálogo inicial de
+  ~70 conjuros (resumen propio de cada uno; `app/models/spell_data.py`).
+- Al elegir clase y subclase en la ficha se rellenan sus **valores por defecto** (salvaciones, dado de golpe,
+  PG al crear, magia), que el jugador y el DM pueden cambiar a mano: lo guardado es lo que cuenta.
+  Subclases que añaden magia (caballero arcano, embaucador arcano) cambian el tipo de lanzador.
+  Se puede elegir una clase/subclase **personalizada** escribiendo su nombre.
+- El DM crea clases y subclases **homebrew** (*Herramientas → Clases*) y conjuros homebrew
+  (*Herramientas → Conjuros*), y puede ajustar los oficiales. Un objeto del catálogo puede **conceder
+  conjuros** mientras se lleva equipado.
+- **Pestaña de conjuros** (si su clase lanza conjuros, tiene alguno apuntado o un objeto equipado se los da):
+  característica mágica, CD de salvación y ataque de conjuro (con desglose y modificables por efectos),
+  conjuros conocidos o preparados frente a su máximo, trucos, **espacios de conjuro** por nivel (tablas de
+  lanzador completo, medio, tercio y pacto) que se gastan al lanzar o pulsando, descanso largo y corto,
+  espacios ajustables a mano, conjuros por nivel con preparar / siempre preparado, lanzar a nivel superior
+  y como ritual, y los conjuros de objetos equipados. Cada lanzamiento queda en el historial.
+- Al actualizar, los personajes que ya existían reciben su clase por el nombre escrito («Exploradora» →
+  Explorador) con sus valores por defecto; sus salvaciones no cambian.
+
 **Estadísticas automáticas** (equipo, bufos, maldiciones y estados)
 - Objetos del catálogo, cualidades de objetos y efectos del personaje pueden llevar **efectos en la
   ficha**: sobre una característica, la CA, la velocidad, la iniciativa, los PG máximos, la

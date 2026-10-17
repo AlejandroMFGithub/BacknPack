@@ -105,6 +105,81 @@ MIGRATIONS = [
     """ALTER TABLE conditions ADD COLUMN active INTEGER NOT NULL DEFAULT 1;
        ALTER TABLE conditions ADD COLUMN locked INTEGER NOT NULL DEFAULT 0;
        UPDATE conditions SET locked = 1;""",
+    # 15: clases, subclases y conjuros (catálogo oficial + homebrew) y la magia de cada personaje
+    """CREATE TABLE classes (
+           id             INTEGER PRIMARY KEY AUTOINCREMENT,
+           code           TEXT,                       -- clave de las clases oficiales (bard…); NULL = homebrew
+           name           TEXT    NOT NULL,
+           search_name    TEXT    NOT NULL DEFAULT '',
+           official       INTEGER NOT NULL DEFAULT 0,
+           hit_die        INTEGER NOT NULL DEFAULT 8,
+           saves          TEXT,                       -- "strength,constitution"
+           caster         TEXT    NOT NULL DEFAULT 'none',
+           spell_ability  TEXT,
+           spell_prep     TEXT,
+           subclass_level INTEGER NOT NULL DEFAULT 3,
+           proficiencies  TEXT,
+           description    TEXT
+       );
+       CREATE TABLE subclasses (
+           id            INTEGER PRIMARY KEY AUTOINCREMENT,
+           class_id      INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+           name          TEXT    NOT NULL,
+           official      INTEGER NOT NULL DEFAULT 0,
+           caster        TEXT,                        -- NULL = la de la clase
+           spell_ability TEXT,
+           spell_prep    TEXT,
+           progress      TEXT,                        -- tablas oficiales de trucos/conocidos propias
+           description   TEXT
+       );
+       CREATE TABLE spells (
+           id            INTEGER PRIMARY KEY AUTOINCREMENT,
+           name          TEXT    NOT NULL,
+           search_name   TEXT    NOT NULL DEFAULT '',
+           level         INTEGER NOT NULL DEFAULT 0,  -- 0 = truco
+           school        TEXT,
+           casting_time  TEXT,
+           spell_range   TEXT,
+           components    TEXT,
+           duration      TEXT,
+           concentration INTEGER NOT NULL DEFAULT 0,
+           ritual        INTEGER NOT NULL DEFAULT 0,
+           classes       TEXT,                        -- " bard cleric " (claves de clase, para buscar)
+           description   TEXT,
+           official      INTEGER NOT NULL DEFAULT 0
+       );
+       CREATE INDEX idx_spells_search ON spells (search_name);
+       CREATE INDEX idx_spells_level ON spells (level, search_name);
+       CREATE TABLE item_spells (
+           item_id  INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+           spell_id INTEGER NOT NULL REFERENCES spells(id) ON DELETE CASCADE,
+           PRIMARY KEY (item_id, spell_id)
+       );
+       CREATE TABLE character_spells (
+           id              INTEGER PRIMARY KEY AUTOINCREMENT,
+           character_id    INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+           spell_id        INTEGER NOT NULL REFERENCES spells(id) ON DELETE CASCADE,
+           source          TEXT    NOT NULL DEFAULT 'class',
+           prepared        INTEGER NOT NULL DEFAULT 0,
+           always_prepared INTEGER NOT NULL DEFAULT 0,
+           notes           TEXT,
+           UNIQUE (character_id, spell_id)
+       );
+       CREATE TABLE character_spell_slots (
+           character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+           slot         TEXT    NOT NULL,             -- "1".."9" o "pact"
+           used         INTEGER NOT NULL DEFAULT 0,
+           max_override INTEGER,                      -- NULL = el de la tabla de su clase
+           PRIMARY KEY (character_id, slot)
+       );
+       ALTER TABLE characters ADD COLUMN class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL;
+       ALTER TABLE characters ADD COLUMN subclass_id INTEGER REFERENCES subclasses(id) ON DELETE SET NULL;
+       ALTER TABLE characters ADD COLUMN subclass_name TEXT;
+       ALTER TABLE characters ADD COLUMN hit_die INTEGER;
+       ALTER TABLE characters ADD COLUMN caster TEXT NOT NULL DEFAULT 'none';
+       ALTER TABLE characters ADD COLUMN spell_ability TEXT;
+       ALTER TABLE characters ADD COLUMN spell_prep TEXT;""",
+    lambda db: _official_classes_and_spells(db),
 ]
 
 # Columnas de texto libre donde puede haber distancias
@@ -137,6 +212,65 @@ def _distances_to_feet(db):
             db.execute(f"UPDATE {table} SET {sets} WHERE id = ?", (*changed.values(), row["id"]))
 
 CAMPAIGN_TABLES = ("characters", "shops", "loot_pools")
+
+
+def _official_classes_and_spells(db):
+    """Carga las clases y conjuros oficiales y asigna su clase a los personajes que ya existían
+    (por el nombre escrito: «Exploradora» → Explorador), con sus valores por defecto de magia."""
+    from .models.class_data import CLASSES
+    from .models.spell_data import SPELLS
+    from .text import normalize
+    for code, name, die, saves, caster, ability, prep, sub_level, profs, subclasses in CLASSES:
+        class_id = db.insert(
+            """INSERT INTO classes (code, name, search_name, official, hit_die, saves, caster, spell_ability,
+                                    spell_prep, subclass_level, proficiencies)
+               VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)""",
+            (code, name, normalize(name), die, ",".join(saves), caster, ability, prep, sub_level, profs),
+        )
+        for sub in subclasses:
+            sub_name, sub_caster, sub_ability, progress, sub_prep = (tuple(sub) + (None,) * 5)[:5]
+            db.execute(
+                """INSERT INTO subclasses (class_id, name, official, caster, spell_ability, spell_prep, progress)
+                   VALUES (?, ?, 1, ?, ?, ?, ?)""",
+                (class_id, sub_name, sub_caster, sub_ability, sub_prep, progress),
+            )
+    for name, level, school, cast, rng, comp, dur, conc, ritual, classes, desc in SPELLS:
+        db.execute(
+            """INSERT INTO spells (name, search_name, level, school, casting_time, spell_range, components, duration,
+                                   concentration, ritual, classes, description, official)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)""",
+            (name, normalize(name), level, school, cast, rng, comp, dur, conc, ritual, f" {classes} ", desc),
+        )
+    # La varita del catálogo básico concede su conjuro
+    wand = db.execute("SELECT id FROM items WHERE name = 'Varita de proyectiles mágicos'").fetchone()
+    missile = db.execute("SELECT id FROM spells WHERE name = 'Proyectil mágico'").fetchone()
+    if wand and missile:
+        db.execute("INSERT INTO item_spells (item_id, spell_id) VALUES (?, ?)", (wand["id"], missile["id"]))
+    # Personajes existentes: su clase por el nombre (masculino o femenino)
+    classes = db.execute("SELECT * FROM classes").fetchall()
+    for ch in db.execute("SELECT id, class_name FROM characters WHERE class_name IS NOT NULL").fetchall():
+        match = class_matching(ch["class_name"], classes)
+        if match:
+            db.execute(
+                """UPDATE characters SET class_id = ?, class_name = ?, hit_die = ?, caster = ?, spell_ability = ?,
+                   spell_prep = ? WHERE id = ?""",
+                (match["id"], match["name"], match["hit_die"], match["caster"], match["spell_ability"],
+                 match["spell_prep"], ch["id"]),
+            )
+
+
+def class_matching(text, classes):
+    """La clase cuyo nombre coincide con el texto, sin tildes y aceptando el femenino."""
+    from .text import normalize
+    wanted = normalize(text or "")
+    if not wanted:
+        return None
+    for row in classes:
+        base = row["search_name"]
+        variants = {base, base + "a", base[:-1] + "a" if base.endswith(("o", "e")) else base}  # monje → monja
+        if wanted in variants:
+            return row
+    return None
 
 
 def _codes_and_members(db):

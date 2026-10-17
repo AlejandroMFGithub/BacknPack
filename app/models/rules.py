@@ -196,6 +196,24 @@ def sheet(character, proficiencies, effects=()):
         skills.append({"key": key, "name": name, "ability": ABILITY_SHORT[ability], "level": level,
                        "total": st.total, "stat": st})
 
+    # Conjuros: CD = 8 + competencia + mod. de su característica mágica; ataque = competencia + mod.
+    spell_dc = spell_attack = None
+    try:
+        spell_ability = character["spell_ability"]
+    except (KeyError, IndexError):
+        spell_ability = None
+    if spell_ability in abilities:
+        label, inherited = ability_line(spell_ability)
+        spell_dc = Stat(8, "Base", ())
+        spell_dc.step(f"+{prof} competencia", 8 + prof, counts=False)
+        spell_dc.step(f"{_signed(mods[spell_ability])} {label}", 8 + prof + mods[spell_ability], counts=False)
+        spell_dc.signs |= set(inherited)
+        _apply(spell_dc, get("spell_dc"))
+        spell_attack = Stat(prof, f"+{prof} competencia")
+        spell_attack.step(f"{_signed(mods[spell_ability])} {label}", prof + mods[spell_ability], counts=False)
+        spell_attack.signs |= set(inherited)
+        _apply(spell_attack, get("spell_attack"))
+
     perception = next(s["stat"] for s in skills if s["key"] == "perception")
     passive = Stat(10 + perception.total, f"10 + Percepción ({_signed(perception.total)})", perception.signs)
     _apply(passive, get("passive_perception"))
@@ -211,6 +229,8 @@ def sheet(character, proficiencies, effects=()):
         "initiative": initiative,
         "passive_perception": passive,
         "carry_max": abilities["strength"].total * 7.5,
+        "spell_dc": spell_dc,
+        "spell_attack": spell_attack,
         "saves": saves,
         "skills": skills,
     }

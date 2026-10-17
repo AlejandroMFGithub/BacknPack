@@ -1075,3 +1075,61 @@ main > .sheet-head > div:first-child { min-width: 0; }
 .effect-edit { margin-top: .3rem; }
 .effect-edit > summary { color: var(--muted); }
 .badge.is-off { opacity: .5; text-decoration: line-through; }
+
+/* --- Pestañas de la ficha ----------------------------------------------------------------- */
+.sheet-tabs { display: flex; gap: .4rem; margin: 0 0 .7rem; }
+.sheet-tabs a {
+  padding: .45rem .95rem; border-radius: 999px; text-decoration: none; font-weight: 600;
+  color: #f3e6cc; background: #ffffff14; border: 1px solid #ffffff2b;
+}
+.sheet-tabs a:hover { background: #ffffff24; }
+.sheet-tabs a.active { background: var(--paper); color: var(--ink); border-color: var(--gold); }
+.sheet-tabs a .muted { color: inherit; opacity: .7; }
+
+/* --- Conjuros ------------------------------------------------------------------------------- */
+.spell-strip { margin-top: .9rem; }
+.over-limit { color: var(--mod-down); }
+.field-hint.warn { color: var(--mod-down); }
+.slot-row { display: flex; align-items: center; gap: .8rem; padding: .4rem 0; border-bottom: 1px dotted var(--line); flex-wrap: wrap; }
+.slot-label { min-width: 8.5em; font-weight: 600; }
+.slot-pips { display: inline-flex; gap: .35rem; flex-wrap: wrap; }
+.pip {
+  width: 26px; height: 26px; padding: 0; border-radius: 50%; cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #f7e2a1, var(--gold) 70%); border: 2px solid #9c7420;
+  box-shadow: 0 1px 3px #0003;
+}
+.pip.spent { background: transparent; border: 2px dashed var(--line-strong); box-shadow: none; }
+.pip:hover { filter: brightness(1.08); }
+.pip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.slot-edit { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: .4rem; margin-bottom: .5rem; }
+.slot-edit label { font-size: .8rem; }
+.spell-row { display: flex; align-items: flex-start; gap: .6rem; padding: .45rem 0; border-bottom: 1px dotted var(--line); }
+.spell-row:last-child { border-bottom: 0; }
+.spell-row.is-unprepared .spell-detail summary b { opacity: .55; }
+.spell-detail { flex: 1; min-width: 0; }
+.spell-detail summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem; }
+.spell-detail summary::-webkit-details-marker { display: none; }
+.spell-detail summary::before { content: "▸"; color: var(--muted); font-size: .8em; }
+.spell-detail[open] summary::before { content: "▾"; }
+.spell-meta { flex-basis: 100%; padding-left: .9em; }
+.spell-body { padding: .3rem 0 .1rem .9em; }
+.spell-body p { margin: .3rem 0 0; }
+.spell-actions { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; justify-content: flex-end; }
+.cast-form select { width: auto; padding: .25rem .4rem; font-size: .8rem; }
+.prep-dot {
+  flex: none; width: 18px; height: 18px; margin-top: .2rem; padding: 0; border-radius: 50%;
+  border: 2px solid var(--line-strong); background: transparent; cursor: pointer;
+}
+.prep-dot.on { background: var(--ink); border-color: var(--ink); }
+.prep-dot.always { display: inline-flex; align-items: center; justify-content: center; border: 0; color: var(--gold); cursor: default; font-size: .95rem; }
+.badge-tiny { font-size: .62rem; padding: .05rem .35rem; }
+.badge-homebrew { background: #3d6b8a; color: #fff; }
+.inline-checks { display: flex; flex-wrap: wrap; gap: .3rem 1rem; border: 1px dashed var(--line-strong); border-radius: 8px; padding: .4rem .7rem .6rem; margin: .3rem 0 .7rem; }
+.inline-checks legend { font-size: .85rem; font-weight: 600; padding: 0 .3rem; }
+
+@media (max-width: 640px) {
+  .spell-row { flex-wrap: wrap; }
+  .spell-actions { flex-basis: 100%; justify-content: flex-start; padding-left: 1.6rem; }
+  .slot-label { min-width: 0; flex-basis: 100%; }
+  .spell-strip { grid-template-columns: repeat(2, 1fr); }
+}
