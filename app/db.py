@@ -91,6 +91,17 @@ class Database:
             return self.conn.execute(self._sql(sql) + " RETURNING id", params).fetchone()[0]
         return self.conn.execute(sql, params).lastrowid
 
+    def many(self, sql, rows):
+        """Ejecuta la misma sentencia con muchas filas (en PostgreSQL, en lote: mucho más rápido)."""
+        rows = list(rows)
+        if not rows:
+            return
+        if self.is_postgres:
+            with self.conn.cursor() as cur:
+                cur.executemany(self._sql(sql), rows)
+        else:
+            self.conn.executemany(sql, rows)
+
     def script(self, sql):
         """Ejecuta varias sentencias DDL seguidas."""
         if self.is_postgres:

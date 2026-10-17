@@ -1188,3 +1188,6 @@ main > .sheet-head > div:first-child { min-width: 0; }
   .hp-amount { gap: .5rem; }
   .hp-panel .hp-preset { padding: .3rem .7rem; font-size: .8rem; }
 }
+.item-desc { margin-top: .15rem; max-width: 46em; }
+.srd-credit { color: #d8c6a6; text-align: center; margin: 1rem auto; max-width: 52em; }
+.srd-credit a { color: var(--gold-soft); }

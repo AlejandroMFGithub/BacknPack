@@ -57,13 +57,15 @@ def seed(demo=True, dm_password="dm"):
     User.create("dm", dm_password, role="dm")
     for code, name, value in CURRENCIES:
         Currency.create(code, name, value)
+    # El catálogo del SRD (migración 19) ya trae casi todos: solo se crean los que falten
     for name, cat, rar, w, props, desc, att in ITEMS:
-        Item.create({
-            "name": name, "category": cat, "rarity": rar, "weight": w,
-            "properties": props, "description": desc, "attunement": att,
-            "effects": ITEM_EFFECTS.get(name),
-        })
-    item_ids = {row["name"]: row["id"] for row in Item.all()}
+        if Item.find(name) is None:
+            Item.create({
+                "name": name, "category": cat, "rarity": rar, "weight": w,
+                "properties": props, "description": desc, "attunement": att,
+                "effects": ITEM_EFFECTS.get(name),
+            })
+    item_ids = {name: Item.find(name)["id"] for name, *_ in ITEMS}
     for item_name, data in ITEM_TRAITS:
         ItemTrait.create(data, item_id=item_ids[item_name])
     # Objetos que conceden conjuros mientras se llevan equipados
@@ -75,7 +77,7 @@ def seed(demo=True, dm_password="dm"):
 
 
 def _seed_demo(db):
-    item = {row["name"]: row["id"] for row in Item.all()}
+    item = {name: Item.find(name)["id"] for name, *_ in ITEMS}
     cur = {row["code"]: row["id"] for row in Currency.all()}
     cur["ficha"] = Currency.create("ficha", "Ficha del Gremio", 0)  # no convertible
 

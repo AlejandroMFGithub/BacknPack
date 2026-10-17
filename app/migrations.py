@@ -182,6 +182,10 @@ MIGRATIONS = [
     lambda db: _official_classes_and_spells(db),
     # 17: puntos de golpe temporales
     "ALTER TABLE characters ADD COLUMN hp_temp INTEGER NOT NULL DEFAULT 0;",
+    # 18: precio de referencia de los objetos del catálogo (en piezas de cobre)
+    "ALTER TABLE items ADD COLUMN cost_cp INTEGER;",
+    # 19: catálogo del SRD 5.1 en castellano: conjuros, equipo y objetos mágicos con sus efectos
+    lambda db: _import_srd(db),
 ]
 
 # Columnas de texto libre donde puede haber distancias
@@ -214,6 +218,11 @@ def _distances_to_feet(db):
             db.execute(f"UPDATE {table} SET {sets} WHERE id = ?", (*changed.values(), row["id"]))
 
 CAMPAIGN_TABLES = ("characters", "shops", "loot_pools")
+
+
+def _import_srd(db):
+    from .models.srd_import import import_srd
+    import_srd(db)
 
 
 def _official_classes_and_spells(db):

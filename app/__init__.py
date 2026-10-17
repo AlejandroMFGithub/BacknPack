@@ -91,6 +91,8 @@ def create_app(test_config=None):
     app.jinja_env.globals.update(EFFECT_GROUPS=effects.TARGET_GROUPS, EFFECT_OPS=effects.OPS,
                                  EFFECT_CAPS=effects.CAP_OPTIONS)
     app.add_template_filter(effects.summary, "effects_summary")
+    from .models.item import format_cost
+    app.add_template_filter(format_cost, "coins")
 
     @app.template_global()
     def effect_rows(obj=None):

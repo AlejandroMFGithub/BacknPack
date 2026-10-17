@@ -5,9 +5,31 @@ from .errors import RuleError
 from .listing import PER_PAGE, paginate, sort_sql
 
 CATEGORIES = [
-    "Arma", "Armadura", "Escudo", "Munición", "Consumible", "Objeto maravilloso",
-    "Herramienta", "Equipo de aventurero", "Tesoro", "Misceláneo",
+    "Arma", "Armadura", "Escudo", "Munición", "Consumible", "Objeto maravilloso", "Anillo", "Varita",
+    "Bastón", "Vara", "Pergamino", "Herramienta", "Equipo de aventurero", "Montura y vehículo", "Tesoro", "Misceláneo",
 ]
+
+
+def parse_cost(value):
+    """«15», «1,5» (en po) → piezas de cobre; vacío → None."""
+    text = str(value or "").strip().replace(",", ".")
+    if not text:
+        return None
+    try:
+        return max(0, round(float(text) * 100))
+    except ValueError:
+        raise RuleError("El precio debe ser un número (en piezas de oro).") from None
+
+
+def format_cost(cp):
+    """1500 → «15 po», 50 → «5 pp», 2 → «2 pc» (la moneda más grande en la que es exacto)."""
+    if cp is None:
+        return ""
+    if cp % 100 == 0:
+        return f"{cp // 100:,} po".replace(",", ".")
+    if cp % 10 == 0:
+        return f"{cp // 10} pp"
+    return f"{cp} pc"
 RARITIES = ["Común", "Poco común", "Raro", "Muy raro", "Legendario", "Artefacto"]
 
 
@@ -58,6 +80,12 @@ class Item:
         return paginate("SELECT * FROM items", where, params, order, page, per_page, order_params)
 
     @staticmethod
+    def find(name):
+        """El objeto del catálogo con ese nombre (sin tildes ni mayúsculas), o None."""
+        return get_db().execute("SELECT * FROM items WHERE search_name = ? ORDER BY id LIMIT 1",
+                                (normalize(name),)).fetchone()
+
+    @staticmethod
     def _clean(data):
         name = distances((data.get("name") or "").strip())
         if not name:
@@ -76,6 +104,7 @@ class Item:
             "description": distances((data.get("description") or "").strip()),
             "attunement": 1 if data.get("attunement") else 0,
             "effects": effects.dumps(effects.from_form(data)),
+            "cost_cp": parse_cost(data.get("cost")) if "cost" in data else data.get("cost_cp"),
         }
 
     @staticmethod

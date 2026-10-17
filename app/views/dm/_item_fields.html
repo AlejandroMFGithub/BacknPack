@@ -8,6 +8,9 @@
     <select name="rarity">{% for r in rarities %}<option {{ 'selected' if field(item, 'rarity') == r }}>{{ r }}</option>{% endfor %}</select>
   </label>
   <label>Peso (kg) <input name="weight" type="number" step="0.05" min="0" value="{{ field(item, 'weight', 0) }}"></label>
+  <label>Precio (po) <input name="cost" inputmode="decimal" placeholder="—"
+         value="{{ '%g' % (field(item, 'cost_cp', None) / 100) if field(item, 'cost_cp', None) is not none else '' }}">
+    <span class="field-hint">De referencia (las tiendas ponen el suyo).</span></label>
 </div>
 <label>Propiedades <input name="properties" value="{{ field(item, 'properties') }}" placeholder="1d8 cortante · versátil (1d10) / CA 14 + Des (máx. 2)…"></label>
 <label>Descripción <textarea name="description">{{ field(item, 'description') }}</textarea></label>

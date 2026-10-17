@@ -142,6 +142,27 @@ controlador los muestra como mensaje.
   (● competencia, ◉ pericia = el doble). Ej.: DES 20, competencia +2 y Acrobacias → +7.
   Las reglas están en `app/models/rules.py` (funciones puras).
 
+**Catálogo del SRD 5.1** (todo lo que se puede usar legalmente de los manuales oficiales)
+- **319 conjuros** y **611 objetos**: todas las armas, armaduras, equipo de aventurero, herramientas, monturas y
+  vehículos, y los objetos mágicos (con sus variantes: armaduras +1/+2/+3 de cada tipo, cinturones de fuerza
+  de gigante, pociones de curación y de resistencia, piedras Ioun, pergaminos de conjuro…).
+- Nombres en castellano y **resúmenes propios** (no el texto del manual). Daño y propiedades de las armas,
+  CA de las armaduras, peso (kg) y **precio de referencia** salen de los datos del SRD.
+- **Efectos en la ficha** al equiparlos: armaduras y escudos (CA), armaduras mágicas, anillo y capa de
+  protección, cinturones de fuerza de gigante, amuleto de salud, cinta de intelecto, guanteletes de fuerza de
+  ogro, brazales de defensa, piedras Ioun, túnica del archimago, bastón de poder, varitas del mago de guerra…
+  Las varitas, bastones y otros objetos **conceden sus conjuros** (aparecen en la pestaña de conjuros).
+- Al actualizar una base de datos existente no se duplica nada: lo que ya existía con el mismo nombre solo se
+  completa (efectos, precio) sin tocar lo que el DM haya cambiado.
+- Lo que no está en el SRD (la mayoría de subclases y conjuros del *Player's Handbook*, objetos del *Xanathar*…)
+  tiene copyright y no se incluye: el DM puede añadirlo como homebrew.
+- Para regenerar los datos tras cambiar las traducciones: `tools/build_srd.py` (instrucciones dentro).
+
+> Este trabajo incluye material del *System Reference Document 5.1* («SRD 5.1») de Wizards of the Coast LLC,
+> disponible en https://dnd.wizards.com/resources/systems-reference-document, con licencia Creative Commons
+> Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/legalcode). Datos estructurados
+> de [5e-bits/5e-database](https://github.com/5e-bits/5e-database) (MIT).
+
 **Clases y conjuros**
 - Las 13 clases oficiales (con el artífice) y sus subclases vienen cargadas, con dado de golpe, salvaciones,
   tipo de lanzador, característica mágica y forma de preparar conjuros. También un catálogo inicial de

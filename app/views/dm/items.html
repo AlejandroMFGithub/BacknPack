@@ -16,16 +16,18 @@
 <div class="card">
   {{ list_toolbar(args, 'Buscar objeto…', filters=[('category', 'Categoría', categories), ('rarity', 'Rareza', rarities)]) }}
   <table class="stack">
-    <thead><tr><th>Objeto</th><th>Propiedades</th><th>Peso</th><th></th></tr></thead>
+    <thead><tr><th>Objeto</th><th>Propiedades</th><th>Peso</th><th>Precio</th><th></th></tr></thead>
     <tbody>
     {% for i in items %}
     <tr>
       <td><b>{{ i.name }}</b>
         <div class="muted small">{{ i.category }} · {{ i.rarity }}{% if i.attunement %} · sintonía{% endif %}</div>
+        {% if i.description %}<div class="small item-desc">{{ i.description }}</div>{% endif %}
         {% for t in traits[i.id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
       <td class="small" data-label="Propiedades">{{ i.properties }}
         {% if i.effects %}<div class="effects-line">⚙ {{ i.effects | effects_summary }}</div>{% endif %}</td>
       <td data-label="Peso">{{ '%g' % i.weight }} kg</td>
+      <td data-label="Precio">{{ i.cost_cp | coins or '—' }}</td>
       <td class="actions">
         <div class="row">
           <a class="btn btn-small btn-ghost" href="{{ url_for('dm.edit_item', item_id=i.id) }}">Editar</a>
@@ -41,10 +43,13 @@
       </td>
     </tr>
     {% else %}
-    <tr><td colspan="4" class="muted">Ningún objeto coincide con la búsqueda.</td></tr>
+    <tr><td colspan="5" class="muted">Ningún objeto coincide con la búsqueda.</td></tr>
     {% endfor %}
     </tbody>
   </table>
   {{ pager(items) }}
 </div>
+<p class="srd-credit small">Incluye material del <i>System Reference Document 5.1</i> de Wizards of the Coast LLC,
+  con licencia <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC-BY-4.0</a>
+  (nombres en castellano y resúmenes propios).</p>
 {% endblock %}
