@@ -649,7 +649,8 @@
   document.addEventListener("click", function (e) {
     var calc = e.target.closest(".calc");
     if (calc && e.target.closest(".calc-pop")) return;  // leer el desglose no lo cierra
-    if (calc && e.target.closest("button, a, form, input, select")) calc = null;
+    var control = e.target.closest("button, a, input, select, label");
+    if (calc && control && calc.contains(control)) calc = null;  // los controles dentro del recuadro no lo abren
     closeCalcs(calc);
     if (calc) {
       var open = calc.classList.toggle("open");
@@ -759,5 +760,42 @@
       if (input) input.addEventListener("input", suggestHp);
     });
     refreshVisibility();
+  });
+
+  // --- PG: botones − / + sin recargar la página ---------------------------------------------
+
+  document.querySelectorAll("form.hp-panel").forEach(function (form) {
+    var amount = form.querySelector("input[name=amount]");
+    form.querySelectorAll(".hp-preset").forEach(function (b) {
+      b.addEventListener("click", function () { amount.value = b.getAttribute("data-amount"); });
+    });
+    function paint(state) {
+      var max = state.hp_max || 0;
+      var pct = max ? Math.max(0, Math.min(100, state.hp_current / max * 100)) : 0;
+      var tempPct = max ? Math.min(state.hp_temp / max * 100, 100 - pct) : 0;
+      form.querySelector(".js-hp-current").textContent = state.hp_current;
+      form.querySelector(".js-hp-temp").textContent = state.hp_temp;
+      var bar = form.querySelector(".js-hp-bar");
+      bar.style.width = pct.toFixed(1) + "%";
+      bar.style.setProperty("--hp", pct > 50 ? "#2f6b3a" : pct > 25 ? "#b7791f" : "#a12a22");
+      form.querySelector(".js-temp-bar").style.width = tempPct.toFixed(1) + "%";
+      form.querySelector(".hp-block.temp").classList.toggle("has-temp", state.hp_temp > 0);
+    }
+    form.addEventListener("submit", function (e) {
+      var button = e.submitter;
+      if (!button || button.name !== "op" || !window.fetch) return;  // sin JS moderno: envío normal
+      e.preventDefault();
+      var data = new FormData(form);
+      data.set("op", button.value);
+      button.disabled = true;
+      fetch(form.action, {
+        method: "POST", body: data, credentials: "same-origin",
+        headers: Object.assign({ "Accept": "application/json" }, csrfHeaders()),
+      }).then(function (r) {
+        return r.json().then(function (body) { if (!r.ok) throw new Error(body.error || "Error"); return body; });
+      }).then(paint).catch(function () {
+        form.submit();  // si algo falla, como siempre (recarga con el aviso del servidor)
+      }).finally(function () { button.disabled = false; });
+    });
   });
 })();

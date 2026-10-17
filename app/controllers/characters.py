@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, abort, flash, g, make_response, redirect, render_template, request, session, url_for,
+    Blueprint, abort, flash, g, jsonify, make_response, redirect, render_template, request, session, url_for,
 )
 
 from ..db import transaction
@@ -162,6 +162,24 @@ def inspiration(character_id):
         with transaction():
             ActivityLog.add(character_id, ("Recibe" if delta > 0 else "Gasta") + f" inspiración (le quedan {total})")
     return _back(character_id)
+
+
+@bp.route("/<int:character_id>/hp", methods=["POST"])
+@login_required
+def hp(character_id):
+    """Botones − / + de PG actuales y temporales (el dueño o el DM)."""
+    character = get_character_or_404(character_id)
+    hp_max = rules.sheet(character, {}, effects.active(character_id, show_hidden=True))["hp_max"].total
+    try:
+        result = Character.change_hp(character_id, request.form.get("op"), request.form.get("amount", 1, type=int) or 1, hp_max)
+    except RuleError as e:
+        if request.accept_mimetypes.best == "application/json":
+            return jsonify(error=str(e)), 400
+        flash(str(e), "error")
+        return redirect(url_for("characters.show", character_id=character_id, _anchor="pg"))
+    if request.accept_mimetypes.best == "application/json":
+        return jsonify(result)
+    return redirect(url_for("characters.show", character_id=character_id, _anchor="pg"))
 
 
 @bp.route("/<int:character_id>/delete", methods=["POST"])

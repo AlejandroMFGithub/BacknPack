@@ -69,17 +69,43 @@
     </div>
   </div>
 
-  {# PG con barra de vida: verde > 50 %, ámbar > 25 %, rojo por debajo #}
-  {% set hp_pct = [[(character.hp_current / character.hp_max * 100) if character.hp_max else 0, 0] | max, 100] | min %}
+  {# PG: botones − / + que funcionan sin recargar (app.js); sin JS, el formulario recarga la página.
+     Barra de vida: verde > 50 %, ámbar > 25 %, rojo por debajo; los temporales, en azul a continuación. #}
+  {% set hp_max = stats.hp_max.total %}
+  {% set hp_pct = [[(character.hp_current / hp_max * 100) if hp_max else 0, 0] | max, 100] | min %}
+  {% set temp_pct = [(character.hp_temp / hp_max * 100) if hp_max else 0, 100 - hp_pct] | min %}
   {% set hp_color = '#2f6b3a' if hp_pct > 50 else ('#b7791f' if hp_pct > 25 else '#a12a22') %}
   {% set speed_ft, speed_sq = (stats.speed.total | feet).split(' / ') %}
-  <div class="combat-strip vitals">
-    <div class="combat-box {{ calc_class(stats.hp_max) }}" {{ calc_attrs(stats.hp_max, 'Puntos de golpe máximos') }}>
+  <form class="hp-panel" id="pg" method="post" action="{{ url_for('characters.hp', character_id=character.id) }}"
+        data-max="{{ hp_max }}">
+    <div class="hp-block">
       <span class="combat-label">Puntos de golpe</span>
-      <b>{{ character.hp_current }} <small class="calc-value">/ {{ stats.hp_max.total }}</small></b>
-      <span class="hp-bar" aria-hidden="true"><span style="width: {{ hp_pct | round(1) }}%; --hp: {{ hp_color }}"></span></span>
-      {{ calc_pop(stats.hp_max, 'Puntos de golpe máximos') }}
+      <div class="hp-controls">
+        <button class="hp-btn" name="op" value="damage" title="Daño: gasta antes los PG temporales" aria-label="Quitar PG (daño)">−</button>
+        <span class="hp-value"><b class="js-hp-current" aria-live="polite">{{ character.hp_current }}</b>
+          <span class="hp-max {{ calc_class(stats.hp_max) }}" {{ calc_attrs(stats.hp_max, 'Puntos de golpe máximos') }}>
+            <span class="calc-value">/ {{ hp_max }}</span>{{ calc_pop(stats.hp_max, 'Puntos de golpe máximos') }}</span></span>
+        <button class="hp-btn heal" name="op" value="heal" title="Curar (hasta el máximo)" aria-label="Sumar PG (curar)">+</button>
+      </div>
+      <span class="hp-bar" aria-hidden="true"><span class="js-hp-bar" style="width: {{ hp_pct | round(1) }}%; --hp: {{ hp_color }}"></span><span
+            class="hp-bar-temp js-temp-bar" style="width: {{ temp_pct | round(1) }}%"></span></span>
     </div>
+    <div class="hp-block temp {{ 'has-temp' if character.hp_temp }}">
+      <span class="combat-label">PG temporales</span>
+      <div class="hp-controls">
+        <button class="hp-btn" name="op" value="temp_sub" aria-label="Quitar PG temporales">−</button>
+        <span class="hp-value"><b class="js-hp-temp" aria-live="polite">{{ character.hp_temp }}</b></span>
+        <button class="hp-btn" name="op" value="temp_add" aria-label="Sumar PG temporales">+</button>
+      </div>
+    </div>
+    <label class="hp-amount">Cantidad
+      <input type="number" name="amount" value="1" min="1" max="999" inputmode="numeric">
+      <span class="hp-presets" aria-label="Cantidades rápidas">
+        {% for n in (1, 5, 10) %}<button type="button" class="hp-preset" data-amount="{{ n }}">{{ n }}</button>{% endfor %}
+      </span>
+    </label>
+  </form>
+  <div class="combat-strip vitals">
     <div class="combat-box {{ calc_class(stats.armor_class) }}" {{ calc_attrs(stats.armor_class, 'Clase de armadura') }}>
       <span class="combat-label">Clase de armadura</span><b class="calc-value">{{ stats.armor_class.total }}</b>
       {{ calc_pop(stats.armor_class, 'Clase de armadura') }}

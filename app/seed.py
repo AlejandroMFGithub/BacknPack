@@ -101,7 +101,7 @@ def _seed_demo(db):
         "name": "Thorgar Puñohierro", "race": "Enano de las montañas", "class_name": "Guerrero",
         "level": 3, "background": "Soldado", "alignment": "Legal neutral", "subclass_id": sub["Campeón"],
         "strength": 17, "dexterity": 10, "constitution": 16, "intelligence": 9,
-        "wisdom": 12, "charisma": 10, "hp_max": 34, "hp_current": 34, "armor_class": 10, "speed": 25,
+        "wisdom": 12, "charisma": 10, "hp_max": 34, "hp_current": 34, "hp_temp": 5, "armor_class": 10, "speed": 25,
         # Guerrero: salvaciones de FUE y CON
         "save_strength": 1, "save_constitution": 1, "skill_athletics": 1, "skill_intimidation": 1,
         "skill_perception": 1,

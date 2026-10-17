@@ -1,4 +1,4 @@
-from ..db import get_db, now_text
+from ..db import get_db, now_text, transaction
 from ..text import LIKE_ESCAPE, distances, like_prefix, like_terms, normalize
 from . import rules
 from .campaign import Campaign
@@ -21,6 +21,7 @@ INT_FIELDS = {
     **{key: 10 for key, _ in ABILITIES},
     "hp_max": 10,
     "hp_current": 10,
+    "hp_temp": 0,
     "armor_class": 10,
     "initiative_bonus": 0,
 }
@@ -150,6 +151,36 @@ class Character:
                 "INSERT INTO character_proficiencies (character_id, kind, name, level) VALUES (?, ?, ?, ?)",
                 (character_id, kind, name, level),
             )
+
+    # --- Puntos de golpe en combate --------------------------------------------------------------
+
+    HP_OPS = ("damage", "heal", "temp_add", "temp_sub")
+
+    @staticmethod
+    def change_hp(character_id, op, amount, hp_max):
+        """Cambia los PG con los botones de la ficha. hp_max: el máximo ya calculado (con efectos).
+
+        damage: el daño gasta antes los PG temporales y luego los actuales (mínimo 0).
+        heal: cura hasta el máximo. temp_add / temp_sub: suma o resta PG temporales (mínimo 0).
+        """
+        if op not in Character.HP_OPS:
+            raise RuleError("Operación de PG no válida.")
+        amount = max(1, min(int(amount), 999))
+        with transaction() as db:
+            row = db.execute("SELECT hp_current, hp_temp FROM characters WHERE id = ?", (character_id,)).fetchone()
+            current, temp = row["hp_current"], row["hp_temp"]
+            if op == "damage":
+                absorbed = min(temp, amount)
+                temp -= absorbed
+                current = max(0, current - (amount - absorbed))
+            elif op == "heal":
+                current = max(current, min(hp_max, current + amount))  # nunca baja si ya estaba por encima
+            elif op == "temp_add":
+                temp += amount
+            else:
+                temp = max(0, temp - amount)
+            db.execute("UPDATE characters SET hp_current = ?, hp_temp = ? WHERE id = ?", (current, temp, character_id))
+        return {"hp_current": current, "hp_temp": temp, "hp_max": hp_max}
 
     # --- Inspiración ---------------------------------------------------------------------------
 

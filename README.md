@@ -131,6 +131,10 @@ controlador los muestra como mensaje.
 - Contadores en «Intercambios» (el DM ve los pendientes de su campaña) y en «¿Con quién juegas?».
 
 **Ficha de 5e**
+- **Puntos de golpe en combate**: PG actuales y **temporales** con botones − / + que guardan al momento sin
+  recargar la página, y una cantidad (1, 5, 10 o la que escribas). El − de los PG actuales es daño: gasta antes
+  los temporales (como en el reglamento). Curar no pasa del máximo (con efectos incluidos). La barra de vida
+  muestra los temporales en azul. También se editan en «Editar ficha» y se ven en las listas («20/34 +7»).
 - Iniciativa (modificador de DES + bonus extra opcional), bonificador de competencia (automático
   según el nivel o fijado a mano), percepción pasiva y puntos de inspiración (el DM los da,
   el jugador los gasta).

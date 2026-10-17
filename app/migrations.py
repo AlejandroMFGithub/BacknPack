@@ -180,6 +180,8 @@ MIGRATIONS = [
        ALTER TABLE characters ADD COLUMN spell_ability TEXT;
        ALTER TABLE characters ADD COLUMN spell_prep TEXT;""",
     lambda db: _official_classes_and_spells(db),
+    # 17: puntos de golpe temporales
+    "ALTER TABLE characters ADD COLUMN hp_temp INTEGER NOT NULL DEFAULT 0;",
 ]
 
 # Columnas de texto libre donde puede haber distancias
