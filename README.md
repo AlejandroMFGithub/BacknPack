@@ -202,6 +202,13 @@ controlador los muestra como mensaje.
   origen; el DM ve su nombre. Lo que viene del nivel o de lo escrito en la ficha no colorea.
 - El motor está en `rules.sheet()` y los efectos en `app/models/effects.py` (JSON en la columna `effects`).
 
+**Secciones plegables**
+- En la ficha (Tiradas, Bolsa, Efectos, Inventario, Historial), en la pestaña de conjuros (cada nivel, los de
+  objetos y «Añadir conjuro») y en la actividad del panel del DM, cada sección se pliega con su flecha. La
+  cabecera plegada sigue mostrando un resumen (p. ej. «6 conjuros · 4 preparados · 2/3 espacios»).
+- El navegador recuerda qué secciones has plegado; «Desplegar todo / Plegar todo» en la de conjuros. Un enlace
+  que apunta a una sección plegada la abre (p. ej. tras lanzar un conjuro).
+
 **Imagen de personaje**
 - Cada personaje muestra un icono en listas, ficha, intercambios y buscador: su imagen o, si no
   tiene, la inicial sobre un color fijo.

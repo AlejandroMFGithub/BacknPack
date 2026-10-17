@@ -43,12 +43,12 @@
   {{ pager(characters) }}
 </div>
 
-<div class="card">
-  <h2>Actividad reciente</h2>
+<details class="card fold" id="actividad" data-fold="dm-activity" open>
+  <summary class="fold-head"><h2>Actividad reciente</h2><span class="fold-count">{{ 'últimos ' ~ (log | length) if log else 'sin actividad' }}</span></summary>
   {% for entry in log %}
     <div class="small"><span class="muted">{{ entry.created_at }}</span> · <b>{{ entry.character_name or '—' }}</b>: {{ entry.message }}</div>
   {% else %}
     <p class="muted small">Sin actividad.</p>
   {% endfor %}
-</div>
+</details>
 {% endblock %}

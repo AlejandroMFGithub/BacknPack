@@ -798,4 +798,32 @@
       }).finally(function () { button.disabled = false; });
     });
   });
+
+  // --- Secciones plegables: recuerdan si las cierras y se abren si un enlace apunta a ellas -----
+
+  function openFromHash() {
+    var target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    var fold = target && target.closest("details.fold");
+    if (fold) fold.open = true;
+  }
+  document.querySelectorAll("details.fold[data-fold]").forEach(function (fold) {
+    var key = "fold:" + fold.getAttribute("data-fold");
+    try {
+      if (localStorage.getItem(key) === "closed") fold.open = false;
+    } catch (e) { /* sin almacenamiento: todo abierto */ }
+    fold.addEventListener("toggle", function () {
+      try {
+        if (fold.open) localStorage.removeItem(key); else localStorage.setItem(key, "closed");
+      } catch (e) { /* nada */ }
+    });
+  });
+  openFromHash();
+  window.addEventListener("hashchange", openFromHash);
+  requestAnimationFrame(function () { document.documentElement.classList.add("fold-ready"); });
+  document.addEventListener("click", function (e) {
+    var button = e.target.closest("[data-fold-all]");
+    if (!button) return;
+    var open = button.getAttribute("data-fold-all") === "open";
+    document.querySelectorAll("details.fold").forEach(function (fold) { fold.open = open; });
+  });
 })();

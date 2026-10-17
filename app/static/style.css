@@ -1191,3 +1191,31 @@ main > .sheet-head > div:first-child { min-width: 0; }
 .item-desc { margin-top: .15rem; max-width: 46em; }
 .srd-credit { color: #d8c6a6; text-align: center; margin: 1rem auto; max-width: 52em; }
 .srd-credit a { color: var(--gold-soft); }
+
+/* --- Secciones plegables (details.card.fold) ------------------------------------------------- */
+.fold > .fold-head {
+  display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; cursor: pointer; list-style: none;
+  border-bottom: 1px solid var(--line); padding-bottom: .3rem; margin-bottom: .6rem; user-select: none;
+  border-radius: 4px;
+}
+.fold > .fold-head::-webkit-details-marker { display: none; }
+.fold > .fold-head::before {
+  content: ""; flex: none; width: .5em; height: .5em; margin: 0 .15rem 0 .1rem;
+  border-right: 2px solid var(--accent); border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+}
+.fold-ready .fold > .fold-head::before { transition: transform .15s ease; }  /* solo al pulsar, no al cargar */
+.fold[open] > .fold-head::before { transform: rotate(45deg) translate(-2px, -2px); }
+.fold > .fold-head h2 { border: 0; margin: 0; padding: 0; }
+.fold > .fold-head:hover h2 { color: var(--accent); }
+.fold > .fold-head:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.fold:not([open]) > .fold-head { border-bottom-color: transparent; margin-bottom: 0; padding-bottom: 0; }
+.fold-count, .fold > .fold-head .prof-legend { margin-left: auto; font-size: .8rem; color: var(--muted); text-align: right; }
+.fold-slots { color: #8a6416; font-weight: 600; }
+.fold-tools { display: flex; justify-content: flex-end; gap: .4rem; margin: 0 0 .5rem; }
+.fold-tools button { background: #ffffff14; color: #f3e6cc; border: 1px solid #ffffff2b; padding: .25rem .7rem; font-size: .8rem; border-radius: 999px; }
+.fold-tools button:hover { background: #ffffff24; filter: none; }
+@media (prefers-reduced-motion: reduce) { .fold > .fold-head::before { transition: none; } }
+@media (max-width: 640px) {
+  .fold-count { flex-basis: 100%; margin-left: 1.3rem; text-align: left; }
+}

@@ -169,27 +169,39 @@
 {%- endmacro %}
 
 <!-- Conjuros por nivel -->
-{% for level in range(0, 10) if by_level.get(level) %}
-<div class="card" id="nivel-{{ level }}">
-  <h2>{{ level_names[level] }} <span class="muted small">· {{ by_level[level] | length }}</span></h2>
-  {% for s in by_level[level] %}{{ spell_row(s) }}{% endfor %}
+{% if by_level | length > 1 %}
+<div class="fold-tools">
+  <button type="button" data-fold-all="open">▾ Desplegar todo</button>
+  <button type="button" data-fold-all="close">▸ Plegar todo</button>
 </div>
+{% endif %}
+{% for level in range(0, 10) if by_level.get(level) %}
+{% set spells_here = by_level[level] %}
+<details class="card fold" id="nivel-{{ level }}" data-fold="spells-level-{{ level }}" open>
+  <summary class="fold-head"><h2>{{ level_names[level] }}</h2>
+    <span class="fold-count">{{ spells_here | length }} conjuro{{ 's' if spells_here | length != 1 }}
+      {%- if prepares and level > 0 %} · {{ spells_here | selectattr('prepared') | list | length }} preparado{{ 's' if spells_here | selectattr('prepared') | list | length != 1 }}{% endif %}
+      {%- set slot_here = slots | selectattr('level', 'equalto', level) | rejectattr('key', 'equalto', 'pact') | first %}
+      {%- if slot_here %} · <span class="fold-slots" title="Espacios libres de este nivel">{{ slot_here.max - slot_here.used }}/{{ slot_here.max }} espacios</span>{% endif %}</span>
+  </summary>
+  {% for s in spells_here %}{{ spell_row(s) }}{% endfor %}
+</details>
 {% endfor %}
 {% if not by_level %}
 <div class="card"><p class="muted">Aún no tiene conjuros en su lista. Añádelos abajo desde el catálogo.</p></div>
 {% endif %}
 
 {% if item_spells %}
-<div class="card" id="objetos">
-  <h2>De objetos equipados</h2>
+<details class="card fold" id="objetos" data-fold="spells-items" open>
+  <summary class="fold-head"><h2>De objetos equipados</h2><span class="fold-count">{{ item_spells | length }} conjuro{{ 's' if item_spells | length != 1 }}</span></summary>
   <p class="field-hint">Mientras lleve el objeto equipado. Se lanzan con el objeto, sin gastar espacios de conjuro.</p>
   {% for s in item_spells %}{{ spell_row(s, entry=false) }}{% endfor %}
-</div>
+</details>
 {% endif %}
 
 <!-- Añadir -->
-<div class="card">
-  <h2>Añadir conjuro</h2>
+<details class="card fold" id="anadir" data-fold="spells-add" open>
+  <summary class="fold-head"><h2>Añadir conjuro</h2></summary>
   <form method="post" action="{{ url_for('spells.add', character_id=character.id) }}">
     {{ picker('spell_id', url_for('api.spells'), 'Buscar conjuro…', filters=[
          {'name': 'level', 'label': 'Nivel', 'options': level_names.items() | list},
@@ -205,5 +217,5 @@
     <p class="field-hint">El buscador empieza filtrado por la lista de su clase; quita el filtro para ver todos.
       {% if dm %}Los conjuros homebrew se crean en <a href="{{ url_for('library.spells') }}">Herramientas → Conjuros</a>.{% endif %}</p>
   </form>
-</div>
+</details>
 {% endblock %}

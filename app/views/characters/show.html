@@ -177,11 +177,11 @@
 {% macro prof_dot(level) -%}
   <span class="prof-dot prof-{{ level }}" title="{{ ['Sin competencia', 'Competencia', 'Pericia (competencia doble)'][level] }}"></span>
 {%- endmacro %}
-<div class="card">
-  <div class="row spread">
+<details class="card fold" id="tiradas" data-fold="sheet-checks" open>
+  <summary class="fold-head">
     <h2>Tiradas</h2>
     <span class="prof-legend small muted">{{ prof_dot(1) }} competencia · {{ prof_dot(2) }} pericia</span>
-  </div>
+  </summary>
   <div class="checks">
     <section class="checks-saves">
       <h3>Tiradas de salvación</h3>
@@ -204,12 +204,12 @@
     Pasa el ratón o toca cualquier valor para ver el cálculo: en <span class="mod-up-text">verde</span> lo que mejoran el equipo y los efectos,
     en <span class="mod-down-text">rojo</span> lo que empeoran y en <span class="mod-mixed-text">ámbar</span> si hay de ambos.
     <a href="{{ url_for('characters.edit', character_id=character.id) }}#competencias">Cambiar competencias</a></p>
-</div>
+</details>
 
 <div class="grid">
   <!-- Bolsa -->
-  <div class="card">
-    <h2>Bolsa</h2>
+  <details class="card fold" id="bolsa" data-fold="sheet-purse" open>
+    <summary class="fold-head"><h2>Bolsa</h2></summary>
     {% if dm %}
       <form method="post" action="{{ url_for('characters.set_currencies', character_id=character.id) }}">
         <div class="form-grid">
@@ -229,7 +229,7 @@
         {% endfor %}
       </div>
     {% endif %}
-  </div>
+  </details>
 
   <!-- Efectos -->
   {# Formulario de alta / edición de un efecto. Visible y fijo solo los decide el DM. #}
@@ -254,8 +254,10 @@
   </form>
   {%- endmacro %}
 
-  <div class="card" id="efectos">
-    <h2>Bufos, maldiciones y estados</h2>
+  <details class="card fold" id="efectos" data-fold="sheet-effects" open>
+    <summary class="fold-head"><h2>Bufos, maldiciones y estados</h2>
+      {%- set active_count = conditions | selectattr('active') | list | length %}
+      <span class="fold-count">{{ active_count }} activo{{ 's' if active_count != 1 }}{% if conditions | length != active_count %} · {{ conditions | length }} en total{% endif %}</span></summary>
     {% for e in conditions %}
       {% set can_change = dm or (e.visible and not e.locked) %}
       <div class="effect {{ e.kind }} {{ 'is-off' if not e.active }}" id="cond-{{ e.id }}">
@@ -315,16 +317,16 @@
     <datalist id="presets">{% for p in presets %}<option value="{{ p }}">{% endfor %}</datalist>
     {% if not dm %}<p class="field-hint">Actívalos y desactívalos con el interruptor (furia, concentración…): solo los activos cambian la ficha.
       Los marcados con 🔒 los ha fijado el DM.</p>{% endif %}
-  </div>
+  </details>
 </div>
 
 <!-- Inventario -->
-<div class="card">
-  <h2>Inventario
-    <span class="muted small">
-      {%- if inventory | length != inventory_total %} · {{ inventory | length }} de {{ inventory_total }}{% else %} · {{ inventory_total }}{% endif %}
-    </span>
-  </h2>
+<details class="card fold" id="inventario" data-fold="sheet-inventory" open>
+  <summary class="fold-head"><h2>Inventario</h2>
+    <span class="fold-count">
+      {%- if inventory | length != inventory_total %}{{ inventory | length }} de {{ inventory_total }}{% else %}{{ inventory_total }} objeto{{ 's' if inventory_total != 1 }}{% endif %}
+      · {{ '%g' % weight }} kg</span>
+  </summary>
   {% if inventory_total > 0 %}
     {{ list_toolbar(args, 'Buscar en la mochila…', filters=[('category', 'Categoría', categories)]) }}
   {% endif %}
@@ -419,14 +421,14 @@
   </form>
   <p class="small"><a href="{{ url_for('dm.items') }}">Crear objeto nuevo en el catálogo</a></p>
   {% endif %}
-</div>
+</details>
 
-<div class="card">
-  <h2>Historial</h2>
+<details class="card fold" id="historial" data-fold="sheet-log" open>
+  <summary class="fold-head"><h2>Historial</h2><span class="fold-count">{{ 'últimos ' ~ (log | length) if log else 'sin movimientos' }}</span></summary>
   {% for entry in log %}
     <div class="small"><span class="muted">{{ entry.created_at }}</span> · {{ entry.message }}</div>
   {% else %}
     <p class="muted small">Sin movimientos todavía.</p>
   {% endfor %}
-</div>
+</details>
 {% endblock %}
