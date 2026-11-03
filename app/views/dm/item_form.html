@@ -1,14 +1,59 @@
 {% extends "base.html" %}
 {% block title %}Editar {{ item.name }}{% endblock %}
-{% block back_url %}{{ url_for('dm.items') }}{% endblock %}
+{% block back_url %}{{ back if ctx is defined else url_for('dm.items') }}{% endblock %}
 {% block content %}
 {% from "_macros.html" import trait_chip, trait_form, picker with context %}
-<h1>Editar {{ item.name }}</h1>
+<h1>Editar {{ item.name }}
+  {% if item.unique_copy %}<span class="badge badge-unique" title="Versión única de un objeto del catálogo">✦ Ejemplar único</span>{% endif %}</h1>
+{% if ctx is defined %}
 <form method="post" class="card">
+  <fieldset class="scope-picker">
+    <legend>¿A qué afectan los cambios?</legend>
+    <p class="muted small">Estás editando «{{ item.name }}» desde {{ ctx.label }}.</p>
+    <label class="scope-option">
+      <input type="radio" name="scope" value="copy" checked>
+      <span><b>Solo este ejemplar</b>
+        <span class="muted small">— el de {{ ctx.label }}. {% if item.unique_copy and ctx.uses == 1 %}Ya es una versión única: se edita tal cual.
+          {% else %}Se crea una versión única; el catálogo y los demás ejemplares no cambian.{% endif %}</span></span>
+    </label>
+    {% if not item.unique_copy %}
+    <label class="scope-option">
+      <input type="radio" name="scope" value="all">
+      <span><b>Todos los ejemplares</b>
+        <span class="muted small">— cambia «{{ item.name }}» en el catálogo: inventarios, tiendas y botines que lo usen.</span></span>
+    </label>
+    {% elif ctx.parent %}
+    <p class="small scope-note">Basado en «<a href="{{ url_for('dm.edit_item', item_id=ctx.parent.id) }}">{{ ctx.parent.name }}</a>» del catálogo
+      (para cambiar todos, edita el original).</p>
+    {% endif %}
+    {% if ctx.quantity and ctx.quantity > 1 %}
+    <div class="units-choice" data-scope-copy>
+      <span class="small">Hay ×{{ ctx.quantity }} en esta pila:</span>
+      <label class="inline"><input type="radio" name="units" value="all" checked> toda la pila</label>
+      <label class="inline"><input type="radio" name="units" value="one"> solo una unidad (se separa)</label>
+    </div>
+    {% endif %}
+  </fieldset>
+  {% include "dm/_item_fields.html" %}
+  <p><button>Guardar</button> <a class="btn btn-ghost" href="{{ back }}">Cancelar</a></p>
+</form>
+{% if item.unique_copy and ctx.parent %}
+<form method="post" action="{{ url_for('dm.revert_in_place', kind=ctx.kind, ref_id=ctx.ref_id) }}" class="card revert-card"
+      onsubmit='return confirm({{ ("¿Volver a «" ~ ctx.parent.name ~ "» del catálogo? Se pierden los cambios de este ejemplar.") | tojson }})'>
+  <span class="small">¿Ya no hace falta que sea especial?</span>
+  <button class="btn-small btn-ghost">↺ Volver a la versión del catálogo</button>
+</form>
+{% endif %}
+{% else %}
+<form method="post" class="card">
+  {% if item.unique_copy %}<p class="field-hint">Versión única de un objeto, usada en {{ item_uses(item.id) }} sitio(s).
+    No aparece en el catálogo normal.</p>{% endif %}
   {% include "dm/_item_fields.html" %}
   <p><button>Guardar</button> <a class="btn btn-ghost" href="{{ url_for('dm.items') }}">Cancelar</a></p>
 </form>
+{% endif %}
 
+{% if ctx is not defined or item.unique_copy %}
 <div class="card">
   <h2>Cualidades de plantilla</h2>
   <p class="muted small">Se copian a cada ejemplar <b>nuevo</b> de este objeto (al darlo, comprarlo o recogerlo).
@@ -47,4 +92,9 @@
     <button class="btn-small">Añadir conjuro</button>
   </form>
 </div>
+{% else %}
+<p class="field-hint scope-hint">Las cualidades y los conjuros de plantilla de «{{ item.name }}» se editan en el
+  <a href="{{ url_for('dm.edit_item', item_id=item.id) }}">catálogo</a> (afectan a los ejemplares nuevos).
+  {% if ctx.kind == 'inventory' %}Las de este ejemplar concreto, desde el inventario de la ficha.{% endif %}</p>
+{% endif %}
 {% endblock %}

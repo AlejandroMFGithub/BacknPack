@@ -190,7 +190,14 @@
       <td><b>{{ a.name }}</b>
         {% if w.bonus %}<span class="badge badge-buff" title="Arma mágica">+{{ w.bonus }}</span>{% endif %}
         {% if not a.calc.proficient %}<span class="badge badge-curse" title="No suma la competencia al ataque">sin competencia</span>{% endif %}
-        <div class="muted small">{{ weapon_desc(w) if a.row else 'Puñetazo, patada, cabezazo…' }}</div></td>
+        <div class="muted small">{{ weapon_desc(w) if a.row else 'Puñetazo, patada, cabezazo…' }}</div>
+        {% if w.mastery in MASTERIES %}{% set m_name, m_desc = MASTERIES[w.mastery] %}
+        <span class="badge mastery-badge calc" tabindex="0" role="button" aria-expanded="false" aria-label="Maestría {{ m_name }}: ver efecto">✦ {{ m_name }}
+          <span class="calc-pop" role="tooltip"><span class="calc-title">Maestría: {{ m_name }}</span>
+            <span class="calc-line"><span>{{ m_desc }}</span><b></b></span>
+            {% if w.mastery == 'topple' %}<span class="calc-line calc-total"><span>CD de la salvación (8 + mod. + competencia)</span>
+              <b>{{ 8 + stats.mods[a.calc.ability] + stats.proficiency }}</b></span>{% endif %}
+          </span></span>{% endif %}</td>
       <td data-label="Ataque">
         <span class="attack-roll {{ calc_class(a.calc.attack) }}" {{ calc_attrs(a.calc.attack, 'Ataque con ' ~ a.name) }}>
           <b class="calc-value">{{ a.calc.attack.total | signed }}</b>{{ calc_pop(a.calc.attack, 'Ataque con ' ~ a.name, 'signed') }}</span></td>
@@ -198,6 +205,7 @@
         <span class="damage-roll {{ calc_class(a.calc.damage) }}" {{ calc_attrs(a.calc.damage, 'Daño de ' ~ a.name) }}>
           <b class="calc-value">{{ a.calc.roll or '—' }}</b> {{ a.calc.type }}
           {%- if a.calc.roll_two %}<span class="muted small two-hands">{{ a.calc.roll_two }} a dos manos</span>{% endif %}
+          {%- for e in w.extra or [] %}<span class="extra-dmg small">+{{ e.dice }} {{ e.type }}{% if e.note %} <span class="muted">({{ e.note }})</span>{% endif %}</span>{% endfor %}
           {{ calc_pop(a.calc.damage, 'Modificador al daño de ' ~ a.name, 'signed') }}</span></td>
       <td data-label="Alcance">{{ weapon_reach(w) }}</td>
       <td data-label="Propiedades" class="small">
@@ -382,12 +390,14 @@
     <div class="inv-item {{ 'hidden-row' if not it.visible }} {{ 'equipped' if it.equipped }}" data-group="{{ groups[it.id] }}">
       <div class="inv-main">
         <b>{{ it.name }}</b>
+        {% if dm %}{% if it.unique_copy %}<span class="badge badge-unique" title="Versión única: editada solo para este ejemplar">✦ Único</span>{% endif %}{% endif %}
         {% if it.equipped %}<span class="badge badge-buff">Equipado</span>{% endif %}
         {% if not it.visible %}<span class="badge badge-hidden">Oculto al jugador</span>{% endif %}
         <div class="muted small">{{ it.category }} · {{ it.rarity }}{% if it.attunement %} · requiere sintonía{% endif %}</div>
         {% if it.properties %}<div class="small">{{ it.properties }}</div>{% endif %}
         {% if wa %}<div class="attack-line small">⚔ <b>{{ wa.calc.attack.total | signed }}</b> al ataque ·
           <b>{{ wa.calc.roll or '—' }}</b> {{ wa.calc.type }}{% if wa.calc.roll_two %} ({{ wa.calc.roll_two }} a dos manos){% endif %}
+          {%- if wa.weapon.mastery in MASTERIES %} · ✦ {{ MASTERIES[wa.weapon.mastery][0] }}{% endif %}
           {% if not wa.calc.proficient %}<span class="badge badge-curse">sin competencia</span>{% endif %}
           {% if it.proficient is not none %}<span class="muted">(fijado a mano)</span>{% endif %}</div>{% endif %}
         {% if it.effects %}<div class="effects-line small {{ 'effects-off' if not it.equipped }}">⚙ {{ it.effects | effects_summary }}{% if not it.equipped %} <span class="muted">(al equiparlo)</span>{% endif %}</div>{% endif %}
@@ -414,6 +424,7 @@
             <hr>
             {% endif %}
             {% if dm %}
+            <a class="menu-item" href="{{ url_for('dm.edit_in_place', kind='inventory', ref_id=it.id) }}">✎ Editar objeto</a>
             <form method="post" action="{{ url_for('characters.toggle_item_visibility', character_id=character.id, inventory_id=it.id) }}">
               <button>{{ '🙈 Ocultar al jugador' if it.visible else '👁️ Revelar al jugador' }}</button></form>
             <hr>

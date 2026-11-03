@@ -163,6 +163,34 @@ MAGIC_WEAPONS = {
 WEAPON_PROPS = ["finesse", "light", "heavy", "two-handed", "reach", "thrown", "ammunition", "loading", "versatile", "special"]
 
 
+# Maestría de cada arma (reglamento 2024, SRD 5.2 · CC-BY-4.0)
+MASTERY = {
+    "club": "slow", "dagger": "nick", "greatclub": "push", "handaxe": "vex", "javelin": "slow",
+    "light-hammer": "nick", "mace": "sap", "quarterstaff": "topple", "sickle": "nick", "spear": "sap",
+    "crossbow-light": "slow", "dart": "vex", "shortbow": "vex", "sling": "slow",
+    "battleaxe": "topple", "flail": "sap", "glaive": "graze", "greataxe": "cleave", "greatsword": "graze",
+    "halberd": "cleave", "lance": "topple", "longsword": "sap", "maul": "topple", "morningstar": "sap",
+    "pike": "push", "rapier": "vex", "scimitar": "nick", "shortsword": "vex", "trident": "topple",
+    "war-pick": "sap", "warhammer": "push", "whip": "slow", "blowgun": "vex", "crossbow-hand": "vex",
+    "crossbow-heavy": "push", "longbow": "slow",
+}
+# Daño adicional de armas mágicas: [(dados, tipo, cuándo)]
+MAGIC_EXTRA = {
+    "flame-tongue": [("2d6", "fuego", "con la hoja encendida")],
+    "frost-brand": [("1d6", "frío", "")],
+    "dragon-slayer": [("3d6", "", "contra dragones")],
+    "giant-slayer": [("2d6", "", "contra gigantes")],
+    "holy-avenger": [("2d10", "radiante", "contra infernales y muertos vivientes")],
+    "mace-of-disruption": [("2d6", "radiante", "contra infernales y muertos vivientes")],
+    "sun-blade": [("1d8", "radiante", "contra muertos vivientes")],
+    "oathbow": [("3d6", "", "contra el enemigo jurado")],
+    "dwarven-thrower": [("1d8", "", "lanzado por un enano (2d8 contra gigantes)")],
+    "javelin-of-lightning": [("4d6", "rayo", "al lanzarla como relámpago")],
+    "sword-of-wounding": [("1d4", "necrótico", "cada turno, por la herida")],
+    "vicious-weapon": [("7", "", "con un 20 natural")],
+}
+
+
 def weapon_data(e, bonus=0):
     """Datos de ataque de un arma del SRD (los usa la tarjeta de Ataques de la ficha)."""
     dmg = e.get("damage") or {}
@@ -174,7 +202,7 @@ def weapon_data(e, bonus=0):
         "props": [p["index"] for p in e.get("properties", []) if p["index"] in WEAPON_PROPS],
         "two": (e.get("two_handed_damage") or {}).get("damage_dice"),
         "range": [reach["normal"], reach["long"]] if reach and reach.get("long") else None,
-        "bonus": bonus, "base": EQUIPMENT[e["index"]],
+        "bonus": bonus, "base": EQUIPMENT[e["index"]], "mastery": MASTERY.get(e["index"]), "extra": [],
     }
 
 
@@ -275,7 +303,8 @@ def build(src):
                     weapon["type"] = "radiante"
             else:
                 weapon = {"dice": None, "type": "", "cat": None, "ranged": False, "props": [], "two": None,
-                          "range": None, "bonus": bonus, "base": None}
+                          "range": None, "bonus": bonus, "base": None, "mastery": None, "extra": []}
+            weapon["extra"] = [{"dice": d, "type": t, "note": n} for d, t, n in MAGIC_EXTRA.get(key, [])]
         items.append({
             "srd": key, "name": name, "category": category, "rarity": rarity,
             "weight": kg(MAGIC_BASE_WEIGHT[weight_key]) if weight_key else 0,

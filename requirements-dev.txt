@@ -1,0 +1,4 @@
+# Solo para desarrollo: pruebas contra PostgreSQL (tests/run_pg.py) y capturas en el navegador
+-r requirements.txt
+pgserver
+playwright

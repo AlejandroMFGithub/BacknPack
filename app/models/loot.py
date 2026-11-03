@@ -72,7 +72,7 @@ class Loot:
     @staticmethod
     def entries(pool_id, sort="type"):
         return get_db().execute(
-            """SELECT le.*, i.name AS item_name, i.category, i.rarity, i.description,
+            """SELECT le.*, i.name AS item_name, i.category, i.rarity, i.description, i.unique_copy,
                       c.name AS currency_name, c.code AS currency_code
                FROM loot_entries le
                LEFT JOIN items i ON i.id = le.item_id

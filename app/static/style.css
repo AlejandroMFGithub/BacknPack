@@ -1252,3 +1252,57 @@ table.attacks tr.no-prof .attack-roll b { color: var(--mod-down); }
   .inv-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
   .inv-tab { flex: none; }
 }
+
+/* --- Editar un objeto desde donde aparece -------------------------------------------------- */
+.badge-unique { background: #6b4fa0; color: #fff; }
+.scope-picker { border: 1px solid var(--gold); border-radius: 10px; background: #fdf6e3; padding: .6rem .9rem .7rem; margin: 0 0 1rem; }
+.scope-picker legend { font-weight: 700; padding: 0 .35rem; }
+.scope-option { display: flex; align-items: flex-start; gap: .55rem; padding: .45rem .5rem; border-radius: 8px; cursor: pointer; }
+.scope-option:hover { background: #fff8e6; }
+.scope-option input { margin-top: .25rem; flex: none; }
+.scope-option:has(input:checked) { background: #fff; box-shadow: inset 0 0 0 1.5px var(--gold); }
+.scope-note { margin: .4rem .5rem 0; }
+.units-choice { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .9rem; margin: .5rem .5rem 0; padding-top: .5rem; border-top: 1px dashed var(--line-strong); }
+.scope-picker:has(input[value="all"]:checked) .units-choice { display: none; }
+.revert-card { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; }
+.field-hint.on-dark, .scope-hint { color: #e9dcc4; }
+
+/* --- Menú de arma del catálogo ---------------------------------------------------------------- */
+.weapon-editor h4 { margin: .8rem 0 .35rem; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.weapon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem 1.2rem; }
+.weapon-grid section > label { display: block; margin-top: .45rem; }
+.w-inline { display: flex; gap: .4rem; align-items: center; }
+.w-inline .w-dice { width: 6em; flex: none; }
+.chip-checks { display: flex; flex-wrap: wrap; gap: .35rem; }
+.chip-check { position: relative; cursor: pointer; }
+.chip-check input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.chip-check span { display: inline-block; padding: .3rem .7rem; border-radius: 999px; border: 1px solid var(--line-strong);
+  background: #fff; font-size: .85rem; transition: background .12s, color .12s; }
+.chip-check input:checked + span { background: var(--ink); color: #f6ead2; border-color: var(--ink); }
+.chip-check input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: 2px; }
+.chip-check:hover span { border-color: var(--gold); }
+.mastery-pick { align-items: flex-start; flex-wrap: wrap; }
+.mastery-pick select { width: auto; min-width: 11em; }
+.mastery-desc { flex: 1 1 16em; margin: .2rem 0 0; padding: .35rem .6rem; border-left: 3px solid var(--gold); background: #fdf6e3; border-radius: 0 6px 6px 0; }
+.wx-row { display: grid; grid-template-columns: 6em minmax(110px, 1fr) 2fr auto; gap: .4rem; margin-bottom: .4rem; }
+.wx-row > * { margin: 0; min-width: 0; }
+@media (max-width: 640px) {
+  .weapon-grid { grid-template-columns: 1fr; }
+  .wx-row { grid-template-columns: 5em 1fr auto; }
+  .wx-row input[name="w_extra_note"] { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* Maestría y daño adicional en la tarjeta de Ataques */
+.mastery-badge { cursor: help; background: #f1e3c4; color: #5a4630; border: 1px solid var(--line-strong); }
+.extra-dmg { display: block; color: #8a3a14; }
+.scope-option input[type="radio"], .units-choice input[type="radio"] { width: 1.1rem; height: 1.1rem; min-height: 0; padding: 0; margin: .2rem 0 0; flex: none; }
+.scope-option > span { flex: 1; min-width: 0; display: block; }
+.scope-option > span .muted { display: block; margin-top: .1rem; }
+.mastery-badge { position: relative; display: inline-block; margin-top: .25rem; }
+.mastery-badge .calc-pop { left: 0; transform: none; min-width: 240px; }
+.mastery-badge .calc-pop::after { left: 1.4rem; }
+.weapon-editor legend label { display: inline-flex; align-items: baseline; gap: .35rem; flex-wrap: wrap; }
+.weapon-editor legend input[type="checkbox"] { width: auto; flex: none; }
+@media (max-width: 640px) {
+  .weapon-editor legend .muted { flex-basis: 100%; }
+}

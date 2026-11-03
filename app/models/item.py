@@ -78,9 +78,10 @@ class Item:
         return get_db().execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
 
     @staticmethod
-    def search(q="", category="", rarity="", sort="name", page=1, per_page=PER_PAGE):
-        """Catálogo filtrado y paginado. sort='relevance' pone primero lo que empieza por q."""
-        where, params = [], []
+    def search(q="", category="", rarity="", sort="name", page=1, per_page=PER_PAGE, unique=False):
+        """Catálogo filtrado y paginado. sort='relevance' pone primero lo que empieza por q.
+        unique=True: las versiones únicas (objetos editados para un solo ejemplar) en vez del catálogo."""
+        where, params = ["unique_copy = ?"], [1 if unique else 0]
         for term in like_terms(q):
             where.append("search_name LIKE ?" + LIKE_ESCAPE)
             params.append(term)
@@ -99,7 +100,7 @@ class Item:
     @staticmethod
     def find(name):
         """El objeto del catálogo con ese nombre (sin tildes ni mayúsculas), o None."""
-        return get_db().execute("SELECT * FROM items WHERE search_name = ? ORDER BY id LIMIT 1",
+        return get_db().execute("SELECT * FROM items WHERE search_name = ? AND unique_copy = 0 ORDER BY id LIMIT 1",
                                 (normalize(name),)).fetchone()
 
     @staticmethod
@@ -111,7 +112,7 @@ class Item:
             weight = float(str(data.get("weight") or 0).replace(",", "."))
         except ValueError:
             weight = 0.0
-        return {
+        clean = {
             "name": name,
             "search_name": normalize(name),
             "category": data.get("category") if data.get("category") in CATEGORIES else "Misceláneo",
@@ -124,6 +125,11 @@ class Item:
             "cost_cp": parse_cost(data.get("cost")) if "cost" in data else data.get("cost_cp"),
             "weapon": weapons.dumps(weapons.from_form(data) if "w_form" in data else data.get("weapon")),
         }
+        # Las armas editadas en el formulario: sus propiedades se generan a partir de sus datos
+        weapon = weapons.loads(clean["weapon"])
+        if "w_form" in data and weapon:
+            clean["properties"] = weapons.summary(weapon)
+        return clean
 
     @staticmethod
     def create(data):

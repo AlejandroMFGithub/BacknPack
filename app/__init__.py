@@ -95,7 +95,11 @@ def create_app(test_config=None):
     app.add_template_filter(format_cost, "coins")
     from .models import weapons
     app.jinja_env.globals.update(WEAPON_PROPS=weapons.PROPS, DAMAGE_TYPES=weapons.DAMAGE_TYPES,
-                                 WEAPON_CATS=weapons.CATEGORIES)
+                                 WEAPON_CATS=weapons.CATEGORIES, WEAPON_PROP_HELP=weapons.PROP_HELP,
+                                 MASTERIES=weapons.MASTERIES)
+
+    from .models.item_copies import references as item_uses
+    app.jinja_env.globals["item_uses"] = item_uses
 
     @app.template_global()
     def weapon_of(obj):

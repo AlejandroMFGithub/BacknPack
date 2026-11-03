@@ -191,6 +191,11 @@ MIGRATIONS = [
        ALTER TABLE inventory_items ADD COLUMN proficient INTEGER;""",
     # 21: rellena los datos de ataque de las armas del SRD que ya están en el catálogo
     lambda db: _srd_weapons(db),
+    # 22: versiones únicas de un objeto (editado solo para un ejemplar: el de un personaje, una tienda…)
+    """ALTER TABLE items ADD COLUMN parent_id INTEGER REFERENCES items(id) ON DELETE SET NULL;
+       ALTER TABLE items ADD COLUMN unique_copy INTEGER NOT NULL DEFAULT 0;""",
+    # 23: maestría y daño adicional de las armas del SRD que ya están en el catálogo
+    lambda db: _srd_weapon_details(db),
 ]
 
 # Columnas de texto libre donde puede haber distancias
@@ -223,6 +228,11 @@ def _distances_to_feet(db):
             db.execute(f"UPDATE {table} SET {sets} WHERE id = ?", (*changed.values(), row["id"]))
 
 CAMPAIGN_TABLES = ("characters", "shops", "loot_pools")
+
+
+def _srd_weapon_details(db):
+    from .models.srd_import import fill_weapon_details
+    fill_weapon_details(db)
 
 
 def _srd_weapons(db):

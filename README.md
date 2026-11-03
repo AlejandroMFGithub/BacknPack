@@ -61,6 +61,19 @@ Seguridad incluida: token CSRF en todos los formularios, cookies de sesión `Sec
 `SameSite=Lax` en producción y operaciones de dinero/objetos serializadas (nadie gasta dos veces
 la misma moneda aunque pulsen a la vez).
 
+## Pruebas
+
+En `tests/` (cada una crea su propia base de datos temporal; no tocan la tuya):
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt   # una vez: pgserver y Playwright
+.\.venv\Scripts\python.exe tests\run_all.py        # todas con SQLite (o: run_all.py armas)
+.\.venv\Scripts\python.exe tests\run_pg.py         # todas contra un PostgreSQL temporal
+```
+
+Algunas (`smoke_traits`, `test_distances`, `test_prod`) prueban las migraciones sobre una **copia** de
+`instance/backnpack.sqlite`, así que necesitan que exista.
+
 ## Estructura MVC
 
 ```
@@ -215,6 +228,21 @@ controlador los muestra como mensaje.
 - El **inventario** se separa en pestañas: Armas (con su línea de ataque), Armaduras, Consumibles, Mágicos,
   Equipo y Otros, con el número de objetos de cada una; la página recuerda la última pestaña elegida.
 
+**Editar objetos desde donde aparecen** (solo el DM)
+- «✎ Editar objeto» en el inventario de cada personaje, en las ofertas de las tiendas y en los botines. Se elige:
+  - **Solo este ejemplar**: se crea una **versión única** del objeto (copia con sus cualidades y conjuros) y solo
+    esa fila la usa: la espada de un personaje, el arco de una tienda… Viaja con el objeto al comerciar, comprar
+    o recoger. En una pila (×20 flechas) se puede cambiar toda la pila o separar una unidad.
+  - **Todos los ejemplares**: cambia el objeto del catálogo.
+- Las versiones únicas llevan el distintivo «✦ Único» (solo lo ve el DM), no salen en el buscador del catálogo
+  y se listan aparte en *Catálogo → Ejemplares únicos*. Se pueden volver a editar o **devolver a la versión
+  del catálogo**.
+- **Menú de arma** del catálogo: daño y tipo, categoría, a distancia, alcance (solo si es a distancia o
+  arrojadiza), daño a dos manos (solo si es versátil), bonificador mágico, propiedades con su explicación,
+  **maestría** (las 8 del reglamento 2024: Derribar, Debilitar, Hendir…, con su efecto y la CD ya calculada en la
+  tarjeta de Ataques) y **daño adicional** (p. ej. +2d6 fuego con la hoja encendida). Las propiedades del objeto
+  se generan solas a partir de estos datos. Las armas del SRD traen su maestría (SRD 5.2, CC-BY-4.0).
+
 **Secciones plegables**
 - En la ficha (Tiradas, Bolsa, Efectos, Inventario, Historial), en la pestaña de conjuros (cada nivel, los de
   objetos y «Añadir conjuro») y en la actividad del panel del DM, cada sección se pliega con su flecha. La
@@ -256,4 +284,3 @@ controlador los muestra como mensaje.
 - Peso con límite de carga y estado «sobrecargado» automático.
 - Vender objetos a tiendas.
 - Actualización en tiempo real (WebSockets) para intercambios y botín.
-- Tests automatizados (pytest).

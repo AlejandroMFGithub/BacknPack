@@ -1,6 +1,7 @@
 from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
 from ..models import ActivityLog, Character, Condition, Currency, Item, ItemTrait, RuleError, Spell, Trade
+from ..models import item_copies
 from ..models.effects import sheets_for
 from ..models.item import CATEGORIES, RARITIES
 from ..models.item_trait import KINDS as TRAIT_KINDS
@@ -40,10 +41,13 @@ def items():
         else:
             flash("Objeto añadido al catálogo.", "ok")
         return redirect_back(url_for("dm.items"))
-    args = ListArgs(Item.SORTS, "name", filters=["category", "rarity"])
-    items = Item.search(args.q, args.category, args.rarity, sort=args.sort, page=args.page)
+    args = ListArgs(Item.SORTS, "name", filters=["category", "rarity", "kind"])
+    unique = args.kind == "unique"
+    items = Item.search(args.q, args.category, args.rarity, sort=args.sort, page=args.page, unique=unique)
+    parents = {i["parent_id"]: Item.get(i["parent_id"]) for i in items if i["parent_id"]}
     return render_template(
         "dm/items.html", items=items, args=args, item=None, categories=CATEGORIES, rarities=RARITIES,
+        unique=unique, parents=parents, unique_count=Item.search(unique=True, per_page=1).total,
         traits=ItemTrait.for_items([i["id"] for i in items]), trait_kinds=TRAIT_KINDS,
     )
 
@@ -65,6 +69,52 @@ def edit_item(item_id):
         traits=ItemTrait.for_items([item_id])[item_id], trait_kinds=TRAIT_KINDS,
         item_spells=Spell.for_item(item_id),
     )
+
+
+def _context_back(ctx):
+    row = ctx["row"]
+    if ctx["kind"] == "inventory":
+        return url_for("characters.show", character_id=row["character_id"], _anchor="inventario")
+    if ctx["kind"] == "shop":
+        return url_for("shops.show", shop_id=row["shop_id"])
+    return url_for("loot.show", pool_id=row["pool_id"])
+
+
+@bp.route("/edit-item/<any(inventory, shop, loot):kind>/<int:ref_id>", methods=["GET", "POST"])
+@dm_required
+def edit_in_place(kind, ref_id):
+    """Editar un objeto desde donde aparece: solo ese ejemplar o el del catálogo (todos)."""
+    ctx = item_copies.context(kind, ref_id) or abort(404)
+    back = _context_back(ctx)
+    if request.method == "POST":
+        try:
+            _, message = item_copies.save(ctx, request.form, request.form.get("scope", "copy"),
+                                          one_unit=request.form.get("units") == "one")
+        except RuleError as e:
+            flash(str(e), "error")
+        else:
+            flash(message, "ok")
+            return redirect(back)
+    item = ctx["item"]
+    return render_template(
+        "dm/item_form.html", item=item, ctx=ctx, back=back, categories=CATEGORIES, rarities=RARITIES,
+        traits=ItemTrait.for_items([item["id"]])[item["id"]], trait_kinds=TRAIT_KINDS,
+        item_spells=Spell.for_item(item["id"]),
+    )
+
+
+@bp.route("/edit-item/<any(inventory, shop, loot):kind>/<int:ref_id>/revert", methods=["POST"])
+@dm_required
+def revert_in_place(kind, ref_id):
+    """Devuelve el ejemplar a la versión del catálogo."""
+    ctx = item_copies.context(kind, ref_id) or abort(404)
+    try:
+        parent = item_copies.revert(ctx)
+    except RuleError as e:
+        flash(str(e), "error")
+    else:
+        flash(f"Vuelve a ser «{parent['name']}» del catálogo.", "ok")
+    return redirect(_context_back(ctx))
 
 
 @bp.route("/items/<int:item_id>/delete", methods=["POST"])

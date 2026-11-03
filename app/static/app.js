@@ -829,9 +829,41 @@
 
   // --- Catálogo: el bloque «Arma» solo se ve si el objeto es un arma ---------------------------
 
+  function refreshWeapon(editor) {
+    var on = editor.querySelector(".js-weapon-toggle").checked;
+    editor.querySelector(".weapon-fields").hidden = !on;
+    var props = editor.closest("form").querySelector(".js-props-field");
+    if (props) props.hidden = on;  // las propiedades de un arma se generan solas
+    var checked = {};
+    editor.querySelectorAll(".js-w-prop").forEach(function (cb) { checked[cb.getAttribute("data-key")] = cb.checked; });
+    editor.querySelectorAll(".w-cond").forEach(function (field) {
+      field.hidden = !field.getAttribute("data-show-if").split(" ").some(function (k) { return checked[k]; });
+    });
+    var mastery = editor.querySelector(".js-mastery");
+    if (mastery) editor.querySelector(".js-mastery-desc").textContent = mastery.selectedOptions[0].getAttribute("data-desc");
+  }
+  document.querySelectorAll(".weapon-editor").forEach(refreshWeapon);
   document.addEventListener("change", function (e) {
-    if (!e.target.matches(".js-weapon-toggle")) return;
-    e.target.closest(".weapon-editor").querySelector(".weapon-fields").hidden = !e.target.checked;
+    var editor = e.target.closest && e.target.closest(".weapon-editor");
+    if (editor) refreshWeapon(editor);
+  });
+  document.addEventListener("mouseover", function (e) {
+    var chip = e.target.closest && e.target.closest(".chip-check");
+    if (!chip) return;
+    var help = chip.closest(".weapon-editor").querySelector(".js-prop-help");
+    if (help) help.textContent = chip.textContent.trim() + ": " + chip.getAttribute("title");
+  });
+  document.addEventListener("click", function (e) {
+    var add = e.target.closest(".wx-add");
+    if (add) {
+      var editor = add.closest(".weapon-editor");
+      var row = editor.querySelector(".wx-template").content.firstElementChild.cloneNode(true);
+      editor.querySelector(".wx-rows").appendChild(row);
+      row.querySelector("input").focus();
+      return;
+    }
+    var remove = e.target.closest(".wx-remove");
+    if (remove) remove.closest(".wx-row").remove();
   });
 
   // --- Inventario: pestañas por tipo de objeto (recuerda la última) -------------------------------

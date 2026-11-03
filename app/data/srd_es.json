@@ -5589,7 +5589,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Garrote"
+"base":"Garrote",
+"mastery":"slow",
+"extra":[]
 }
 },
 {
@@ -5620,7 +5622,9 @@
 60
 ],
 "bonus":0,
-"base":"Daga"
+"base":"Daga",
+"mastery":"nick",
+"extra":[]
 }
 },
 {
@@ -5646,7 +5650,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Gran garrote"
+"base":"Gran garrote",
+"mastery":"push",
+"extra":[]
 }
 },
 {
@@ -5676,7 +5682,9 @@
 60
 ],
 "bonus":0,
-"base":"Hacha de mano"
+"base":"Hacha de mano",
+"mastery":"vex",
+"extra":[]
 }
 },
 {
@@ -5705,7 +5713,9 @@
 120
 ],
 "bonus":0,
-"base":"Jabalina"
+"base":"Jabalina",
+"mastery":"slow",
+"extra":[]
 }
 },
 {
@@ -5735,7 +5745,9 @@
 60
 ],
 "bonus":0,
-"base":"Martillo ligero"
+"base":"Martillo ligero",
+"mastery":"nick",
+"extra":[]
 }
 },
 {
@@ -5759,7 +5771,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Maza"
+"base":"Maza",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -5785,7 +5799,9 @@
 "two":"1d8",
 "range":null,
 "bonus":0,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -5811,7 +5827,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Hoz"
+"base":"Hoz",
+"mastery":"nick",
+"extra":[]
 }
 },
 {
@@ -5841,7 +5859,9 @@
 60
 ],
 "bonus":0,
-"base":"Lanza"
+"base":"Lanza",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -5872,7 +5892,9 @@
 320
 ],
 "bonus":0,
-"base":"Ballesta ligera"
+"base":"Ballesta ligera",
+"mastery":"slow",
+"extra":[]
 }
 },
 {
@@ -5902,7 +5924,9 @@
 60
 ],
 "bonus":0,
-"base":"Dardo"
+"base":"Dardo",
+"mastery":"vex",
+"extra":[]
 }
 },
 {
@@ -5932,7 +5956,9 @@
 320
 ],
 "bonus":0,
-"base":"Arco corto"
+"base":"Arco corto",
+"mastery":"vex",
+"extra":[]
 }
 },
 {
@@ -5961,7 +5987,9 @@
 120
 ],
 "bonus":0,
-"base":"Honda"
+"base":"Honda",
+"mastery":"slow",
+"extra":[]
 }
 },
 {
@@ -5987,7 +6015,9 @@
 "two":"1d10",
 "range":null,
 "bonus":0,
-"base":"Hacha de batalla"
+"base":"Hacha de batalla",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -6011,7 +6041,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Mangual"
+"base":"Mangual",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -6039,7 +6071,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Guja"
+"base":"Guja",
+"mastery":"graze",
+"extra":[]
 }
 },
 {
@@ -6066,7 +6100,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Gran hacha"
+"base":"Gran hacha",
+"mastery":"cleave",
+"extra":[]
 }
 },
 {
@@ -6093,7 +6129,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Espadón"
+"base":"Espadón",
+"mastery":"graze",
+"extra":[]
 }
 },
 {
@@ -6121,7 +6159,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Alabarda"
+"base":"Alabarda",
+"mastery":"cleave",
+"extra":[]
 }
 },
 {
@@ -6148,7 +6188,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Lanza de caballería"
+"base":"Lanza de caballería",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -6174,7 +6216,9 @@
 "two":"1d10",
 "range":null,
 "bonus":0,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -6201,7 +6245,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Gran martillo"
+"base":"Gran martillo",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -6225,7 +6271,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Lucero del alba"
+"base":"Lucero del alba",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -6253,7 +6301,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Pica"
+"base":"Pica",
+"mastery":"push",
+"extra":[]
 }
 },
 {
@@ -6279,7 +6329,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Estoque"
+"base":"Estoque",
+"mastery":"vex",
+"extra":[]
 }
 },
 {
@@ -6306,7 +6358,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Cimitarra"
+"base":"Cimitarra",
+"mastery":"nick",
+"extra":[]
 }
 },
 {
@@ -6333,7 +6387,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Espada corta"
+"base":"Espada corta",
+"mastery":"vex",
+"extra":[]
 }
 },
 {
@@ -6363,7 +6419,9 @@
 60
 ],
 "bonus":0,
-"base":"Tridente"
+"base":"Tridente",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -6387,7 +6445,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Pico de guerra"
+"base":"Pico de guerra",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -6413,7 +6473,9 @@
 "two":"1d10",
 "range":null,
 "bonus":0,
-"base":"Martillo de guerra"
+"base":"Martillo de guerra",
+"mastery":"push",
+"extra":[]
 }
 },
 {
@@ -6440,7 +6502,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Látigo"
+"base":"Látigo",
+"mastery":"slow",
+"extra":[]
 }
 },
 {
@@ -6470,7 +6534,9 @@
 100
 ],
 "bonus":0,
-"base":"Cerbatana"
+"base":"Cerbatana",
+"mastery":"vex",
+"extra":[]
 }
 },
 {
@@ -6501,7 +6567,9 @@
 120
 ],
 "bonus":0,
-"base":"Ballesta de mano"
+"base":"Ballesta de mano",
+"mastery":"vex",
+"extra":[]
 }
 },
 {
@@ -6533,7 +6601,9 @@
 400
 ],
 "bonus":0,
-"base":"Ballesta pesada"
+"base":"Ballesta pesada",
+"mastery":"push",
+"extra":[]
 }
 },
 {
@@ -6564,7 +6634,9 @@
 600
 ],
 "bonus":0,
-"base":"Arco largo"
+"base":"Arco largo",
+"mastery":"slow",
+"extra":[]
 }
 },
 {
@@ -6594,7 +6666,9 @@
 15
 ],
 "bonus":0,
-"base":"Red"
+"base":"Red",
+"mastery":null,
+"extra":[]
 }
 },
 {
@@ -10727,7 +10801,9 @@
 "two":"1d10",
 "range":null,
 "bonus":1,
-"base":"Hacha de batalla"
+"base":"Hacha de batalla",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -11235,7 +11311,9 @@
 60
 ],
 "bonus":1,
-"base":"Daga"
+"base":"Daga",
+"mastery":"nick",
+"extra":[]
 }
 },
 {
@@ -11261,7 +11339,9 @@
 "two":"1d10",
 "range":null,
 "bonus":0,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -11329,7 +11409,9 @@
 "two":"1d10",
 "range":null,
 "bonus":3,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -11600,7 +11682,15 @@
 "two":"1d10",
 "range":null,
 "bonus":1,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[
+{
+"dice":"3d6",
+"type":"",
+"note":"contra dragones"
+}
+]
 }
 },
 {
@@ -11689,7 +11779,15 @@
 "two":"1d10",
 "range":null,
 "bonus":3,
-"base":"Martillo de guerra"
+"base":"Martillo de guerra",
+"mastery":"push",
+"extra":[
+{
+"dice":"1d8",
+"type":"",
+"note":"lanzado por un enano (2d8 contra gigantes)"
+}
+]
 }
 },
 {
@@ -12088,7 +12186,15 @@
 "two":"1d10",
 "range":null,
 "bonus":0,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[
+{
+"dice":"2d6",
+"type":"fuego",
+"note":"con la hoja encendida"
+}
+]
 }
 },
 {
@@ -12128,7 +12234,15 @@
 "two":"1d10",
 "range":null,
 "bonus":0,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[
+{
+"dice":"1d6",
+"type":"frío",
+"note":""
+}
+]
 }
 },
 {
@@ -12202,7 +12316,15 @@
 "two":"1d10",
 "range":null,
 "bonus":1,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[
+{
+"dice":"2d6",
+"type":"",
+"note":"contra gigantes"
+}
+]
 }
 },
 {
@@ -12292,7 +12414,9 @@
 "two":null,
 "range":null,
 "bonus":1,
-"base":"Gran martillo"
+"base":"Gran martillo",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -12431,7 +12555,15 @@
 "two":"1d10",
 "range":null,
 "bonus":3,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[
+{
+"dice":"2d10",
+"type":"radiante",
+"note":"contra infernales y muertos vivientes"
+}
+]
 }
 },
 {
@@ -12852,7 +12984,15 @@
 120
 ],
 "bonus":0,
-"base":"Jabalina"
+"base":"Jabalina",
+"mastery":"slow",
+"extra":[
+{
+"dice":"4d6",
+"type":"rayo",
+"note":"al lanzarla como relámpago"
+}
+]
 }
 },
 {
@@ -12898,7 +13038,9 @@
 "two":"1d10",
 "range":null,
 "bonus":1,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -12922,7 +13064,15 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Maza"
+"base":"Maza",
+"mastery":"sap",
+"extra":[
+{
+"dice":"2d6",
+"type":"radiante",
+"note":"contra infernales y muertos vivientes"
+}
+]
 }
 },
 {
@@ -12946,7 +13096,9 @@
 "two":null,
 "range":null,
 "bonus":1,
-"base":"Maza"
+"base":"Maza",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -12970,7 +13122,9 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":"Maza"
+"base":"Maza",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -13216,7 +13370,9 @@
 "two":"1d10",
 "range":null,
 "bonus":2,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -13247,7 +13403,15 @@
 600
 ],
 "bonus":0,
-"base":"Arco largo"
+"base":"Arco largo",
+"mastery":"slow",
+"extra":[
+{
+"dice":"3d6",
+"type":"",
+"note":"contra el enemigo jurado"
+}
+]
 }
 },
 {
@@ -14551,7 +14715,9 @@
 "two":null,
 "range":null,
 "bonus":3,
-"base":"Maza"
+"base":"Maza",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -14648,7 +14814,9 @@
 "two":null,
 "range":null,
 "bonus":2,
-"base":"Cimitarra"
+"base":"Cimitarra",
+"mastery":"nick",
+"extra":[]
 }
 },
 {
@@ -14900,7 +15068,9 @@
 "two":"1d8",
 "range":null,
 "bonus":0,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -14930,7 +15100,9 @@
 "two":"1d8",
 "range":null,
 "bonus":0,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -14961,7 +15133,9 @@
 "two":"1d8",
 "range":null,
 "bonus":0,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -14991,7 +15165,9 @@
 "two":"1d8",
 "range":null,
 "bonus":0,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -15043,7 +15219,9 @@
 "two":"1d8",
 "range":null,
 "bonus":2,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -15069,7 +15247,9 @@
 "two":"1d8",
 "range":null,
 "bonus":3,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -15098,7 +15278,9 @@
 "two":"1d8",
 "range":null,
 "bonus":0,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -15150,7 +15332,9 @@
 "two":"1d8",
 "range":null,
 "bonus":2,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -15199,7 +15383,9 @@
 "two":"1d8",
 "range":null,
 "bonus":2,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -15225,7 +15411,9 @@
 "two":"1d8",
 "range":null,
 "bonus":2,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -15251,7 +15439,9 @@
 "two":"1d8",
 "range":null,
 "bonus":0,
-"base":"Bastón"
+"base":"Bastón",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -15316,7 +15506,15 @@
 "two":"1d10",
 "range":null,
 "bonus":2,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[
+{
+"dice":"1d8",
+"type":"radiante",
+"note":"contra muertos vivientes"
+}
+]
 }
 },
 {
@@ -15342,7 +15540,9 @@
 "two":"1d10",
 "range":null,
 "bonus":0,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -15368,7 +15568,9 @@
 "two":"1d10",
 "range":null,
 "bonus":0,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -15394,7 +15596,15 @@
 "two":"1d10",
 "range":null,
 "bonus":0,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[
+{
+"dice":"1d4",
+"type":"necrótico",
+"note":"cada turno, por la herida"
+}
+]
 }
 },
 {
@@ -15510,7 +15720,9 @@
 60
 ],
 "bonus":0,
-"base":"Tridente"
+"base":"Tridente",
+"mastery":"topple",
+"extra":[]
 }
 },
 {
@@ -15548,7 +15760,15 @@
 "two":null,
 "range":null,
 "bonus":0,
-"base":null
+"base":null,
+"mastery":null,
+"extra":[
+{
+"dice":"7",
+"type":"",
+"note":"con un 20 natural"
+}
+]
 }
 },
 {
@@ -15574,7 +15794,9 @@
 "two":"1d10",
 "range":null,
 "bonus":3,
-"base":"Espada larga"
+"base":"Espada larga",
+"mastery":"sap",
+"extra":[]
 }
 },
 {
@@ -15844,7 +16066,9 @@
 "two":null,
 "range":null,
 "bonus":1,
-"base":null
+"base":null,
+"mastery":null,
+"extra":[]
 }
 },
 {
@@ -15868,7 +16092,9 @@
 "two":null,
 "range":null,
 "bonus":2,
-"base":null
+"base":null,
+"mastery":null,
+"extra":[]
 }
 },
 {
@@ -15892,7 +16118,9 @@
 "two":null,
 "range":null,
 "bonus":3,
-"base":null
+"base":null,
+"mastery":null,
+"extra":[]
 }
 },
 {

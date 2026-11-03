@@ -33,6 +33,20 @@ def fill_weapons(db):
              for r in rows if r["search_name"] in by_name])
 
 
+def fill_weapon_details(db):
+    """Añade maestría y daño adicional a las armas del SRD que aún no los tienen (sin tocar lo demás)."""
+    data = load()
+    by_name = {normalize(i["name"]): i["weapon"] for i in data["items"] if i.get("weapon")}
+    updates = []
+    for r in db.execute("SELECT id, search_name, weapon FROM items WHERE weapon IS NOT NULL").fetchall():
+        current, source = json.loads(r["weapon"]), by_name.get(r["search_name"])
+        if source is None or "mastery" in current:
+            continue
+        current["mastery"], current["extra"] = source.get("mastery"), source.get("extra") or []
+        updates.append((json.dumps(current, ensure_ascii=False, separators=(",", ":")), r["id"]))
+    db.many("UPDATE items SET weapon = ? WHERE id = ?", updates)
+
+
 def _import_spells(db, spells):
     existing = {r["search_name"]: r for r in db.execute("SELECT * FROM spells").fetchall()}
     new_rows, updates = [], []

@@ -36,7 +36,7 @@
     <tbody>
     {% for l in listings %}
     <tr>
-      <td><b>{{ l.name }}</b>
+      <td><b>{{ l.name }}</b> {% if is_dm() %}{% if l.unique_copy %}<span class="badge badge-unique" title="Versión única: editada solo para este ejemplar">✦ Único</span>{% endif %}{% endif %}
         <div class="muted small">{{ l.category }} · {{ l.rarity }}{% if l.properties %} · {{ l.properties }}{% endif %}</div>
         {% if l.effects %}<div class="effects-line small">⚙ {{ l.effects | effects_summary }}</div>{% endif %}
         {% for t in traits[l.item_id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
@@ -61,8 +61,10 @@
         {% elif l.stock == 0 %}<span class="muted">Agotado</span>{% endif %}
       </td>
       {% if is_dm() %}
-      <td class="actions"><form class="inline" method="post" action="{{ url_for('shops.remove_listing', shop_id=shop.id, listing_id=l.id) }}">
-        <button class="btn-small btn-ghost">Quitar de la venta</button></form></td>
+      <td class="actions"><div class="row">
+        <a class="btn btn-small btn-ghost" href="{{ url_for('dm.edit_in_place', kind='shop', ref_id=l.id) }}">✎ Editar</a>
+        <form class="inline" method="post" action="{{ url_for('shops.remove_listing', shop_id=shop.id, listing_id=l.id) }}">
+        <button class="btn-small btn-ghost">Quitar de la venta</button></form></div></td>
       {% endif %}
     </tr>
     {% else %}
