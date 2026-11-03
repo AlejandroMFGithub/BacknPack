@@ -266,7 +266,9 @@ button[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 .checks { display: grid; grid-template-columns: minmax(200px, 1fr) 2fr; gap: .4rem 1.5rem; }
 .checks h3 { font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: .2rem 0 .3rem; }
 .check-list { list-style: none; margin: 0; padding: 0; }
-.skills-list { columns: 2; column-gap: 1.5rem; }
+/* Rejilla (no columnas CSS): las columnas partían en dos el desglose emergente de cada habilidad.
+   Se rellena de arriba abajo, como antes, para conservar el orden alfabético. */
+.skills-list { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(9, auto); grid-auto-flow: column; column-gap: 1.5rem; }
 .check-list li {
   display: flex; align-items: center; gap: .5rem; padding: .28rem .2rem; break-inside: avoid;
   border-bottom: 1px dotted var(--line);
@@ -827,7 +829,7 @@ body.auth-page main { max-width: none; padding: 0; }
   /* Tiradas y competencias en una columna */
   .combat-strip { grid-template-columns: repeat(2, 1fr); }
   .checks, .prof-form { grid-template-columns: 1fr; }
-  .skills-list { columns: 1; }
+  .skills-list { grid-template-columns: 1fr; grid-template-rows: none; grid-auto-flow: row; }
   .prof-skill select { font-size: 16px; }
 
   /* Ficha: icono algo menor */
