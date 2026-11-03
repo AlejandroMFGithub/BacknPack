@@ -145,11 +145,11 @@ def add_item_spell(item_id):
         Spell.add_to_item(item_id, request.form.get("spell_id", type=int))
     except RuleError as e:
         flash(str(e), "error")
-    return redirect(url_for("dm.edit_item", item_id=item_id, _anchor="conjuros"))
+    return redirect_back(url_for("dm.edit_item", item_id=item_id), anchor="conjuros")
 
 
 @bp.route("/items/<int:item_id>/spells/<int:spell_id>/delete", methods=["POST"])
 @dm_required
 def remove_item_spell(item_id, spell_id):
     Spell.remove_from_item(item_id, spell_id)
-    return redirect(url_for("dm.edit_item", item_id=item_id, _anchor="conjuros"))
+    return redirect_back(url_for("dm.edit_item", item_id=item_id), anchor="conjuros")

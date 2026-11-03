@@ -99,15 +99,16 @@ class ListArgs:
             raise AttributeError(name) from None
 
 
-def redirect_back(default_url):
+def redirect_back(default_url, anchor=None):
     """Tras una acción, vuelve a la página de origen conservando búsqueda, filtros y orden.
-    Solo acepta páginas de este mismo sitio (nunca redirige fuera)."""
+    Solo acepta páginas de este mismo sitio (nunca redirige fuera). anchor: sección a la que bajar."""
     ref = request.referrer
+    suffix = f"#{anchor}" if anchor else ""
     if ref:
         parsed = urlparse(ref)
         if parsed.netloc == request.host and parsed.path.startswith("/"):
-            return redirect(parsed.path + (f"?{parsed.query}" if parsed.query else ""))
-    return redirect(default_url)
+            return redirect(parsed.path + (f"?{parsed.query}" if parsed.query else "") + suffix)
+    return redirect(default_url + ("" if "#" in default_url else suffix))
 
 
 def form_int(name, default=None):

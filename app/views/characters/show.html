@@ -410,6 +410,10 @@
       <div class="inv-actions">
         <form class="inline" method="post" action="{{ url_for('characters.toggle_equip', character_id=character.id, inventory_id=it.id) }}">
           <button class="btn-small btn-ghost">{{ 'Desequipar' if it.equipped else 'Equipar' }}</button></form>
+        {% if dm %}<a class="btn-icon btn-icon-edit" href="{{ url_for('dm.edit_in_place', kind='inventory', ref_id=it.id) }}"
+             title="Editar «{{ it.name }}» (este ejemplar o todos)" aria-label="Editar {{ it.name }}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor"
+               stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a>{% endif %}
         <details class="menu">
           <summary aria-label="Más acciones">⋯</summary>
           <div class="menu-panel">
@@ -424,7 +428,6 @@
             <hr>
             {% endif %}
             {% if dm %}
-            <a class="menu-item" href="{{ url_for('dm.edit_in_place', kind='inventory', ref_id=it.id) }}">✎ Editar objeto</a>
             <form method="post" action="{{ url_for('characters.toggle_item_visibility', character_id=character.id, inventory_id=it.id) }}">
               <button>{{ '🙈 Ocultar al jugador' if it.visible else '👁️ Revelar al jugador' }}</button></form>
             <hr>

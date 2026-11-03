@@ -2,7 +2,7 @@
 {% block title %}Catálogo{% endblock %}
 {% block back_url %}{{ url_for('dm.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import trait_chip, list_toolbar, pager with context %}
+{% from "_macros.html" import trait_chip, list_toolbar, pager, item_places with context %}
 <h1>{{ 'Ejemplares únicos' if unique else 'Catálogo de objetos' }} <span class="muted small">· {{ items.total }}</span></h1>
 <nav class="sheet-tabs" aria-label="Catálogo">
   <a href="{{ url_for('dm.items') }}" class="{{ 'active' if not unique }}">📦 Catálogo</a>
@@ -30,7 +30,7 @@
     <tr>
       <td><b>{{ i.name }}</b>
         <div class="muted small">{{ i.category }} · {{ i.rarity }}{% if i.attunement %} · sintonía{% endif %}</div>
-        {% if i.parent_id and parents.get(i.parent_id) %}<div class="small muted">✦ Basado en «{{ parents[i.parent_id].name }}» · en {{ item_uses(i.id) }} sitio(s)</div>{% endif %}
+        {% if unique %}<div class="small unique-where">✦ Basado en «{{ parents[i.parent_id].name if parents.get(i.parent_id) else '—' }}» · está en {{ item_places(i.id) }}</div>{% endif %}
         {% if i.description %}<div class="small item-desc">{{ i.description }}</div>{% endif %}
         {% for t in traits[i.id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
       <td class="small" data-label="Propiedades">{{ i.properties }}

@@ -1306,3 +1306,81 @@ table.attacks tr.no-prof .attack-roll b { color: var(--mod-down); }
 @media (max-width: 640px) {
   .weapon-editor legend .muted { flex-basis: 100%; }
 }
+
+/* --- Repaso: editar objetos ------------------------------------------------------------------- */
+.edit-head { margin-bottom: .8rem; }
+.edit-head h1 { margin-bottom: .3rem; }
+.edit-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .7rem; }
+.edit-origin { color: #e9dcc4; font-size: .9rem; }
+.edit-origin a { color: var(--gold-soft); }
+.form-section { font-size: 1rem; margin: 1rem 0 .6rem; }
+.edit-form .form-section:first-child { margin-top: 0; }
+
+.scope-picker { border: 0; padding: 0; margin: 0 0 .4rem; background: none; }
+.scope-picker legend { font-weight: 700; font-size: 1rem; padding: 0; margin-bottom: .5rem; }
+.scope-cards { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.scope-card {
+  position: relative; display: flex; gap: .7rem; align-items: flex-start; padding: .8rem .9rem; cursor: pointer;
+  border: 1.5px solid var(--line-strong); border-radius: 12px; background: #fff; transition: border-color .12s, box-shadow .12s;
+}
+.scope-card:hover { border-color: var(--gold); }
+.scope-card input { position: absolute; opacity: 0; pointer-events: none; }
+.scope-card:has(input:checked) { border-color: var(--gold); background: #fdf6e3; box-shadow: 0 0 0 3px #e9b94933; }
+.scope-card:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.scope-card:has(input:checked)::after {
+  content: "✓"; position: absolute; top: .5rem; right: .6rem; width: 1.4rem; height: 1.4rem; border-radius: 50%;
+  background: var(--gold); color: var(--ink); font-weight: bold; font-size: .85rem; display: grid; place-items: center;
+}
+.scope-icon { flex: none; font-size: 1.5rem; line-height: 1; }
+.scope-text { display: flex; flex-direction: column; gap: .2rem; padding-right: 1.4rem; }
+.scope-text > span { font-size: .85rem; color: var(--muted); }
+
+.unique-note {
+  display: flex; flex-wrap: wrap; gap: .4rem .7rem; align-items: flex-start; padding: .7rem .9rem; margin-bottom: .4rem;
+  border-radius: 12px; background: #f3effa; border: 1.5px solid #c9b8e6;
+}
+.unique-note > div:not(.units-choice) { flex: 1; min-width: 14em; }
+.unique-note .scope-icon { color: #6b4fa0; }
+
+.units-choice { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .8rem; margin: .6rem 0 0; padding: 0; border: 0; flex-basis: 100%; }
+.units-label { font-size: .9rem; }
+.segmented { display: inline-flex; border: 1.5px solid var(--line-strong); border-radius: 999px; overflow: hidden; background: #fff; }
+.segmented label { position: relative; margin: 0; cursor: pointer; }
+.segmented input { position: absolute; opacity: 0; pointer-events: none; }
+.segmented span { display: block; padding: .35rem .85rem; font-size: .85rem; }
+.segmented label + label span { border-left: 1px solid var(--line-strong); }
+.segmented input:checked + span { background: var(--ink); color: #f6ead2; }
+.segmented input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: -2px; }
+.scope-picker:has(input[value="all"]:checked) .units-choice { display: none; }
+
+.save-bar {
+  position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem;
+  margin: 1rem -1rem -1rem; padding: .75rem 1rem; border-top: 1px solid var(--line);
+  background: linear-gradient(#fffaf0f2, #fffaf0); border-radius: 0 0 12px 12px; backdrop-filter: blur(4px);
+}
+.save-bar .revert-btn { margin-left: auto; }
+.scope-hint { color: #e9dcc4; font-size: .9rem; margin: .4rem .2rem 1rem; }
+.scope-hint a { color: var(--gold-soft); }
+.add-spell-row .picker { flex: 1; min-width: 14em; }
+.unique-where a { white-space: nowrap; }
+
+/* «Es un arma» sin marcar: una línea limpia, no una caja vacía */
+.weapon-editor:has(.js-weapon-toggle:not(:checked)) { border-style: solid; border-color: var(--line); padding-bottom: .1rem; background: #fffdf8; }
+.weapon-editor:has(.js-weapon-toggle:checked) { border-style: solid; border-color: var(--gold); background: #fffdf6; }
+
+/* Botón ✎ (solo DM) */
+.btn-icon-edit { color: var(--accent); }
+.btn-icon-edit:hover { background: #fdf6e3; color: var(--accent); border-color: var(--gold); }
+.inv-actions { align-items: center; }
+
+@media (max-width: 640px) {
+  .scope-cards { grid-template-columns: 1fr; }
+  .save-bar { margin: 1rem -.8rem -.8rem; padding: .65rem .8rem; }
+  .save-bar .revert-btn { margin-left: 0; }
+  .save-bar { flex-wrap: nowrap; }
+  .save-bar > button:first-child { flex: 1 1 auto; padding-left: .6rem; padding-right: .6rem; font-size: .95rem; }
+  .weapon-editor legend .muted { display: none; }
+}
+
+.revert-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem;
+  margin: 1.1rem 0 0; padding-top: .8rem; border-top: 1px dashed var(--line-strong); }

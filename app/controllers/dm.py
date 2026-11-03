@@ -142,7 +142,7 @@ def add_item_trait(item_id):
         ItemTrait.create(request.form, item_id=item_id)
     except RuleError as e:
         flash(str(e), "error")
-    return redirect(url_for("dm.edit_item", item_id=item_id))
+    return redirect_back(url_for("dm.edit_item", item_id=item_id), anchor="cualidades")
 
 
 @bp.route("/items/<int:item_id>/traits/<int:trait_id>/visibility", methods=["POST"])
@@ -150,7 +150,7 @@ def add_item_trait(item_id):
 def toggle_item_trait_visibility(item_id, trait_id):
     _template_trait(item_id, trait_id)
     ItemTrait.toggle_visible(trait_id)
-    return redirect(url_for("dm.edit_item", item_id=item_id))
+    return redirect_back(url_for("dm.edit_item", item_id=item_id), anchor="cualidades")
 
 
 @bp.route("/items/<int:item_id>/traits/<int:trait_id>/delete", methods=["POST"])
@@ -158,7 +158,7 @@ def toggle_item_trait_visibility(item_id, trait_id):
 def delete_item_trait(item_id, trait_id):
     _template_trait(item_id, trait_id)
     ItemTrait.delete(trait_id)
-    return redirect(url_for("dm.edit_item", item_id=item_id))
+    return redirect_back(url_for("dm.edit_item", item_id=item_id), anchor="cualidades")
 
 
 # --- Divisas -----------------------------------------------------------------------------

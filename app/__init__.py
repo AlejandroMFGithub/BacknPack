@@ -98,8 +98,14 @@ def create_app(test_config=None):
                                  WEAPON_CATS=weapons.CATEGORIES, WEAPON_PROP_HELP=weapons.PROP_HELP,
                                  MASTERIES=weapons.MASTERIES)
 
-    from .models.item_copies import references as item_uses
-    app.jinja_env.globals["item_uses"] = item_uses
+    from .models.item_copies import references as item_uses, where_used
+    app.jinja_env.globals.update(item_uses=item_uses, item_where=where_used)
+
+    @app.template_global()
+    def item_parent_name(item):
+        from .models.item import Item
+        parent = Item.get(item["parent_id"]) if item["parent_id"] else None
+        return parent["name"] if parent else "—"
 
     @app.template_global()
     def weapon_of(obj):

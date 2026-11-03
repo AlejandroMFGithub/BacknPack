@@ -62,9 +62,10 @@
       </td>
       {% if is_dm() %}
       <td class="actions"><div class="row">
-        <a class="btn btn-small btn-ghost" href="{{ url_for('dm.edit_in_place', kind='shop', ref_id=l.id) }}">✎ Editar</a>
+        <a class="btn-icon btn-icon-edit" href="{{ url_for('dm.edit_in_place', kind='shop', ref_id=l.id) }}"
+           title="Editar «{{ l.name }}» (esta oferta o todos)" aria-label="Editar {{ l.name }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         <form class="inline" method="post" action="{{ url_for('shops.remove_listing', shop_id=shop.id, listing_id=l.id) }}">
-        <button class="btn-small btn-ghost">Quitar de la venta</button></form></div></td>
+        <button class="btn-small btn-ghost" title="Retirar de esta tienda">✖ Quitar</button></form></div></td>
       {% endif %}
     </tr>
     {% else %}

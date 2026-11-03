@@ -887,4 +887,13 @@
     try { saved = localStorage.getItem("invtab") || "all"; } catch (e) { /* nada */ }
     show(saved);
   });
+
+  // --- Editar un objeto desde donde aparece: el botón dice a qué afecta -----------------------
+
+  document.addEventListener("change", function (e) {
+    if (!e.target.matches || !e.target.matches("input[name=scope]")) return;
+    var form = e.target.closest("form");
+    var button = form && form.querySelector(".js-save-label");
+    if (button) button.textContent = button.getAttribute(e.target.value === "all" ? "data-all" : "data-copy");
+  });
 })();

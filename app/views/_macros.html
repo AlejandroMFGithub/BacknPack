@@ -256,3 +256,13 @@ tabindex="0" role="button" aria-expanded="false" aria-label="{{ label }}: ver c�
 {{ c.class_name or '¿?' }}{% if c.subclass_name %} ({{ c.subclass_name }}){% endif %} nivel {{ c.level }}
 {%- if c.hit_die %} · <span title="Dados de golpe">DG {{ c.level }}d{{ c.hit_die }}</span>{% endif %}
 {%- endmacro %}
+
+{# Dónde se usa un objeto (las versiones únicas): «Inventario de Thorgar · Tienda «Forja»…» con enlaces #}
+{% macro item_places(item_id) -%}
+{%- for w in item_where(item_id) -%}
+  {%- if w.kind == 'inventory' %}<a href="{{ url_for('characters.show', character_id=w.id, _anchor='inventario') }}">🎒 {{ w.name }}</a>
+  {%- elif w.kind == 'shop' %}<a href="{{ url_for('shops.show', shop_id=w.id) }}">🏪 {{ w.name }}</a>
+  {%- else %}<a href="{{ url_for('loot.show', pool_id=w.id) }}">💰 {{ w.name }}</a>{% endif %}
+  {{- ' · ' if not loop.last }}
+{%- else %}<span class="muted">sin usar</span>{% endfor -%}
+{%- endmacro %}

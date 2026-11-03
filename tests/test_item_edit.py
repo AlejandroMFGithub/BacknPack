@@ -52,7 +52,8 @@ login("dm")
 b = page("/characters/2")
 assert f"/dm/edit-item/inventory/{axe_row}" in b
 b = page(f"/dm/edit-item/inventory/{axe_row}")
-assert "desde el inventario de Thorgar Puñohierro" in b and 'name="scope" value="all"' in b
+assert "Desde el inventario de Thorgar Puñohierro" in b and 'name="scope" value="all"' in b
+assert "💾 Guardar solo en este ejemplar" in b and 'data-all="💾 Guardar en el catálogo (todos)"' in b
 assert "Cualidades de plantilla" not in b                       # en un objeto del catálogo no se tocan desde aquí
 
 # --- 2. Solo este ejemplar: se crea una versión única y solo esa fila la usa ----------------------------
@@ -78,12 +79,12 @@ assert one("SELECT COUNT(*) FROM items") == n_items + 1 and item_of("inventory_i
 r = c.post(f"/dm/edit-item/inventory/{axe_row}", data=form_for(mine, scope="all"), follow_redirects=True)
 assert ("error", "Este ejemplar ya es una versión única: sus cambios no afectan al catálogo.") in flashes(r)
 b = page(f"/dm/edit-item/inventory/{axe_row}")
-assert 'name="scope" value="all"' not in b and "Basado en «" in b and "Volver a la versión del catálogo" in b
+assert 'name="scope" value="all"' not in b and "Este ejemplar ya es único" in b and "Volver a la versión del catálogo" in b
 
 # Catálogo: las versiones únicas van aparte y no salen en el buscador
 assert "Hacha de Thorgar" not in page("/dm/items?q=hacha")
 b = page("/dm/items?kind=unique")
-assert "Hacha de Thorgar" in b and "Basado en «Hacha de batalla» · en 1 sitio(s)" in b
+assert "Hacha de Thorgar" in b and "Basado en «Hacha de batalla» · está en" in b and "🎒 Thorgar Puñohierro" in b
 assert "Hacha de Thorgar" not in [x["label"] for x in c.get("/api/items?q=hacha").get_json()["results"]]
 
 # --- 3. Una unidad de una pila (Thorgar tiene 3 antorchas) -------------------------------------------
@@ -91,7 +92,7 @@ torch_row = one("""SELECT ii.id FROM inventory_items ii JOIN items i ON i.id = i
                    WHERE ii.character_id = 2 AND i.name = 'Antorcha'""")
 torch = item_of("inventory_items", torch_row)
 b = page(f"/dm/edit-item/inventory/{torch_row}")
-assert "Hay ×3 en esta pila" in b
+assert "Hay <b>×3</b> en esta pila" in b
 c.post(f"/dm/edit-item/inventory/{torch_row}", data=form_for(torch, name="Antorcha eterna", scope="copy", units="one"))
 names = {r_["name"]: r_["quantity"] for r_ in rows(
     "SELECT i.name, ii.quantity FROM inventory_items ii JOIN items i ON i.id = ii.item_id WHERE ii.character_id = 2")}

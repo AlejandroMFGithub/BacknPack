@@ -43,6 +43,21 @@ def context(kind, ref_id):
             "quantity": quantity, "uses": references(item["id"])}
 
 
+def where_used(item_id):
+    """Dónde está un objeto: [{kind, name, id}] (personaje, tienda o botín), para enlazarlos."""
+    db = get_db()
+    sql = {
+        "inventory": """SELECT DISTINCT c.id, c.name FROM inventory_items ii JOIN characters c ON c.id = ii.character_id
+                        WHERE ii.item_id = ? ORDER BY c.name""",
+        "shop": """SELECT DISTINCT s.id, s.name FROM shop_items si JOIN shops s ON s.id = si.shop_id
+                   WHERE si.item_id = ? ORDER BY s.name""",
+        "loot": """SELECT DISTINCT p.id, p.name FROM loot_entries le JOIN loot_pools p ON p.id = le.pool_id
+                   WHERE le.item_id = ? ORDER BY p.name""",
+    }
+    return [{"kind": kind, "id": r["id"], "name": r["name"]}
+            for kind, q in sql.items() for r in db.execute(q, (item_id,)).fetchall()]
+
+
 def references(item_id):
     """En cuántos sitios (filas de inventario, ofertas, entradas de botín) se usa un objeto."""
     db = get_db()
