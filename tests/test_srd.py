@@ -35,7 +35,7 @@ assert one("SELECT classes FROM spells WHERE name = 'Curar heridas'") == " artif
 # --- 2. El catálogo: precio, categorías nuevas, resumen y créditos ------------------------------------
 c.post("/login", data={"username": "dm", "password": "dm"})
 b = page("/dm/items?q=espada+larga")
-assert '<td data-label="Precio">15 po</td>' in b and "1d8 cortante · versátil (1d10)" in b
+assert re.search(r'data-label="Precio"[^>]*>15 po</td>', b) and "1d8 cortante · versátil (1d10)" in b
 assert "System Reference Document 5.1" in b and "CC-BY-4.0" in b
 b = page("/dm/items?category=Anillo&q=proteccion")
 assert "Anillo de protección" in b and "⚙ CA +1 · Todas las salvaciones +1" in b

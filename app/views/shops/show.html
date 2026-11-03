@@ -2,7 +2,7 @@
 {% block title %}{{ shop.name }}{% endblock %}
 {% block back_url %}{{ url_for('shops.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import trait_chip, list_toolbar, picker, acting_box with context %}
+{% from "_macros.html" import trait_chip, list_toolbar, picker, acting_box, rarity_tag with context %}
 <div class="sheet-head">
   <div>
     <h1>{{ shop.name }} {% if not shop.active %}<span class="badge badge-off">Cerrada</span>{% endif %}</h1>
@@ -35,9 +35,9 @@
     <thead><tr><th>Artículo</th><th>Precio</th><th>Stock</th><th>Comprar</th>{% if is_dm() %}<th></th>{% endif %}</tr></thead>
     <tbody>
     {% for l in listings %}
-    <tr>
-      <td><b>{{ l.name }}</b> {% if is_dm() %}{% if l.unique_copy %}<span class="badge badge-unique" title="Versión única: editada solo para este ejemplar">✦ Único</span>{% endif %}{% endif %}
-        <div class="muted small">{{ l.category }} · {{ l.rarity }}{% if l.properties %} · {{ l.properties }}{% endif %}</div>
+    <tr class="rarity-row {{ l.rarity | rarity }}">
+      <td><b class="item-name">{{ l.name }}</b> {% if is_dm() %}{% if l.unique_copy %}<span class="badge badge-unique" title="Versión única: editada solo para este ejemplar">✦ Único</span>{% endif %}{% endif %}
+        <div class="muted small item-meta">{{ rarity_tag(l.rarity) }} {{ l.category }}{% if l.properties %} · {{ l.properties }}{% endif %}</div>
         {% if l.effects %}<div class="effects-line small">⚙ {{ l.effects | effects_summary }}</div>{% endif %}
         {% for t in traits[l.item_id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
       <td data-label="Precio"><b>{{ l.price }} {{ l.currency_code }}</b></td>

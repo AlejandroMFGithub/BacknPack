@@ -2,7 +2,7 @@
 {% block title %}Catálogo{% endblock %}
 {% block back_url %}{{ url_for('dm.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import trait_chip, list_toolbar, pager, item_places with context %}
+{% from "_macros.html" import trait_chip, list_toolbar, pager, item_places, rarity_tag with context %}
 <h1>{{ 'Ejemplares únicos' if unique else 'Catálogo de objetos' }} <span class="muted small">· {{ items.total }}</span></h1>
 <nav class="sheet-tabs" aria-label="Catálogo">
   <a href="{{ url_for('dm.items') }}" class="{{ 'active' if not unique }}">📦 Catálogo</a>
@@ -27,18 +27,18 @@
     <thead><tr><th>Objeto</th><th>Propiedades</th><th>Peso</th><th>Precio</th><th></th></tr></thead>
     <tbody>
     {% for i in items %}
-    <tr>
-      <td><b>{{ i.name }}</b>
-        <div class="muted small">{{ i.category }} · {{ i.rarity }}{% if i.attunement %} · sintonía{% endif %}</div>
+    <tr class="rarity-row {{ i.rarity | rarity }}">
+      <td><b class="item-name">{{ i.name }}</b>
+        <div class="muted small item-meta">{{ rarity_tag(i.rarity) }} {{ i.category }}{% if i.attunement %} · sintonía{% endif %}</div>
         {% if unique %}<div class="small unique-where">✦ Basado en «{{ parents[i.parent_id].name if parents.get(i.parent_id) else '—' }}» · está en {{ item_places(i.id) }}</div>{% endif %}
         {% if i.description %}<div class="small item-desc">{{ i.description }}</div>{% endif %}
         {% for t in traits[i.id] %}<div>{{ trait_chip(t, trait_kinds) }}</div>{% endfor %}</td>
-      <td class="small" data-label="Propiedades">{{ i.properties }}
+      <td class="small {{ 'is-empty' if not i.properties and not i.effects }}" data-label="Propiedades">{{ i.properties }}
         {% if i.effects %}<div class="effects-line">⚙ {{ i.effects | effects_summary }}</div>{% endif %}</td>
-      <td data-label="Peso">{{ '%g' % i.weight }} kg</td>
-      <td data-label="Precio">{{ i.cost_cp | coins or '—' }}</td>
+      <td data-label="Peso" class="{{ 'is-empty' if not i.weight }}">{% if i.weight %}{{ '%g' % i.weight }} kg{% else %}<span class="muted">—</span>{% endif %}</td>
+      <td data-label="Precio" class="{{ 'is-empty' if i.cost_cp is none }}">{{ i.cost_cp | coins or '—' }}</td>
       <td class="actions">
-        <div class="row">
+        <div class="row nowrap">
           <a class="btn btn-small btn-ghost" href="{{ url_for('dm.edit_item', item_id=i.id) }}">Editar</a>
           <details class="menu">
             <summary aria-label="Más acciones">⋯</summary>

@@ -1386,3 +1386,71 @@ table.attacks tr.no-prof .attack-roll b { color: var(--mod-down); }
 
 .revert-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem;
   margin: 1.1rem 0 0; padding-top: .8rem; border-top: 1px dashed var(--line-strong); }
+
+/* === Rarezas: color en bordes, etiquetas y nombres ============================================ */
+.r-common    { --rc: #8b7c68; --rc-ink: #5f5242; --rc-soft: #f4efe6; }
+.r-uncommon  { --rc: #2f9a4e; --rc-ink: #1d6b34; --rc-soft: #ecf7ee; }
+.r-rare      { --rc: #2b6fd6; --rc-ink: #1d4f9c; --rc-soft: #ebf2fd; }
+.r-veryrare  { --rc: #8a44d6; --rc-ink: #642aa6; --rc-soft: #f4ecfd; }
+.r-legendary { --rc: #e08a1e; --rc-ink: #a35a07; --rc-soft: #fdf3e3; }
+.r-artifact  { --rc: #cf3b2c; --rc-ink: #9c2016; --rc-soft: #fdecea; }
+.r-coin      { --rc: var(--gold); --rc-ink: var(--ink); --rc-soft: #fdf6e3; }
+
+.rarity-tag {
+  display: inline-flex; align-items: center; gap: .25rem; padding: .02rem .45rem .02rem .35rem; border-radius: 999px;
+  font-size: .72rem; font-weight: 600; line-height: 1.5; color: var(--rc-ink); background: var(--rc-soft);
+  border: 1px solid color-mix(in srgb, var(--rc) 45%, transparent); vertical-align: 1px;
+}
+.rarity-tag::before { content: "◆"; font-size: .62rem; color: var(--rc); }
+.item-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .4rem; }
+.item-name.r-uncommon, .item-name.r-rare, .item-name.r-veryrare, .item-name.r-legendary, .item-name.r-artifact { color: var(--rc-ink); }
+.rarity-item:not(.r-common) .item-name, .rarity-row:not(.r-common):not(.r-coin) .item-name { color: var(--rc-ink); }
+
+/* Inventario: borde de su rareza; lo equipado se marca con un halo dorado */
+.inv-item.rarity-item {
+  border-left: 5px solid var(--rc);
+  background: linear-gradient(90deg, var(--rc-soft), #fff 38%);
+}
+.inv-item.rarity-item.equipped { border-left-color: var(--rc); box-shadow: 0 0 0 1.5px #e4c27a, 0 4px 14px -8px #8a641680; }
+.inv-item.rarity-item.r-common { background: #fff; }
+.inv-item.rarity-item.r-common.equipped { background: linear-gradient(90deg, #fdf8ec, #fff 38%); }
+
+/* Tablas de catálogo, tienda y botín: franja de color en la primera celda */
+tr.rarity-row > td:first-child { box-shadow: inset 4px 0 0 var(--rc); padding-left: .85rem; }
+tr.rarity-row:hover > td { background: color-mix(in srgb, var(--rc-soft) 70%, transparent); }
+
+/* Legendario y artefacto: un brillo suave */
+.inv-item.r-legendary, .inv-item.r-artifact { box-shadow: 0 0 0 1px color-mix(in srgb, var(--rc) 35%, transparent), 0 6px 18px -10px var(--rc); }
+.inv-item.r-legendary.equipped, .inv-item.r-artifact.equipped { box-shadow: 0 0 0 1.5px #e4c27a, 0 6px 18px -8px var(--rc); }
+@media (prefers-reduced-motion: no-preference) {
+  .r-legendary .rarity-tag, .rarity-tag.r-legendary, .rarity-tag.r-artifact {
+    background-image: linear-gradient(110deg, transparent 30%, #ffffffaa 50%, transparent 70%);
+    background-size: 250% 100%; animation: rarity-shine 3.5s ease-in-out infinite;
+  }
+}
+@keyframes rarity-shine { 0%, 60% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
+
+/* Catálogo: acciones en una línea */
+.row.nowrap { flex-wrap: nowrap; }
+@media (max-width: 640px) {
+  table.stack tr.rarity-row { border-left: 5px solid var(--rc); }
+  table.stack tr.rarity-row > td:first-child { box-shadow: none; padding-left: 0; }
+}
+
+/* Tarjetas que se pulsan: se elevan al pasar el ratón */
+a.card-link, a.char-card { transition: transform .12s ease, box-shadow .12s ease; }
+a.card-link:hover { transform: translateY(-2px); box-shadow: 0 22px 40px -22px #000e, 0 0 0 1px #f0c86255; text-decoration: none; }
+.char-entry:has(a.char-card:hover) { transform: translateY(-2px); box-shadow: 0 22px 40px -22px #000e, 0 0 0 1px #f0c86255; }
+.char-entry { transition: transform .12s ease, box-shadow .12s ease; }
+a.card-link h2::after { content: " →"; color: var(--gold); opacity: 0; transition: opacity .12s; }
+a.card-link:hover h2::after { opacity: 1; }
+.shop-card-icon { margin-right: .35rem; }
+
+/* Mini barra de vida en la lista de personajes */
+.mini-hp { display: block; width: 100%; max-width: 220px; height: 5px; margin-top: .35rem; border-radius: 999px; background: #e9dcc4; overflow: hidden; }
+.mini-hp span { display: block; height: 100%; border-radius: inherit; background: var(--hp, #2f6b3a); }
+@media (prefers-reduced-motion: reduce) { a.card-link, .char-entry { transition: none; } }
+
+@media (max-width: 640px) {
+  table.stack td.is-empty { display: none; }  /* en tarjeta, sin filas vacías («Peso —») */
+}

@@ -2,7 +2,7 @@
 {% block title %}{{ character.name }}{% endblock %}
 {% block back_url %}{{ url_for('characters.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import avatar, trait_chip, trait_form, list_toolbar, picker, calc_class, calc_attrs, calc_pop, effects_editor, hidden_badge, hide_toggle, sheet_tabs, class_line with context %}
+{% from "_macros.html" import avatar, trait_chip, trait_form, list_toolbar, picker, calc_class, calc_attrs, calc_pop, effects_editor, hidden_badge, hide_toggle, sheet_tabs, class_line, rarity_tag with context %}
 {% set dm = is_dm() %}
 {% set item_filters = [{'name': 'category', 'label': 'Categoría', 'options': categories},
                        {'name': 'rarity', 'label': 'Rareza', 'options': rarities}] %}
@@ -387,13 +387,13 @@
   <div class="inv-list">
     {% for it in inventory %}
     {% set wa = weapon_attacks.get(it.id) %}
-    <div class="inv-item {{ 'hidden-row' if not it.visible }} {{ 'equipped' if it.equipped }}" data-group="{{ groups[it.id] }}">
+    <div class="inv-item rarity-item {{ it.rarity | rarity }} {{ 'hidden-row' if not it.visible }} {{ 'equipped' if it.equipped }}" data-group="{{ groups[it.id] }}">
       <div class="inv-main">
-        <b>{{ it.name }}</b>
+        <b class="item-name">{{ it.name }}</b>
         {% if dm %}{% if it.unique_copy %}<span class="badge badge-unique" title="Versión única: editada solo para este ejemplar">✦ Único</span>{% endif %}{% endif %}
         {% if it.equipped %}<span class="badge badge-buff">Equipado</span>{% endif %}
         {% if not it.visible %}<span class="badge badge-hidden">Oculto al jugador</span>{% endif %}
-        <div class="muted small">{{ it.category }} · {{ it.rarity }}{% if it.attunement %} · requiere sintonía{% endif %}</div>
+        <div class="muted small item-meta">{{ rarity_tag(it.rarity) }} {{ it.category }}{% if it.attunement %} · requiere sintonía{% endif %}</div>
         {% if it.properties %}<div class="small">{{ it.properties }}</div>{% endif %}
         {% if wa %}<div class="attack-line small">⚔ <b>{{ wa.calc.attack.total | signed }}</b> al ataque ·
           <b>{{ wa.calc.roll or '—' }}</b> {{ wa.calc.type }}{% if wa.calc.roll_two %} ({{ wa.calc.roll_two }} a dos manos){% endif %}
@@ -405,7 +405,7 @@
       </div>
       <div class="inv-qty">
         <b>×{{ it.quantity }}</b>
-        <div class="muted small">{{ '%g' % (it.weight * it.quantity) }} kg</div>
+        {% if it.weight %}<div class="muted small">{{ '%g' % (it.weight * it.quantity) }} kg</div>{% endif %}
       </div>
       <div class="inv-actions">
         <form class="inline" method="post" action="{{ url_for('characters.toggle_equip', character_id=character.id, inventory_id=it.id) }}">

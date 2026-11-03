@@ -93,6 +93,14 @@ def create_app(test_config=None):
     app.add_template_filter(effects.summary, "effects_summary")
     from .models.item import format_cost
     app.add_template_filter(format_cost, "coins")
+
+    RARITY_CLASSES = {"Común": "r-common", "Poco común": "r-uncommon", "Raro": "r-rare", "Muy raro": "r-veryrare",
+                      "Legendario": "r-legendary", "Artefacto": "r-artifact"}
+
+    @app.template_filter("rarity")
+    def rarity_class(rarity):
+        """«Raro» → «r-rare» (color de la rareza en bordes, etiquetas y nombres)."""
+        return RARITY_CLASSES.get(rarity, "r-common")
     from .models import weapons
     app.jinja_env.globals.update(WEAPON_PROPS=weapons.PROPS, DAMAGE_TYPES=weapons.DAMAGE_TYPES,
                                  WEAPON_CATS=weapons.CATEGORIES, WEAPON_PROP_HELP=weapons.PROP_HELP,

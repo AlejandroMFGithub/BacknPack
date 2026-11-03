@@ -266,3 +266,8 @@ tabindex="0" role="button" aria-expanded="false" aria-label="{{ label }}: ver c�
   {{- ' · ' if not loop.last }}
 {%- else %}<span class="muted">sin usar</span>{% endfor -%}
 {%- endmacro %}
+
+{# Etiqueta de rareza con su color: ◆ Raro #}
+{% macro rarity_tag(rarity) -%}
+<span class="rarity-tag {{ rarity | rarity }}">{{ rarity }}</span>
+{%- endmacro %}

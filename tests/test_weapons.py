@@ -103,7 +103,7 @@ inv = b[b.index('id="inventario"'):]
 tabs = dict(re.findall(r'data-tab="(\w+)"[^>]*>[^<]*<span>(\d+)</span>', inv))
 print("pestañas de Lyra:", tabs)
 assert tabs["all"] == str(one("SELECT COUNT(*) FROM inventory_items WHERE character_id = 1")) and tabs["weapons"] == "4"
-groups = {name: group for group, name in re.findall(r'data-group="(\w+)">\s*<div class="inv-main">\s*<b>([^<]+)</b>', inv)}
+groups = {name: group for group, name in re.findall(r'data-group="(\w+)">\s*<div class="inv-main">\s*<b[^>]*>([^<]+)</b>', inv)}
 assert groups["Arco corto"] == "weapons" and groups["Armadura de cuero"] == "armor"
 assert groups["Poción de curación"] == "consumables" and groups["Varita de proyectiles mágicos"] == "magic"
 assert "⚔ <b>+5</b> al ataque" in inv                                                # línea de ataque en el arma

@@ -27,6 +27,9 @@
         <div>{{ c.race or '¿?' }} · {{ c.class_name or '¿?' }}{% if c.subclass_name %} ({{ c.subclass_name }}){% endif %} nivel {{ c.level }}</div>
         <div class="muted small">PG {{ c.hp_current }}/{{ sheets[c.id].hp_max.total }}{% if c.hp_temp %} <span class="hp-temp-text" title="PG temporales">+{{ c.hp_temp }}</span>{% endif %} · CA {% set ac = sheets[c.id].armor_class %}<b class="{{ 'mod-' ~ ac.sign ~ '-text' if ac.sign }}">{{ ac.total }}</b>
           {% if is_dm() %} · jugador: {{ c.owner }}{% endif %}</div>
+        {% set hp_max = sheets[c.id].hp_max.total %}
+        {% set pct = [[(c.hp_current / hp_max * 100) if hp_max else 0, 0] | max, 100] | min %}
+        <span class="mini-hp" aria-hidden="true"><span style="width: {{ pct | round(1) }}%; --hp: {{ '#2f6b3a' if pct > 50 else ('#b7791f' if pct > 25 else '#a12a22') }}"></span></span>
       </div>
     </a>
     {% if not is_dm() %}

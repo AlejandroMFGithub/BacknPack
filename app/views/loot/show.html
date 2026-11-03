@@ -2,7 +2,7 @@
 {% block title %}{{ pool.name }}{% endblock %}
 {% block back_url %}{{ url_for('loot.index') }}{% endblock %}
 {% block content %}
-{% from "_macros.html" import list_toolbar, picker, acting_box with context %}
+{% from "_macros.html" import list_toolbar, picker, acting_box, rarity_tag with context %}
 <div class="sheet-head">
   <div>
     <h1>{{ pool.name }}
@@ -32,9 +32,9 @@
     <thead><tr><th>Contenido</th><th>Cantidad</th><th>Recoger</th>{% if is_dm() %}<th></th>{% endif %}</tr></thead>
     <tbody>
     {% for e in entries %}
-    <tr>
+    <tr class="rarity-row {{ e.rarity | rarity if e.item_id else 'r-coin' }}">
       <td>
-        {% if e.item_id %}<b>{{ e.item_name }}</b> {% if is_dm() %}{% if e.unique_copy %}<span class="badge badge-unique" title="Versión única: editada solo para este ejemplar">✦ Único</span>{% endif %}{% endif %}<div class="muted small">{{ e.category }} · {{ e.rarity }}</div>
+        {% if e.item_id %}<b class="item-name">{{ e.item_name }}</b> {% if is_dm() %}{% if e.unique_copy %}<span class="badge badge-unique" title="Versión única: editada solo para este ejemplar">✦ Único</span>{% endif %}{% endif %}<div class="muted small item-meta">{{ rarity_tag(e.rarity) }} {{ e.category }}</div>
         {% else %}<b>{{ e.currency_name }}</b> <span class="muted">({{ e.currency_code }})</span>{% endif %}
       </td>
       <td data-label="Quedan">{{ e.quantity }}</td>
